@@ -6,6 +6,7 @@ import { KPICard } from "@/components/dashboard/KPICard";
 import { RevenueChart } from "@/components/dashboard/RevenueChart";
 import { CashFlowChart } from "@/components/dashboard/CashFlowChart";
 import { CreateInvoiceModal } from "@/components/dashboard/CreateInvoiceModal";
+import { TallyConnectModal } from "@/components/dashboard/TallyConnectModal";
 import {
   DollarSign, TrendingUp, TrendingDown, Activity,
   RefreshCcw, Plus, Zap, ArrowUpRight, AlertTriangle, Lightbulb,
@@ -101,6 +102,8 @@ export default function Dashboard() {
   const [isSyncing, setIsSyncing] = useState(false);
   const [isGeneratingAi, setIsGeneratingAi] = useState(false);
   const [isModalOpen, setIsModalOpen] = useState(false);
+  const [isTallyModalOpen, setIsTallyModalOpen] = useState(false);
+  const [tallyCompany, setTallyCompany] = useState<string | null>(null);
   const [lastSynced, setLastSynced] = useState<string | null>(null);
   const [aiSource, setAiSource] = useState<string | null>(null);
 
@@ -180,8 +183,33 @@ export default function Dashboard() {
     }
   };
 
+  const handleTallySync = async () => {
+    setIsSyncing(true);
+    try {
+      const response = await fetch('/api/tally/sync', { method: 'POST' });
+      const data = await response.json();
+      if (response.ok && data.metrics) {
+        setMetrics(data.metrics);
+        setLastSynced(new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }));
+        handleFetchAiInsights(data.metrics);
+      }
+    } catch (e) {
+      console.error(e);
+    } finally {
+      setIsSyncing(false);
+    }
+  };
+
   useEffect(() => {
     handleSync();
+    fetch('/api/tally/status')
+      .then(res => res.json())
+      .then(data => {
+        if (data.connected && data.companyName) {
+          setTallyCompany(data.companyName);
+        }
+      })
+      .catch(console.error);
   }, []);
 
   const fmt = (n: number) =>
@@ -226,30 +254,67 @@ export default function Dashboard() {
         </div>
       </div>
 
-      {/* ── Xero connection banner ── */}
-      <div className="flex items-center gap-3 px-5 py-3.5 bg-gradient-to-r from-emerald-500/8 to-transparent border border-emerald-500/20 rounded-2xl">
-        <div className="w-8 h-8 rounded-lg bg-[#1AB4D7]/10 border border-[#1AB4D7]/20 flex items-center justify-center flex-shrink-0">
-          <span className="text-[#1AB4D7] font-black text-sm">X</span>
+      {/* ── Integrations Sync Banner (Xero & Tally) ── */}
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+        {/* Xero Connection Card */}
+        <div className="flex items-center gap-3 px-5 py-3.5 bg-gradient-to-r from-[#1AB4D7]/10 to-transparent border border-[#1AB4D7]/20 rounded-2xl">
+          <div className="w-9 h-9 rounded-xl bg-[#1AB4D7]/15 border border-[#1AB4D7]/30 flex items-center justify-center flex-shrink-0">
+            <span className="text-[#1AB4D7] font-black text-base">X</span>
+          </div>
+          <div className="flex-1 min-w-0">
+            <p className="text-sm font-semibold text-foreground">
+              {orgName ? `Xero — ${orgName}` : "Xero Accounting"}
+            </p>
+            <p className="text-xs text-foreground/50 truncate">
+              {orgName ? "Invoices & bills synced automatically" : "Connect Xero for live cloud sync"}
+            </p>
+          </div>
+          <div className="flex items-center gap-2 flex-shrink-0">
+            {orgName ? (
+              <span className="px-2.5 py-1 bg-emerald-500/10 text-emerald-600 text-xs font-bold rounded-full flex items-center gap-1.5">
+                <span className="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse" />
+                Live Sync
+              </span>
+            ) : (
+              <Link href="/integrations/xero" className="flex items-center gap-1.5 px-3 py-1.5 bg-[#1AB4D7] text-white text-xs font-semibold rounded-lg hover:bg-[#1AB4D7]/90 transition-colors">
+                <Zap className="w-3.5 h-3.5" /> Connect
+              </Link>
+            )}
+          </div>
         </div>
-        <div className="flex-1 min-w-0">
-          <p className="text-sm font-semibold text-foreground">
-            {orgName ? `Xero — ${orgName}` : "Connect Xero to see live data"}
-          </p>
-          <p className="text-xs text-foreground/50 truncate">
-            {orgName ? "Invoices, bills, and transactions synced automatically" : "Connect your accounting software to enable auto-sync"}
-          </p>
-        </div>
-        <div className="flex items-center gap-2 flex-shrink-0">
-          {orgName ? (
-            <span className="px-2.5 py-1 bg-emerald-500/10 text-emerald-600 text-xs font-bold rounded-full flex items-center gap-1.5">
-              <span className="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse" />
-              Live
-            </span>
-          ) : (
-            <Link href="/integrations/xero" className="flex items-center gap-1.5 px-3 py-1.5 bg-[#1AB4D7] text-white text-xs font-semibold rounded-lg hover:bg-[#1AB4D7]/90 transition-colors">
-              <Zap className="w-3.5 h-3.5" /> Connect
-            </Link>
-          )}
+
+        {/* Tally Connection Card */}
+        <div className="flex items-center gap-3 px-5 py-3.5 bg-gradient-to-r from-orange-500/10 to-transparent border border-orange-500/20 rounded-2xl">
+          <div className="w-9 h-9 rounded-xl bg-orange-500/15 border border-orange-500/30 flex items-center justify-center flex-shrink-0">
+            <span className="text-orange-500 font-black text-base">T</span>
+          </div>
+          <div className="flex-1 min-w-0">
+            <p className="text-sm font-semibold text-foreground">
+              {tallyCompany ? `Tally — ${tallyCompany}` : "TallyPrime ERP"}
+            </p>
+            <p className="text-xs text-foreground/50 truncate">
+              {tallyCompany ? "Vouchers & GST ledgers active" : "Sync Indian GST ledgers & daybook"}
+            </p>
+          </div>
+          <div className="flex items-center gap-2 flex-shrink-0">
+            {tallyCompany ? (
+              <button
+                onClick={handleTallySync}
+                disabled={isSyncing}
+                className="flex items-center gap-1 px-3 py-1 bg-orange-500/15 text-orange-600 text-xs font-bold rounded-full hover:bg-orange-500/25 transition-colors"
+              >
+                <RefreshCcw className={`w-3 h-3 ${isSyncing ? 'animate-spin' : ''}`} />
+                Sync
+              </button>
+            ) : (
+              <button
+                onClick={() => setIsTallyModalOpen(true)}
+                className="flex items-center gap-1.5 px-3 py-1.5 bg-orange-500 text-white text-xs font-semibold rounded-lg hover:bg-orange-600 transition-colors shadow-sm"
+              >
+                <Zap className="w-3.5 h-3.5" /> Connect Tally
+              </button>
+            )}
+          </div>
         </div>
       </div>
 
@@ -520,6 +585,12 @@ export default function Dashboard() {
         isOpen={isModalOpen}
         onClose={() => setIsModalOpen(false)}
         onSuccess={() => { handleSync(); }}
+      />
+
+      <TallyConnectModal
+        isOpen={isTallyModalOpen}
+        onClose={() => setIsTallyModalOpen(false)}
+        onSuccess={(company) => setTallyCompany(company)}
       />
     </div>
   );

@@ -237,44 +237,64 @@ function IntegrationsDropdown() {
             </p>
           </div>
 
-          {/* Xero item */}
-          <div className="px-2 pb-2">
+          {/* Integrations items */}
+          <div className="px-2 pb-2 space-y-1">
+            {/* Xero item */}
             <Link
               href="/integrations/xero"
               onClick={() => setOpen(false)}
-              className="flex items-center gap-3 px-3 py-3 rounded-xl hover:bg-foreground/5 transition-colors group"
+              className="flex items-center gap-3 px-3 py-2.5 rounded-xl hover:bg-foreground/5 transition-colors group"
             >
-              {/* Xero logo tile */}
-              <div className="flex-shrink-0 w-10 h-10 rounded-xl bg-[#1AB4D7]/10 border border-[#1AB4D7]/20 flex items-center justify-center">
-                <span className="text-[#1AB4D7] font-black text-base">X</span>
+              <div className="flex-shrink-0 w-9 h-9 rounded-xl bg-[#1AB4D7]/10 border border-[#1AB4D7]/20 flex items-center justify-center font-black text-sm text-[#1AB4D7]">
+                X
               </div>
-
-              {/* Text */}
               <div className="flex-1 min-w-0">
                 <div className="flex items-center gap-2 mb-0.5">
-                  <p className="text-sm font-semibold text-foreground">Xero</p>
-                  <span className="px-2 py-0.5 bg-primary/10 text-primary text-[10px] font-bold rounded-full leading-none">
+                  <p className="text-sm font-semibold text-foreground leading-tight">Xero</p>
+                  <span className="px-2 py-0.5 bg-emerald-500/10 text-emerald-600 text-[10px] font-bold rounded-full leading-none">
                     Connected
                   </span>
                 </div>
-                <p className="text-xs text-foreground/50 leading-snug">
+                <p className="text-xs text-foreground/50 leading-snug truncate">
                   Generate invoices &amp; sync live data
                 </p>
               </div>
+              <Zap className="flex-shrink-0 w-4 h-4 text-foreground/20 group-hover:text-emerald-500 transition-colors" />
+            </Link>
 
-              <Zap className="flex-shrink-0 w-4 h-4 text-foreground/20 group-hover:text-primary transition-colors" />
+            {/* TallyPrime item */}
+            <Link
+              href="/integrations/tally"
+              onClick={() => setOpen(false)}
+              className="flex items-center gap-3 px-3 py-2.5 rounded-xl hover:bg-foreground/5 transition-colors group"
+            >
+              <div className="flex-shrink-0 w-9 h-9 rounded-xl bg-orange-500/10 border border-orange-500/20 flex items-center justify-center font-black text-sm text-orange-500">
+                T
+              </div>
+              <div className="flex-1 min-w-0">
+                <div className="flex items-center gap-2 mb-0.5">
+                  <p className="text-sm font-semibold text-foreground leading-tight">TallyPrime</p>
+                  <span className="px-2 py-0.5 bg-orange-500/10 text-orange-600 text-[10px] font-bold rounded-full leading-none">
+                    Supported
+                  </span>
+                </div>
+                <p className="text-xs text-foreground/50 leading-snug truncate">
+                  Sync Indian ledgers &amp; GST daybook
+                </p>
+              </div>
+              <Zap className="flex-shrink-0 w-4 h-4 text-foreground/20 group-hover:text-orange-500 transition-colors" />
             </Link>
           </div>
 
           {/* Footer */}
           <div className="px-5 py-3 border-t border-border bg-foreground/[0.02] flex items-center justify-between">
-            <span className="text-xs text-foreground/40">1 app connected</span>
+            <span className="text-xs text-foreground/40">2 apps supported</span>
             <Link
-              href="/integrations/xero"
+              href="/settings"
               onClick={() => setOpen(false)}
               className="flex items-center gap-1.5 text-xs font-semibold text-primary hover:text-primary/80 transition-colors"
             >
-              Explore integration
+              Manage integrations
               <ArrowRight className="w-3.5 h-3.5" />
             </Link>
           </div>

@@ -1,11 +1,12 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import {
   Building2, CreditCard, Users, Bell, Shield,
   RefreshCcw, CheckCircle2, Plug, Mail, ChevronRight,
-  Lock, UserPlus, AlertTriangle,
+  Lock, UserPlus, AlertTriangle, Check
 } from "lucide-react";
+import { TallyConnectModal } from "@/components/dashboard/TallyConnectModal";
 
 const TABS = [
   { id: "organization",  label: "Organisation",    icon: Building2  },
@@ -77,8 +78,10 @@ function SectionCard({ title, description, action, children }: {
 }
 
 export default function SettingsPage() {
+  const [activeTab, setActiveTab] = useState("integrations");
   const [isSyncing, setIsSyncing] = useState(false);
-  const [activeTab, setActiveTab] = useState("organization");
+  const [tallyCompany, setTallyCompany] = useState<string | null>(null);
+  const [isTallyModalOpen, setIsTallyModalOpen] = useState(false);
 
   const handleXeroSync = async () => {
     setIsSyncing(true);
@@ -90,6 +93,28 @@ export default function SettingsPage() {
     } catch { alert("Failed to connect to sync endpoint."); }
     finally { setIsSyncing(false); }
   };
+
+  const handleTallySync = async () => {
+    setIsSyncing(true);
+    try {
+      const res = await fetch('/api/tally/sync', { method: 'POST' });
+      const data = await res.json();
+      if (res.ok) alert(data.message);
+      else alert(`Error: ${data.error}`);
+    } catch { alert("Failed to sync Tally data."); }
+    finally { setIsSyncing(false); }
+  };
+
+  useEffect(() => {
+    fetch('/api/tally/status')
+      .then(res => res.json())
+      .then(data => {
+        if (data.connected && data.companyName) {
+          setTallyCompany(data.companyName);
+        }
+      })
+      .catch(console.error);
+  }, []);
 
   return (
     <div className="flex flex-col gap-7 max-w-4xl">
@@ -103,7 +128,7 @@ export default function SettingsPage() {
       <div className="grid grid-cols-1 md:grid-cols-4 gap-6">
 
         {/* ── Sidebar nav ── */}
-        <div className="md:col-span-1 flex flex-col gap-0.5">
+        <div className="md:col-span-1 flex md:flex-col overflow-x-auto gap-1.5 pb-2 md:pb-0 scrollbar-none flex-shrink-0">
           {TABS.map((tab) => {
             const Icon = tab.icon;
             const isActive = activeTab === tab.id;
@@ -111,15 +136,15 @@ export default function SettingsPage() {
               <button
                 key={tab.id}
                 onClick={() => setActiveTab(tab.id)}
-                className={`flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm font-medium transition-all text-left group ${
+                className={`flex items-center gap-2.5 px-3.5 py-2.5 rounded-xl text-xs sm:text-sm font-medium transition-all text-left whitespace-nowrap group ${
                   isActive
-                    ? "bg-primary/8 text-primary"
+                    ? "bg-primary/10 text-primary font-bold shadow-sm"
                     : "text-foreground/60 hover:bg-foreground/5 hover:text-foreground"
                 }`}
               >
                 <Icon className={`w-4 h-4 flex-shrink-0 ${isActive ? "text-primary" : "text-foreground/40 group-hover:text-foreground/60"}`} />
                 <span className="flex-1">{tab.label}</span>
-                {isActive && <ChevronRight className="w-3.5 h-3.5 text-primary/60" />}
+                {isActive && <ChevronRight className="w-3.5 h-3.5 text-primary/60 hidden md:block" />}
               </button>
             );
           })}
@@ -210,13 +235,35 @@ export default function SettingsPage() {
                   <div className="flex-1 min-w-0">
                     <div className="flex items-center gap-2">
                       <h4 className="font-semibold text-sm text-foreground">TallyPrime</h4>
-                      <span className="px-2 py-0.5 bg-foreground/5 text-foreground/40 text-[10px] font-bold rounded-full">Not connected</span>
+                      {tallyCompany ? (
+                        <span className="px-2 py-0.5 bg-emerald-500/10 text-emerald-600 text-[10px] font-bold rounded-full flex items-center gap-1">
+                          <span className="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse" /> Connected ({tallyCompany})
+                        </span>
+                      ) : (
+                        <span className="px-2 py-0.5 bg-foreground/5 text-foreground/40 text-[10px] font-bold rounded-full">Not connected</span>
+                      )}
                     </div>
-                    <p className="text-xs text-foreground/50 mt-0.5">Connect TallyPrime to sync Indian accounting data</p>
+                    <p className="text-xs text-foreground/50 mt-0.5">
+                      {tallyCompany ? "Ledgers and Indian GST vouchers synced automatically" : "Connect TallyPrime to sync Indian accounting data"}
+                    </p>
                   </div>
-                  <button className="px-3 py-1.5 bg-primary text-primary-foreground rounded-lg text-xs font-semibold hover:bg-primary/90 transition-colors flex-shrink-0">
-                    Connect
-                  </button>
+                  {tallyCompany ? (
+                    <button
+                      onClick={handleTallySync}
+                      disabled={isSyncing}
+                      className="flex items-center gap-1.5 px-3 py-1.5 bg-orange-500/10 text-orange-600 rounded-lg text-xs font-semibold hover:bg-orange-500/20 transition-colors disabled:opacity-50 flex-shrink-0"
+                    >
+                      <RefreshCcw className={`w-3.5 h-3.5 ${isSyncing ? 'animate-spin' : ''}`} />
+                      {isSyncing ? "Syncing..." : "Sync Tally"}
+                    </button>
+                  ) : (
+                    <button
+                      onClick={() => setIsTallyModalOpen(true)}
+                      className="px-3.5 py-1.5 bg-orange-500 text-white font-semibold rounded-lg text-xs hover:bg-orange-600 transition-all flex-shrink-0 shadow-sm"
+                    >
+                      Connect
+                    </button>
+                  )}
                 </div>
               </div>
             </SectionCard>
@@ -388,6 +435,12 @@ export default function SettingsPage() {
           )}
         </div>
       </div>
+      {/* Tally Connection Modal */}
+      <TallyConnectModal
+        isOpen={isTallyModalOpen}
+        onClose={() => setIsTallyModalOpen(false)}
+        onSuccess={(company) => setTallyCompany(company)}
+      />
     </div>
   );
 }

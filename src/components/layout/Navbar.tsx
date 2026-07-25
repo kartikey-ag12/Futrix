@@ -76,6 +76,12 @@ const INTEGRATION_ITEMS = [
     logo: "https://upload.wikimedia.org/wikipedia/en/thumb/9/9f/Xero_software_logo.svg/200px-Xero_software_logo.svg.png",
     badge: "Connected",
   },
+  {
+    label: "TallyPrime",
+    description: "Sync Indian accounting ledgers, vouchers and GST data",
+    href: "/integrations/tally",
+    badge: "Supported",
+  },
 ];
 
 // ─── Sub-components ───────────────────────────────────────────────────────────
@@ -242,20 +248,25 @@ function IntegrationsDropdown() {
                 onClick={() => setOpen(false)}
                 className="flex items-center gap-3 p-3 rounded-xl hover:bg-slate-50 transition-colors group"
               >
-                <div className="w-10 h-10 rounded-xl bg-white border border-slate-200 flex items-center justify-center overflow-hidden shadow-sm">
-                  {/* Xero logo as text fallback */}
-                  <span className="text-[#1AB4D7] font-bold text-lg">X</span>
+                <div className={`w-10 h-10 rounded-xl border flex items-center justify-center overflow-hidden shadow-sm flex-shrink-0 font-black text-lg ${
+                  item.label === 'Xero'
+                    ? 'bg-[#1AB4D7]/10 border-[#1AB4D7]/20 text-[#1AB4D7]'
+                    : 'bg-orange-500/10 border-orange-500/20 text-orange-500'
+                }`}>
+                  {item.label[0]}
                 </div>
-                <div className="flex-1">
+                <div className="flex-1 min-w-0">
                   <div className="flex items-center gap-2">
                     <p className="text-sm font-semibold text-slate-800">{item.label}</p>
                     {item.badge && (
-                      <span className="px-1.5 py-0.5 bg-emerald-100 text-emerald-700 text-[10px] font-semibold rounded-full">
+                      <span className={`px-1.5 py-0.5 text-[10px] font-semibold rounded-full ${
+                        item.label === 'Xero' ? 'bg-emerald-100 text-emerald-700' : 'bg-orange-100 text-orange-700'
+                      }`}>
                         {item.badge}
                       </span>
                     )}
                   </div>
-                  <p className="text-xs text-slate-500 mt-0.5">{item.description}</p>
+                  <p className="text-xs text-slate-500 mt-0.5 truncate">{item.description}</p>
                 </div>
                 <Zap className="w-4 h-4 text-slate-300 group-hover:text-emerald-500 transition-colors" />
               </Link>
@@ -267,7 +278,7 @@ function IntegrationsDropdown() {
               onClick={() => setOpen(false)}
               className="flex items-center gap-1.5 text-sm font-medium text-emerald-600 hover:text-emerald-700 transition-colors"
             >
-              Explore Xero integration
+              Explore accounting integrations
               <ArrowRight className="w-4 h-4" />
             </Link>
           </div>
@@ -379,7 +390,7 @@ export function Navbar() {
                 </Link>
               ))}
             </div>
-            <div className="pt-2">
+            <div className="pt-2 space-y-1">
               <p className="px-3 py-1 text-[11px] font-semibold uppercase tracking-wider text-slate-400">
                 Integrations
               </p>
@@ -389,6 +400,13 @@ export function Navbar() {
                 className="block px-3 py-2 rounded-lg text-sm font-medium text-slate-700 hover:bg-emerald-50 hover:text-emerald-600 transition-colors"
               >
                 Xero Integration
+              </Link>
+              <Link
+                href="/integrations/tally"
+                onClick={() => setMobileOpen(false)}
+                className="block px-3 py-2 rounded-lg text-sm font-medium text-slate-700 hover:bg-orange-50 hover:text-orange-600 transition-colors"
+              >
+                TallyPrime Integration
               </Link>
             </div>
             <div className="pt-2">

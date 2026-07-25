@@ -6,6 +6,7 @@ import {
   LayoutDashboard,
   LineChart,
   ArrowLeftRight,
+  FileText,
   Settings,
   HelpCircle,
   Zap,
@@ -18,6 +19,7 @@ const NAV_LINKS = [
   { name: "Dashboard", href: "/", icon: LayoutDashboard },
   { name: "Forecasting", href: "/forecasting", icon: LineChart },
   { name: "Transactions", href: "/transactions", icon: ArrowLeftRight },
+  { name: "Reports & P&L", href: "/reports", icon: FileText },
   { name: "Settings", href: "/settings", icon: Settings },
 ];
 
@@ -101,8 +103,8 @@ export function Sidebar({ isOpen = false, onClose, onOpenSupport }: SidebarProps
           })}
 
           {/* Divider */}
-          <div className="pt-4 pb-2">
-            <p className="px-3 mb-3 text-[10px] font-bold uppercase tracking-widest text-slate-500">
+          <div className="pt-4 pb-2 space-y-1">
+            <p className="px-3 mb-2 text-[10px] font-bold uppercase tracking-widest text-slate-500">
               Integrations
             </p>
             <Link
@@ -116,6 +118,19 @@ export function Sidebar({ isOpen = false, onClose, onOpenSupport }: SidebarProps
               <span className="flex-1">Xero</span>
               <span className="px-1.5 py-0.5 bg-emerald-500/15 text-emerald-400 text-[9px] font-bold rounded-full">
                 Live
+              </span>
+            </Link>
+            <Link
+              href="/integrations/tally"
+              onClick={onClose}
+              className="flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm font-medium text-slate-400 hover:bg-slate-800 hover:text-slate-100 transition-all duration-150 group"
+            >
+              <div className="w-5 h-5 flex-shrink-0 bg-orange-500/15 rounded flex items-center justify-center">
+                <span className="text-orange-500 font-black text-xs leading-none">T</span>
+              </div>
+              <span className="flex-1">TallyPrime</span>
+              <span className="px-1.5 py-0.5 bg-orange-500/15 text-orange-400 text-[9px] font-bold rounded-full">
+                Active
               </span>
             </Link>
           </div>
