@@ -2,11 +2,11 @@
 
 import { useState, useEffect } from "react";
 import Link from "next/link";
+import { useFinancial } from "@/context/FinancialContext";
 import { KPICard } from "@/components/dashboard/KPICard";
 import { RevenueChart } from "@/components/dashboard/RevenueChart";
 import { CashFlowChart } from "@/components/dashboard/CashFlowChart";
 import { CreateInvoiceModal } from "@/components/dashboard/CreateInvoiceModal";
-import { TallyConnectModal } from "@/components/dashboard/TallyConnectModal";
 import {
   DollarSign, TrendingUp, TrendingDown, Activity,
   RefreshCcw, Plus, Zap, ArrowUpRight, AlertTriangle, Lightbulb,
@@ -99,12 +99,9 @@ const ABOUT_PILLARS = [
 ];
 
 export default function Dashboard() {
-  const [isSyncing, setIsSyncing] = useState(false);
+  const { metrics, isSyncing, orgName, lastSynced, handleXeroSync } = useFinancial();
   const [isGeneratingAi, setIsGeneratingAi] = useState(false);
   const [isModalOpen, setIsModalOpen] = useState(false);
-  const [isTallyModalOpen, setIsTallyModalOpen] = useState(false);
-  const [tallyCompany, setTallyCompany] = useState<string | null>(null);
-  const [lastSynced, setLastSynced] = useState<string | null>(null);
   const [aiSource, setAiSource] = useState<string | null>(null);
 
   const [activeReviewIndex, setActiveReviewIndex] = useState(0);
@@ -116,14 +113,6 @@ export default function Dashboard() {
   const handlePrevReview = () => {
     setActiveReviewIndex((prev) => (prev - 1 + REVIEWS.length) % REVIEWS.length);
   };
-
-  const [metrics, setMetrics] = useState({
-    totalRevenue: 45231.89,
-    totalExpenses: 23194.00,
-    netProfit: 22037.89,
-    healthScore: 92,
-  });
-  const [orgName, setOrgName] = useState<string | null>(null);
 
   const [aiInsights, setAiInsights] = useState<InsightItem[]>([
     {
@@ -166,50 +155,12 @@ export default function Dashboard() {
   };
 
   const handleSync = async () => {
-    setIsSyncing(true);
-    try {
-      const response = await fetch('/api/xero/sync', { method: 'POST' });
-      const data = await response.json();
-      if (response.ok && data.metrics) {
-        setMetrics(data.metrics);
-        if (data.message?.includes("org:")) setOrgName(data.message.split("org: ")[1]);
-        handleFetchAiInsights(data.metrics);
-      }
-    } catch (e) {
-      console.error(e);
-    } finally {
-      setIsSyncing(false);
-      setLastSynced(new Date().toLocaleTimeString());
-    }
-  };
-
-  const handleTallySync = async () => {
-    setIsSyncing(true);
-    try {
-      const response = await fetch('/api/tally/sync', { method: 'POST' });
-      const data = await response.json();
-      if (response.ok && data.metrics) {
-        setMetrics(data.metrics);
-        setLastSynced(new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }));
-        handleFetchAiInsights(data.metrics);
-      }
-    } catch (e) {
-      console.error(e);
-    } finally {
-      setIsSyncing(false);
-    }
+    const newMetrics = await handleXeroSync();
+    if (newMetrics) handleFetchAiInsights(newMetrics);
   };
 
   useEffect(() => {
     handleSync();
-    fetch('/api/tally/status')
-      .then(res => res.json())
-      .then(data => {
-        if (data.connected && data.companyName) {
-          setTallyCompany(data.companyName);
-        }
-      })
-      .catch(console.error);
   }, []);
 
   const fmt = (n: number) =>
@@ -254,7 +205,7 @@ export default function Dashboard() {
         </div>
       </div>
 
-      {/* ── Integrations Sync Banner (Xero & Tally) ── */}
+      {/* ── Integrations Sync Banner (Xero & Excel Tools) ── */}
       <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
         {/* Xero Connection Card */}
         <div className="flex items-center gap-3 px-5 py-3.5 bg-gradient-to-r from-[#1AB4D7]/10 to-transparent border border-[#1AB4D7]/20 rounded-2xl">
@@ -283,37 +234,26 @@ export default function Dashboard() {
           </div>
         </div>
 
-        {/* Tally Connection Card */}
-        <div className="flex items-center gap-3 px-5 py-3.5 bg-gradient-to-r from-orange-500/10 to-transparent border border-orange-500/20 rounded-2xl">
-          <div className="w-9 h-9 rounded-xl bg-orange-500/15 border border-orange-500/30 flex items-center justify-center flex-shrink-0">
-            <span className="text-orange-500 font-black text-base">T</span>
+        {/* Excel Tools Connection Card */}
+        <div className="flex items-center gap-3 px-5 py-3.5 bg-gradient-to-r from-green-500/10 to-transparent border border-green-500/20 rounded-2xl">
+          <div className="w-9 h-9 rounded-xl bg-green-500/15 border border-green-500/30 flex items-center justify-center flex-shrink-0">
+            <span className="text-green-500 font-black text-base">E</span>
           </div>
           <div className="flex-1 min-w-0">
             <p className="text-sm font-semibold text-foreground">
-              {tallyCompany ? `Tally — ${tallyCompany}` : "TallyPrime ERP"}
+              Excel Import / Export
             </p>
             <p className="text-xs text-foreground/50 truncate">
-              {tallyCompany ? "Vouchers & GST ledgers active" : "Sync Indian GST ledgers & daybook"}
+              Upload spreadsheets & sync to Xero
             </p>
           </div>
           <div className="flex items-center gap-2 flex-shrink-0">
-            {tallyCompany ? (
-              <button
-                onClick={handleTallySync}
-                disabled={isSyncing}
-                className="flex items-center gap-1 px-3 py-1 bg-orange-500/15 text-orange-600 text-xs font-bold rounded-full hover:bg-orange-500/25 transition-colors"
-              >
-                <RefreshCcw className={`w-3 h-3 ${isSyncing ? 'animate-spin' : ''}`} />
-                Sync
-              </button>
-            ) : (
-              <button
-                onClick={() => setIsTallyModalOpen(true)}
-                className="flex items-center gap-1.5 px-3 py-1.5 bg-orange-500 text-white text-xs font-semibold rounded-lg hover:bg-orange-600 transition-colors shadow-sm"
-              >
-                <Zap className="w-3.5 h-3.5" /> Connect Tally
-              </button>
-            )}
+            <Link
+              href="/excel-tools"
+              className="flex items-center gap-1.5 px-3 py-1.5 bg-green-600 text-white text-xs font-semibold rounded-lg hover:bg-green-700 transition-colors shadow-sm"
+            >
+              <Layers className="w-3.5 h-3.5" /> Manage Excel
+            </Link>
           </div>
         </div>
       </div>
@@ -587,11 +527,6 @@ export default function Dashboard() {
         onSuccess={() => { handleSync(); }}
       />
 
-      <TallyConnectModal
-        isOpen={isTallyModalOpen}
-        onClose={() => setIsTallyModalOpen(false)}
-        onSuccess={(company) => setTallyCompany(company)}
-      />
     </div>
   );
 }

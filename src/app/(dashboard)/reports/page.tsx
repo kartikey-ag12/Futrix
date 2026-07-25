@@ -9,108 +9,50 @@ import {
 import {
   BarChart, Bar, XAxis, YAxis, Tooltip, ResponsiveContainer, Cell
 } from "recharts";
+import { useFinancial } from "@/context/FinancialContext";
 
 type TimeRange = "this_month" | "this_quarter" | "year_to_date" | "last_year";
 
 export default function ReportsPage() {
+  const { metrics } = useFinancial();
   const [timeRange, setTimeRange] = useState<TimeRange>("this_quarter");
   const [selectedDept, setSelectedDept] = useState<string>("all");
 
-  // Dynamically compute financial statement data based on selected timeRange
   const financialData = useMemo(() => {
-    let multiplier = 1.0;
-    let label = "Q3 2026 (Current Quarter)";
+    let label = "Synced Ledger Data";
 
     if (timeRange === "this_month") {
-      multiplier = 0.33;
-      label = "This Month (July 2026)";
+      label = "This Month (Filtered)";
     } else if (timeRange === "year_to_date") {
-      multiplier = 2.84;
-      label = "Year-to-Date (YTD 2026)";
+      label = "Year-to-Date (Filtered)";
     } else if (timeRange === "last_year") {
-      multiplier = 10.61;
-      label = "Full Year 2025";
+      label = "Last Year (Filtered)";
     }
 
-    const incomeItems = [
-      { code: "REV-4010", label: "Sales & Client Retainers", category: "Core Operations", amount: Math.round(32450.00 * multiplier), pct: "71.7%" },
-      { code: "REV-4020", label: "Consulting & Service Fees", category: "Services", amount: Math.round(12781.89 * multiplier), pct: "28.3%" },
+    const totalRevenue = metrics.totalRevenue;
+    const incomeItems = metrics.incomeItems?.length ? metrics.incomeItems : [
+      { code: "REV-1", label: "General Sales", category: "Core Operations", amount: totalRevenue, pct: "100%" },
     ];
 
-    const totalRevenue = incomeItems.reduce((acc, item) => acc + item.amount, 0);
-
-    const expenseCategories = [
+    const totalExpenses = metrics.totalExpenses;
+    const expenseCategories = metrics.expenseCategories?.length ? metrics.expenseCategories : [
       {
-        id: "salaries",
-        label: "Salaries & Worker Payroll",
-        chartLabel: "Salaries",
-        dept: "Human Resources",
-        icon: Users,
-        amount: Math.round(12500.00 * multiplier),
-        color: "#10b981",
-        pct: 53.9,
-        desc: "Worker wages, contractor payouts, staff benefits & stipends"
-      },
-      {
-        id: "utilities",
-        label: "Utilities & Electricity",
-        chartLabel: "Electricity",
-        dept: "Facilities",
+        id: "exp-1",
+        label: "General Expenses",
+        chartLabel: "General",
+        dept: "Operations",
         icon: Zap,
-        amount: Math.round(1850.00 * multiplier),
-        color: "#3b82f6",
-        pct: 8.0,
-        desc: "Office electric power, high-speed fiber internet & water charges"
-      },
-      {
-        id: "maintenance",
-        label: "Building Maintenance",
-        chartLabel: "Maintenance",
-        dept: "Facilities",
-        icon: Wrench,
-        amount: Math.round(2400.00 * multiplier),
-        color: "#f59e0b",
-        pct: 10.3,
-        desc: "Equipment repairs, office cleaning, HVAC service & hardware upkeep"
-      },
-      {
-        id: "cloud",
-        label: "Cloud Hosting & Software",
-        chartLabel: "Cloud SaaS",
-        dept: "IT Infrastructure",
-        icon: Building2,
-        amount: Math.round(3200.00 * multiplier),
-        color: "#8b5cf6",
-        pct: 13.8,
-        desc: "AWS cloud servers, Xero, Tally, GitHub & software licenses"
-      },
-      {
-        id: "marketing",
-        label: "Marketing & Ad Spend",
-        chartLabel: "Marketing",
-        dept: "Growth & Sales",
-        icon: TrendingUp,
-        amount: Math.round(3244.00 * multiplier),
-        color: "#ec4899",
-        pct: 14.0,
-        desc: "Google Ads, LinkedIn campaign spend & promotional events"
-      },
+        amount: totalExpenses,
+        color: "#10b981",
+        pct: 100,
+        desc: "General operating expenses"
+      }
     ];
 
-    const totalExpenses = expenseCategories.reduce((acc, cat) => acc + cat.amount, 0);
-    const netProfit = totalRevenue - totalExpenses;
-    const profitMargin = totalRevenue > 0 ? ((netProfit / totalRevenue) * 100).toFixed(1) : "0.0";
+    const netProfit = metrics.netProfit;
+    const profitMargin = totalRevenue > 0 ? ((netProfit / Math.abs(totalRevenue)) * 100).toFixed(1) : "0.0";
 
-    const ledgerEntries = [
-      { date: "2026-07-24", dept: "Human Resources", category: "Salaries", vendor: "Worker Payroll — July Batch", status: "Paid", amount: Math.round(12500.00 * multiplier) },
-      { date: "2026-07-22", dept: "Facilities", category: "Utilities", vendor: "State Electricity Board (Power Bill)", status: "Paid", amount: Math.round(1250.00 * multiplier) },
-      { date: "2026-07-20", dept: "Facilities", category: "Utilities", vendor: "Airtel Business High-Speed Fiber", status: "Paid", amount: Math.round(600.00 * multiplier) },
-      { date: "2026-07-18", dept: "Facilities", category: "Maintenance", vendor: "HVAC & Office Air Conditioning Service", status: "Paid", amount: Math.round(1400.00 * multiplier) },
-      { date: "2026-07-15", dept: "Facilities", category: "Maintenance", vendor: "Janitorial & Deep Cleaning Supplies", status: "Paid", amount: Math.round(1000.00 * multiplier) },
-      { date: "2026-07-12", dept: "IT Infrastructure", category: "Cloud Hosting", vendor: "Amazon Web Services (AWS)", status: "Paid", amount: Math.round(2350.00 * multiplier) },
-      { date: "2026-07-08", dept: "Growth", category: "Marketing", vendor: "Google Ads — Search Campaign", status: "Paid", amount: Math.round(2100.00 * multiplier) },
-      { date: "2026-07-05", dept: "Growth", category: "Marketing", vendor: "LinkedIn Sponsored Posts", status: "Paid", amount: Math.round(1144.00 * multiplier) },
-    ];
+    const ledgerEntries: any[] = [];
 
     return {
       label,
@@ -122,7 +64,7 @@ export default function ReportsPage() {
       profitMargin,
       ledgerEntries,
     };
-  }, [timeRange]);
+  }, [timeRange, metrics]);
 
   const filteredLedger = useMemo(() => {
     if (selectedDept === "all") return financialData.ledgerEntries;
@@ -137,13 +79,25 @@ export default function ReportsPage() {
   };
 
   const handleExportCSV = () => {
-    const headers = ["Date", "Department", "Category", "Vendor / Description", "Status", "Amount"];
-    const rows = filteredLedger.map(e => [e.date, e.dept, e.category, `"${e.vendor}"`, e.status, e.amount]);
-    const csvContent = "data:text/csv;charset=utf-8," + [headers.join(","), ...rows.map(r => r.join(","))].join("\n");
+    const rows = [
+      ["Type", "Code", "Category", "Description", "Amount (USD)"],
+      ...financialData.incomeItems.map(inc => [
+        "Revenue", inc.code, inc.category, `"${inc.label}"`, inc.amount
+      ]),
+      ...financialData.expenseCategories.map(exp => [
+        "Expense", exp.id, exp.dept, `"${exp.label}"`, `-${exp.amount}`
+      ]),
+      [],
+      ["", "", "", "Total Revenue", financialData.totalRevenue],
+      ["", "", "", "Total Expenses", `-${financialData.totalExpenses}`],
+      ["", "", "", "Net Profit", financialData.netProfit],
+    ];
+    
+    const csvContent = "data:text/csv;charset=utf-8," + rows.map(r => r.join(",")).join("\n");
     const encodedUri = encodeURI(csvContent);
     const link = document.createElement("a");
     link.setAttribute("href", encodedUri);
-    link.setAttribute("download", `profit_loss_report_${timeRange}_${new Date().toISOString().split("T")[0]}.csv`);
+    link.setAttribute("download", `profit_loss_report_${new Date().toISOString().split("T")[0]}.csv`);
     document.body.appendChild(link);
     link.click();
     document.body.removeChild(link);
@@ -234,8 +188,10 @@ export default function ReportsPage() {
               <TrendingUp className="w-5 h-5" />
             </div>
           </div>
-          <p className="text-3xl font-black text-emerald-600">{fmt(financialData.netProfit)}</p>
-          <p className="text-xs text-emerald-600 font-semibold mt-2 flex items-center gap-1">
+          <p className={`text-3xl font-black ${financialData.netProfit >= 0 ? 'text-emerald-600' : 'text-red-500'}`}>
+            {financialData.netProfit >= 0 ? '+' : '−'}{fmt(Math.abs(financialData.netProfit))}
+          </p>
+          <p className={`text-xs font-semibold mt-2 flex items-center gap-1 ${financialData.netProfit >= 0 ? 'text-emerald-600' : 'text-red-500'}`}>
             <span>Net Profit Margin: <strong>{financialData.profitMargin}%</strong></span>
           </p>
         </div>
@@ -376,68 +332,10 @@ export default function ReportsPage() {
               {/* NET PROFIT SUMMARY HEADER */}
               <tr className="bg-primary/15 font-black border-t-4 border-primary text-foreground">
                 <td colSpan={3} className="px-6 py-4 text-base">NET OPERATING PROFIT (PRE-TAX)</td>
-                <td className="px-6 py-4 text-right text-xl text-emerald-600">+{fmt(financialData.netProfit)}</td>
+                <td className={`px-6 py-4 text-right text-xl ${financialData.netProfit >= 0 ? 'text-emerald-600' : 'text-red-500'}`}>
+                  {financialData.netProfit >= 0 ? '+' : '−'}{fmt(Math.abs(financialData.netProfit))}
+                </td>
               </tr>
-            </tbody>
-          </table>
-        </div>
-      </div>
-
-      {/* ── Itemized Expense Ledger & Billing Details ── */}
-      <div className="bg-card border border-border rounded-3xl p-6 shadow-sm">
-        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-6">
-          <div>
-            <h3 className="font-black text-lg text-foreground">Itemized Department Ledger & Bills</h3>
-            <p className="text-xs text-foreground/50">Specific payments for electricity, worker salaries, maintenance, and software</p>
-          </div>
-
-          {/* Department Filter Selector */}
-          <div className="flex items-center gap-2">
-            <Filter className="w-4 h-4 text-foreground/40" />
-            <select
-              value={selectedDept}
-              onChange={(e) => setSelectedDept(e.target.value)}
-              className="px-3 py-1.5 bg-card text-foreground border border-border rounded-xl text-xs font-semibold outline-none cursor-pointer"
-            >
-              <option value="all" className="bg-card text-foreground">All Departments & Categories</option>
-              <option value="salaries" className="bg-card text-foreground">Worker Salaries & Payroll</option>
-              <option value="utilities" className="bg-card text-foreground">Utilities & Electricity Bills</option>
-              <option value="maintenance" className="bg-card text-foreground">Building Maintenance</option>
-              <option value="cloud" className="bg-card text-foreground">Cloud & Software SaaS</option>
-              <option value="marketing" className="bg-card text-foreground">Marketing Campaigns</option>
-            </select>
-          </div>
-        </div>
-
-        <div className="overflow-x-auto">
-          <table className="w-full text-left text-sm">
-            <thead className="bg-foreground/[0.03] border-b border-border text-xs uppercase tracking-wider text-foreground/50 font-bold">
-              <tr>
-                <th className="px-6 py-3">Date</th>
-                <th className="px-6 py-3">Department</th>
-                <th className="px-6 py-3">Vendor / Recipient</th>
-                <th className="px-6 py-3">Status</th>
-                <th className="px-6 py-3 text-right">Amount</th>
-              </tr>
-            </thead>
-            <tbody className="divide-y divide-border">
-              {filteredLedger.map((row, idx) => (
-                <tr key={idx} className="hover:bg-foreground/[0.02]">
-                  <td className="px-6 py-3.5 text-xs font-mono text-foreground/60">{row.date}</td>
-                  <td className="px-6 py-3.5">
-                    <span className="px-2.5 py-1 bg-foreground/5 border border-border rounded-lg text-xs font-medium text-foreground/80">
-                      {row.dept}
-                    </span>
-                  </td>
-                  <td className="px-6 py-3.5 font-semibold text-foreground">{row.vendor}</td>
-                  <td className="px-6 py-3.5">
-                    <span className="px-2 py-0.5 bg-emerald-500/10 text-emerald-600 text-[11px] font-bold rounded-full flex items-center gap-1 w-max">
-                      <CheckCircle2 className="w-3 h-3" /> {row.status}
-                    </span>
-                  </td>
-                  <td className="px-6 py-3.5 text-right font-bold text-red-500">−{fmt(row.amount)}</td>
-                </tr>
-              ))}
             </tbody>
           </table>
         </div>

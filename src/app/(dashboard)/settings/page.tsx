@@ -6,7 +6,6 @@ import {
   RefreshCcw, CheckCircle2, Plug, Mail, ChevronRight,
   Lock, UserPlus, AlertTriangle, Check
 } from "lucide-react";
-import { TallyConnectModal } from "@/components/dashboard/TallyConnectModal";
 
 const TABS = [
   { id: "organization",  label: "Organisation",    icon: Building2  },
@@ -80,8 +79,6 @@ function SectionCard({ title, description, action, children }: {
 export default function SettingsPage() {
   const [activeTab, setActiveTab] = useState("integrations");
   const [isSyncing, setIsSyncing] = useState(false);
-  const [tallyCompany, setTallyCompany] = useState<string | null>(null);
-  const [isTallyModalOpen, setIsTallyModalOpen] = useState(false);
 
   const handleXeroSync = async () => {
     setIsSyncing(true);
@@ -94,27 +91,7 @@ export default function SettingsPage() {
     finally { setIsSyncing(false); }
   };
 
-  const handleTallySync = async () => {
-    setIsSyncing(true);
-    try {
-      const res = await fetch('/api/tally/sync', { method: 'POST' });
-      const data = await res.json();
-      if (res.ok) alert(data.message);
-      else alert(`Error: ${data.error}`);
-    } catch { alert("Failed to sync Tally data."); }
-    finally { setIsSyncing(false); }
-  };
 
-  useEffect(() => {
-    fetch('/api/tally/status')
-      .then(res => res.json())
-      .then(data => {
-        if (data.connected && data.companyName) {
-          setTallyCompany(data.companyName);
-        }
-      })
-      .catch(console.error);
-  }, []);
 
   return (
     <div className="flex flex-col gap-7 max-w-4xl">
@@ -227,44 +204,7 @@ export default function SettingsPage() {
                     </a>
                   </div>
                 </div>
-                {/* Tally */}
-                <div className="px-6 py-4 flex items-center gap-4">
-                  <div className="w-11 h-11 bg-orange-500/10 border border-orange-500/20 rounded-xl flex items-center justify-center flex-shrink-0">
-                    <span className="text-orange-500 font-black text-lg">T</span>
-                  </div>
-                  <div className="flex-1 min-w-0">
-                    <div className="flex items-center gap-2">
-                      <h4 className="font-semibold text-sm text-foreground">TallyPrime</h4>
-                      {tallyCompany ? (
-                        <span className="px-2 py-0.5 bg-emerald-500/10 text-emerald-600 text-[10px] font-bold rounded-full flex items-center gap-1">
-                          <span className="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse" /> Connected ({tallyCompany})
-                        </span>
-                      ) : (
-                        <span className="px-2 py-0.5 bg-foreground/5 text-foreground/40 text-[10px] font-bold rounded-full">Not connected</span>
-                      )}
-                    </div>
-                    <p className="text-xs text-foreground/50 mt-0.5">
-                      {tallyCompany ? "Ledgers and Indian GST vouchers synced automatically" : "Connect TallyPrime to sync Indian accounting data"}
-                    </p>
-                  </div>
-                  {tallyCompany ? (
-                    <button
-                      onClick={handleTallySync}
-                      disabled={isSyncing}
-                      className="flex items-center gap-1.5 px-3 py-1.5 bg-orange-500/10 text-orange-600 rounded-lg text-xs font-semibold hover:bg-orange-500/20 transition-colors disabled:opacity-50 flex-shrink-0"
-                    >
-                      <RefreshCcw className={`w-3.5 h-3.5 ${isSyncing ? 'animate-spin' : ''}`} />
-                      {isSyncing ? "Syncing..." : "Sync Tally"}
-                    </button>
-                  ) : (
-                    <button
-                      onClick={() => setIsTallyModalOpen(true)}
-                      className="px-3.5 py-1.5 bg-orange-500 text-white font-semibold rounded-lg text-xs hover:bg-orange-600 transition-all flex-shrink-0 shadow-sm"
-                    >
-                      Connect
-                    </button>
-                  )}
-                </div>
+
               </div>
             </SectionCard>
           )}
@@ -368,7 +308,7 @@ export default function SettingsPage() {
                   <p className="text-xs font-bold text-foreground/40 uppercase tracking-wider py-3">Email Notifications</p>
                   <Toggle label="Weekly Financial Summary" description="A weekly digest of your revenue, expenses, and cash position." defaultChecked />
                   <Toggle label="AI Insights Alerts" description="Get notified when AI detects an anomaly or opportunity." defaultChecked />
-                  <Toggle label="Sync Failures" description="Email if Xero or Tally fail to sync." defaultChecked />
+                  <Toggle label="Sync Failures" description="Email if Xero fails to sync." defaultChecked />
                 </div>
                 <div className="py-2">
                   <p className="text-xs font-bold text-foreground/40 uppercase tracking-wider py-3">Dashboard Alerts</p>
@@ -435,12 +375,6 @@ export default function SettingsPage() {
           )}
         </div>
       </div>
-      {/* Tally Connection Modal */}
-      <TallyConnectModal
-        isOpen={isTallyModalOpen}
-        onClose={() => setIsTallyModalOpen(false)}
-        onSuccess={(company) => setTallyCompany(company)}
-      />
     </div>
   );
 }

@@ -1,29 +1,14 @@
 # [FUTRIX](https://github.com/kartikey-ag12/Futrix)
 
-Centralized financial intelligence platform — dashboards, reporting, forecasting, and AI insights, integrating Xero and Tally.
+Centralized financial intelligence platform — dashboards, reporting, forecasting, and AI insights, integrating Xero and Excel.
 
 ## Tech Stack
 
-- **Frontend**: React.js, Next.js 15 (App Router), TypeScript, Tailwind CSS, TanStack Table, Recharts
-- **Backend**: Node.js, Next.js API Routes
-- **Integrations**: Xero OAuth2, TallyPrime HTTP XML Server
-- **AI**: OpenAI API (`gpt-4o-mini`) + Futrix Financial Engine
-- **Deployment**: Vercel
-
-## 🚀 Key Features
-
-1. **Futrli-Inspired Financial Dashboard**: Real-time KPI metric tracking, live revenue trend area charts, cash flow velocity projections, and AI financial health scoring.
-2. **Dual Accounting Software Integrations**:
-   - **Xero**: OAuth2 connection, invoice generation modal, and auto-synced ledgers.
-   - **TallyPrime**: 30-day persistent session connection, step-by-step Tally HTTP Server setup guide, and Indian GST voucher sync.
-3. **Profit & Loss (P&L) Statement & Reports (`/reports`)**:
-   - GAAP/IFRS aligned P&L financial statement.
-   - Categorized department expense tracking for **Worker Salaries**, **Electricity & Utilities**, **Building Maintenance**, **Cloud SaaS**, and **Marketing Campaigns**.
-   - Dynamic time-range switching (*This Month*, *Q3 2026*, *YTD 2026*, *Full Year 2025*).
-   - Printable PDF formatting and CSV/Excel exports.
-4. **AI Customer Support Assistant**: Interactive 24/7 AI support chatbot drawer (`SupportModal.tsx`) with 1-click quick-ask chips.
-5. **Interactive Cash Flow Forecasting (`/forecasting`)**: Base, Best (+20% Rev), and Worst (+15% Exp) scenario planning with Q3 milestone tracking.
-6. **Transactions Ledger (`/transactions`)**: Searchable, sortable data table with quick card filters for Inflow and Outflow.
+- **Frontend**: React.js, Next.js, TypeScript, Tailwind CSS, TanStack Table, Recharts
+- **Backend**: Node.js, Express.js
+- **Database**: PostgreSQL + Prisma, Supabase
+- **AI**: OpenAI API
+- **Deployment**: Vercel (Frontend), Railway/Render (Backend)
 
 ## Team
 
@@ -31,7 +16,7 @@ Centralized financial intelligence platform — dashboards, reporting, forecasti
 | :--- | :--- | :--- |
 | **Kartikey** | Team Lead / Frontend | Owns UI architecture, layout, component structure, review & merge approvals |
 | **Aman** | Backend | API routes, business logic, integrations (Xero) |
-| **Nayan** | Backend | Database schema, Prisma models, integrations (Tally), AI insights engine |
+| **Nayan** | Backend | Database schema, Prisma models, integrations (Excel), AI insights engine |
 | **Ashutosh** | QA / Testing | Test cases, bug tracking, regression testing, release sign-off |
 
 ## Branching Strategy
@@ -41,7 +26,7 @@ main (production-ready only, protected, no direct pushes)
  └── dev (integration branch, all features merge here first)
       ├── feature/kartikey-* (frontend work)
       ├── feature/aman-* (backend — Xero, API)
-      ├── feature/nayan-* (backend — DB, Tally, AI)
+      ├── feature/nayan-* (backend — DB, Excel, AI)
       └── feature/ashutosh-* (test suites, bugfix branches)
 ```
 
@@ -76,7 +61,7 @@ git checkout -b feature/kartikey-dashboard-ui
 # Aman (Backend - Xero/API)
 git checkout -b feature/aman-xero-integration
 
-# Nayan (Backend - DB/Tally/AI)
+# Nayan (Backend - DB/Excel/AI)
 git checkout -b feature/nayan-forecast-engine
 
 # Ashutosh (QA/Testing)

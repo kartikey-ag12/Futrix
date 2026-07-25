@@ -8,7 +8,7 @@ import {
 } from "@tanstack/react-table";
 import {
   Search, Download, Filter, ArrowUpDown,
-  ArrowUpRight, ArrowDownRight, RefreshCcw, CheckCircle2, Clock,
+  ArrowUpRight, ArrowDownRight, RefreshCcw, CheckCircle2, Clock, FileSpreadsheet
 } from "lucide-react";
 
 type Transaction = {
@@ -129,6 +129,40 @@ export default function TransactionsPage() {
     document.body.removeChild(link);
   };
 
+  const handleDownloadInvoice = async (transaction: Transaction) => {
+    try {
+      const res = await fetch("/api/excel/export/single", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          contactName: transaction.account, 
+          description: transaction.description,
+          amount: Math.abs(transaction.amount),
+          date: transaction.date,
+          status: transaction.status,
+        })
+      });
+
+      if (res.ok) {
+        const blob = await res.blob();
+        const url = window.URL.createObjectURL(blob);
+        const a = document.createElement("a");
+        a.href = url;
+        const dateStr = transaction.date;
+        a.download = `invoice_${dateStr}.xlsx`;
+        document.body.appendChild(a);
+        a.click();
+        a.remove();
+        window.URL.revokeObjectURL(url);
+      } else {
+        alert("Failed to download invoice.");
+      }
+    } catch (err) {
+      console.error(err);
+      alert("Error downloading invoice.");
+    }
+  };
+
   const columns = [
     columnHelper.accessor("date", {
       header: "Date",
@@ -177,6 +211,24 @@ export default function TransactionsPage() {
                 −{fmt(v)}
               </span>
             )}
+          </div>
+        );
+      },
+    }),
+    columnHelper.display({
+      id: "actions",
+      header: "",
+      cell: i => {
+        const transaction = i.row.original;
+        return (
+          <div className="flex items-center justify-end">
+            <button
+              onClick={() => handleDownloadInvoice(transaction)}
+              className="p-1.5 text-foreground/40 hover:text-primary hover:bg-primary/10 rounded-lg transition-colors flex items-center gap-1"
+              title="Download as Excel"
+            >
+              <FileSpreadsheet className="w-4 h-4" />
+            </button>
           </div>
         );
       },

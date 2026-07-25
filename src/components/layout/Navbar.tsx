@@ -77,9 +77,9 @@ const INTEGRATION_ITEMS = [
     badge: "Connected",
   },
   {
-    label: "TallyPrime",
-    description: "Sync Indian accounting ledgers, vouchers and GST data",
-    href: "/integrations/tally",
+    label: "Excel Import/Export",
+    description: "Import financial data and generate .xlsx reports",
+    href: "/excel-tools",
     badge: "Supported",
   },
 ];
@@ -251,7 +251,7 @@ function IntegrationsDropdown() {
                 <div className={`w-10 h-10 rounded-xl border flex items-center justify-center overflow-hidden shadow-sm flex-shrink-0 font-black text-lg ${
                   item.label === 'Xero'
                     ? 'bg-[#1AB4D7]/10 border-[#1AB4D7]/20 text-[#1AB4D7]'
-                    : 'bg-orange-500/10 border-orange-500/20 text-orange-500'
+                    : 'bg-emerald-500/10 border-emerald-500/20 text-emerald-500'
                 }`}>
                   {item.label[0]}
                 </div>
@@ -259,9 +259,7 @@ function IntegrationsDropdown() {
                   <div className="flex items-center gap-2">
                     <p className="text-sm font-semibold text-slate-800">{item.label}</p>
                     {item.badge && (
-                      <span className={`px-1.5 py-0.5 text-[10px] font-semibold rounded-full ${
-                        item.label === 'Xero' ? 'bg-emerald-100 text-emerald-700' : 'bg-orange-100 text-orange-700'
-                      }`}>
+                      <span className={`px-1.5 py-0.5 text-[10px] font-semibold rounded-full bg-emerald-100 text-emerald-700`}>
                         {item.badge}
                       </span>
                     )}
@@ -402,11 +400,11 @@ export function Navbar() {
                 Xero Integration
               </Link>
               <Link
-                href="/integrations/tally"
+                href="/excel-tools"
                 onClick={() => setMobileOpen(false)}
-                className="block px-3 py-2 rounded-lg text-sm font-medium text-slate-700 hover:bg-orange-50 hover:text-orange-600 transition-colors"
+                className="block px-3 py-2 rounded-lg text-sm font-medium text-slate-700 hover:bg-emerald-50 hover:text-emerald-600 transition-colors"
               >
-                TallyPrime Integration
+                Excel Import/Export
               </Link>
             </div>
             <div className="pt-2">

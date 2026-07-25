@@ -38,19 +38,46 @@ export async function POST(req: Request) {
 
     let totalRevenue = 0;
     let totalExpenses = 0;
+    const incomeItemsMap: Record<string, number> = {};
+    const expenseCategoriesMap: Record<string, number> = {};
 
     invoices.forEach((inv: any) => {
       const type = inv.type || inv.Type;
       const total = inv.total || inv.Total || 0;
+      
+      const lineItem = inv.lineItems?.[0] || inv.LineItems?.[0];
+      const category = lineItem?.accountCode || lineItem?.description || "General";
 
       if (type === 'ACCREC') {
         totalRevenue += total;
+        incomeItemsMap[category] = (incomeItemsMap[category] || 0) + total;
       } else if (type === 'ACCPAY') {
         totalExpenses += total;
+        expenseCategoriesMap[category] = (expenseCategoriesMap[category] || 0) + total;
       }
     });
 
     const netProfit = totalRevenue - totalExpenses;
+
+    const incomeItems = Object.entries(incomeItemsMap).map(([label, amount], i) => ({
+      code: `REV-${i + 1}`,
+      label: label.substring(0, 35),
+      category: "Operating Revenue",
+      amount,
+      pct: totalRevenue > 0 ? ((amount / totalRevenue) * 100).toFixed(1) + "%" : "0%"
+    }));
+
+    const COLORS = ["#10b981", "#3b82f6", "#f59e0b", "#8b5cf6", "#ec4899", "#ef4444", "#14b8a6"];
+    const expenseCategories = Object.entries(expenseCategoriesMap).map(([label, amount], i) => ({
+      id: `exp-${i}`,
+      label: label.substring(0, 35),
+      chartLabel: label.substring(0, 15),
+      dept: "Operations",
+      amount,
+      color: COLORS[i % COLORS.length],
+      pct: totalExpenses > 0 ? Number(((amount / totalExpenses) * 100).toFixed(1)) : 0,
+      desc: `Expenses from ${label}`
+    }));
 
     return NextResponse.json({
       status: "success",
@@ -60,7 +87,9 @@ export async function POST(req: Request) {
         totalRevenue,
         totalExpenses,
         netProfit,
-        healthScore: 92
+        healthScore: 92,
+        incomeItems,
+        expenseCategories
       },
       data: invoices.slice(0, 5) // Return top 5 for demo
     });

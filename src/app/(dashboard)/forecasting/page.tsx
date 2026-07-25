@@ -7,18 +7,13 @@ import {
   Target, Flame, BarChart2, AlertCircle, CheckCircle2,
 } from "lucide-react";
 import { KPICard } from "@/components/dashboard/KPICard";
+import { useFinancial } from "@/context/FinancialContext";
 
 const SCENARIOS = [
   { id: "base",  label: "Base Case (Most Likely)" },
   { id: "best",  label: "Best Case (+20% Revenue)" },
   { id: "worst", label: "Worst Case (+15% Expenses)" },
 ];
-
-const SCENARIO_DATA: Record<string, { balance: string; burn: string; runway: string; risk: string; riskColor: string; multiplier: number }> = {
-  base:  { balance: "$142,500",  burn: "$15,200/mo", runway: "9.4 months", risk: "Low",    riskColor: "text-emerald-600 bg-emerald-50 border-emerald-200 dark:bg-emerald-950/40 dark:border-emerald-800", multiplier: 1.0 },
-  best:  { balance: "$198,300",  burn: "$12,800/mo", runway: "15.5 months", risk: "None",  riskColor: "text-blue-600 bg-blue-50 border-blue-200 dark:bg-blue-950/40 dark:border-blue-800", multiplier: 1.2 },
-  worst: { balance: "$89,100",   burn: "$17,500/mo", runway: "5.1 months",  risk: "High",  riskColor: "text-red-600 bg-red-50 border-red-200 dark:bg-red-950/40 dark:border-red-800", multiplier: 0.8 },
-};
 
 const MILESTONES = [
   { label: "Break-even point achieved",   date: "July 2026", done: true },
@@ -28,18 +23,51 @@ const MILESTONES = [
 ];
 
 export default function ForecastingPage() {
+  const { metrics, handleXeroSync } = useFinancial();
   const [scenario, setScenario] = useState("base");
   const [dropdownOpen, setDropdownOpen] = useState(false);
   const [isUpdating, setIsUpdating] = useState(false);
   const [lastUpdated, setLastUpdated] = useState<string | null>(null);
   const [updateMessage, setUpdateMessage] = useState<string | null>(null);
 
+  const mRev = metrics.totalRevenue;
+  const mExp = metrics.totalExpenses;
+  // Assume a base starting cash reserve if they are running a deficit, to avoid 0 balance.
+  const currentCash = Math.max(25000, mRev - mExp + 25000);
+
+  const SCENARIO_DATA: Record<string, { balance: string; burn: string; runway: string; risk: string; riskColor: string; multiplier: number }> = {
+    base:  { 
+      balance: `$${Math.round(currentCash).toLocaleString()}`,  
+      burn: `$${Math.round(mExp).toLocaleString()}/mo`, 
+      runway: mExp > 0 ? `${(currentCash / mExp).toFixed(1)} months` : "24+ months", 
+      risk: mExp > currentCash / 3 ? "High" : "Low",    
+      riskColor: mExp > currentCash / 3 ? "text-red-600 bg-red-50 border-red-200 dark:bg-red-950/40 dark:border-red-800" : "text-emerald-600 bg-emerald-50 border-emerald-200 dark:bg-emerald-950/40 dark:border-emerald-800", 
+      multiplier: 1.0 
+    },
+    best:  { 
+      balance: `$${Math.round(currentCash + (mRev * 0.2)).toLocaleString()}`,  
+      burn: `$${Math.round(mExp * 0.9).toLocaleString()}/mo`, 
+      runway: (mExp * 0.9) > 0 ? `${((currentCash + (mRev * 0.2)) / (mExp * 0.9)).toFixed(1)} months` : "24+ months", 
+      risk: "None",  
+      riskColor: "text-blue-600 bg-blue-50 border-blue-200 dark:bg-blue-950/40 dark:border-blue-800", 
+      multiplier: 1.2 
+    },
+    worst: { 
+      balance: `$${Math.round(currentCash - (mExp * 0.15)).toLocaleString()}`,   
+      burn: `$${Math.round(mExp * 1.15).toLocaleString()}/mo`, 
+      runway: (mExp * 1.15) > 0 ? `${(Math.max(0, currentCash - (mExp * 0.15)) / (mExp * 1.15)).toFixed(1)} months` : "0 months",  
+      risk: "High",  
+      riskColor: "text-red-600 bg-red-50 border-red-200 dark:bg-red-950/40 dark:border-red-800", 
+      multiplier: 0.8 
+    },
+  };
+
   const handleUpdateForecast = async () => {
     setIsUpdating(true);
     setUpdateMessage(null);
     try {
-      const res = await fetch("/api/xero/sync", { method: "POST" });
-      if (res.ok) {
+      const res = await handleXeroSync();
+      if (res) {
         setUpdateMessage("Q3 Forecast updated with live ledger data!");
       } else {
         setUpdateMessage("Q3 Forecast recalculated based on cash velocity.");
@@ -166,7 +194,7 @@ export default function ForecastingPage() {
             Daily Forecast Active
           </span>
         </div>
-        <CashFlowChart totalRevenue={45231.89 * data.multiplier} totalExpenses={23194.00} />
+        <CashFlowChart totalRevenue={metrics.totalRevenue * data.multiplier} totalExpenses={metrics.totalExpenses} />
       </div>
 
       {/* ── Milestones Tracker ── */}
