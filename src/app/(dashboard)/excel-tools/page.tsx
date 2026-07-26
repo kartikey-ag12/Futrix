@@ -74,9 +74,9 @@ export default function ExcelToolsPage() {
             Download your current Xero invoices as a formatted Excel report.
           </p>
           
-          <div className="p-6 bg-card border border-border rounded-2xl shadow-sm flex flex-col gap-4 items-start">
+          <div className="p-6 bg-card border border-border rounded-2xl shadow-sm flex flex-col gap-4 items-start hover:shadow-premium hover:border-foreground/10 transition-all duration-200">
             <div className="flex items-center gap-3">
-              <div className="w-10 h-10 rounded-xl bg-blue-500/10 flex items-center justify-center">
+              <div className="w-10 h-10 rounded-xl bg-foreground/5 flex items-center justify-center">
                 <FileSpreadsheet className="w-5 h-5 text-blue-600" />
               </div>
               <div>
@@ -88,7 +88,7 @@ export default function ExcelToolsPage() {
             <button
               onClick={handleExport}
               disabled={isExporting}
-              className="mt-2 px-5 py-2.5 bg-secondary text-secondary-foreground rounded-xl text-sm font-semibold hover:bg-secondary/80 transition-all shadow-sm flex items-center gap-2 disabled:opacity-50"
+              className="mt-2 px-5 py-2.5 bg-foreground text-background rounded-xl text-sm font-semibold hover:bg-foreground/90 transition-all shadow-sm flex items-center gap-2 disabled:opacity-50"
             >
               {isExporting ? (
                 <>

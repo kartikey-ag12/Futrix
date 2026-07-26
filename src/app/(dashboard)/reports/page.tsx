@@ -145,7 +145,7 @@ export default function ReportsPage() {
 
           <button
             onClick={handleExportCSV}
-            className="flex items-center gap-1.5 px-4 py-2 bg-primary text-primary-foreground rounded-xl text-xs font-semibold hover:bg-primary/90 transition-all shadow-sm"
+            className="flex items-center gap-1.5 px-4 py-2 bg-foreground text-background rounded-xl text-xs font-semibold hover:bg-foreground/90 transition-all shadow-sm"
           >
             <Download className="w-4 h-4" /> Export Report
           </button>
@@ -154,7 +154,7 @@ export default function ReportsPage() {
 
       {/* ── High-Level Financial Summary Cards ── */}
       <div className="grid grid-cols-1 sm:grid-cols-3 gap-5">
-        <div className="bg-card border border-border rounded-2xl p-6 shadow-sm">
+        <div className="bg-card border border-border rounded-2xl p-6 shadow-sm hover:shadow-premium hover:border-foreground/10 transition-all duration-200">
           <div className="flex items-center justify-between mb-3">
             <span className="text-xs font-bold uppercase tracking-wider text-emerald-600">Total Operating Income</span>
             <div className="w-9 h-9 rounded-xl bg-emerald-500/10 border border-emerald-500/20 flex items-center justify-center text-emerald-600">
@@ -168,7 +168,7 @@ export default function ReportsPage() {
           </p>
         </div>
 
-        <div className="bg-card border border-border rounded-2xl p-6 shadow-sm">
+        <div className="bg-card border border-border rounded-2xl p-6 shadow-sm hover:shadow-premium hover:border-foreground/10 transition-all duration-200">
           <div className="flex items-center justify-between mb-3">
             <span className="text-xs font-bold uppercase tracking-wider text-red-500">Total Operating Expenses</span>
             <div className="w-9 h-9 rounded-xl bg-red-500/10 border border-red-500/20 flex items-center justify-center text-red-500">
@@ -181,7 +181,7 @@ export default function ReportsPage() {
           </p>
         </div>
 
-        <div className="bg-card border border-border rounded-2xl p-6 shadow-sm">
+        <div className="bg-card border border-border rounded-2xl p-6 shadow-sm hover:shadow-premium hover:border-foreground/10 transition-all duration-200">
           <div className="flex items-center justify-between mb-3">
             <span className="text-xs font-bold uppercase tracking-wider text-primary">Net Operating Profit</span>
             <div className="w-9 h-9 rounded-xl bg-primary/10 border border-primary/20 flex items-center justify-center text-primary">
@@ -200,7 +200,7 @@ export default function ReportsPage() {
       {/* ── Departmental Expense Distribution Chart & Legend ── */}
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
         {/* Recharts Bar Chart with High Contrast Tooltip */}
-        <div className="lg:col-span-2 bg-card border border-border rounded-3xl p-6 shadow-sm">
+        <div className="lg:col-span-2 bg-card border border-border rounded-3xl p-6 shadow-sm hover:shadow-premium hover:border-foreground/10 transition-all duration-200">
           <div className="flex items-center justify-between mb-6">
             <div>
               <h3 className="font-black text-lg text-foreground">Expense Distribution by Department</h3>
@@ -240,7 +240,7 @@ export default function ReportsPage() {
         </div>
 
         {/* Expense Category Breakdown List */}
-        <div className="bg-card border border-border rounded-3xl p-6 shadow-sm flex flex-col justify-between">
+        <div className="bg-card border border-border rounded-3xl p-6 shadow-sm flex flex-col justify-between hover:shadow-premium hover:border-foreground/10 transition-all duration-200">
           <div>
             <h3 className="font-black text-lg text-foreground mb-4">Cost Center Share</h3>
             <div className="space-y-4">
@@ -268,7 +268,7 @@ export default function ReportsPage() {
       </div>
 
       {/* ── Official Profit & Loss (P&L) Statement Table ── */}
-      <div className="bg-card border border-border rounded-3xl overflow-hidden shadow-sm">
+      <div className="bg-card border border-border rounded-3xl overflow-hidden shadow-sm hover:shadow-premium hover:border-foreground/10 transition-all duration-200">
         <div className="p-6 border-b border-border bg-foreground/[0.02]">
           <h3 className="text-xl font-black text-foreground">Detailed Profit & Loss Statement</h3>
           <p className="text-xs text-foreground/50 mt-0.5">Itemized revenue income and departmental expense categories</p>

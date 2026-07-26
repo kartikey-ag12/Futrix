@@ -17,13 +17,13 @@ export function KPICard({ title, value, trend, trendLabel, icon, className }: KP
 
   return (
     <div className={clsx(
-      "bg-card p-6 rounded-2xl border border-border shadow-sm flex flex-col gap-5 hover:shadow-md transition-shadow",
+      "bg-card p-6 rounded-2xl border border-border shadow-sm flex flex-col gap-5 hover:shadow-premium hover:border-foreground/10 transition-all duration-200",
       className
     )}>
       {/* Header row */}
       <div className="flex items-start justify-between gap-3">
-        <p className="text-sm font-medium text-foreground/55 leading-snug">{title}</p>
-        <div className="p-2.5 bg-primary/8 rounded-xl text-primary flex-shrink-0 mt-[-2px]">
+        <p className="text-sm font-semibold text-foreground/50 leading-snug">{title}</p>
+        <div className="p-2.5 bg-foreground/5 rounded-xl text-foreground flex-shrink-0 mt-[-2px]">
           {icon}
         </div>
       </div>
@@ -35,13 +35,13 @@ export function KPICard({ title, value, trend, trendLabel, icon, className }: KP
         {trend !== undefined && (
           <div className="flex items-center gap-2 mt-2">
             <span className={clsx(
-              "flex items-center gap-0.5 text-xs font-bold px-2 py-1 rounded-full",
+              "flex items-center gap-0.5 text-xs font-bold px-2 py-1 rounded-md",
               isPositive && "bg-emerald-100 text-emerald-700",
               isNegative && "bg-red-100 text-red-600",
               !isPositive && !isNegative && "bg-foreground/5 text-foreground/50"
             )}>
-              {isPositive && <ArrowUpRight className="w-3 h-3" />}
-              {isNegative && <ArrowDownRight className="w-3 h-3" />}
+              {isPositive && <ArrowUpRight className="w-3.5 h-3.5" />}
+              {isNegative && <ArrowDownRight className="w-3.5 h-3.5" />}
               {isPositive ? "+" : ""}{trend}%
             </span>
             {trendLabel && (

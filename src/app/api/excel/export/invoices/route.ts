@@ -29,8 +29,8 @@ export async function GET(req: Request) {
       contactName: inv.contact?.name || "Unknown",
       description: inv.lineItems?.[0]?.description || "No description",
       amount: inv.total || 0,
-      date: inv.dateAsDate ? inv.dateAsDate.toISOString().split('T')[0] : (inv.date ? inv.date.toString() : ""),
-      dueDate: inv.dueDateAsDate ? inv.dueDateAsDate.toISOString().split('T')[0] : (inv.dueDate ? inv.dueDate.toString() : ""),
+      date: inv.date || "",
+      dueDate: inv.dueDate || "",
       status: inv.status?.toString()
     }));
 
@@ -38,7 +38,7 @@ export async function GET(req: Request) {
     const buffer = await ExcelService.generateInvoicesReport(mappedInvoices);
 
     // Return as downloadable file
-    return new NextResponse(buffer, {
+    return new NextResponse(buffer as any, {
       status: 200,
       headers: {
         "Content-Type": "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",

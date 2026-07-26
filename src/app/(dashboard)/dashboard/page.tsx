@@ -190,14 +190,14 @@ export default function Dashboard() {
           <button
             onClick={handleSync}
             disabled={isSyncing}
-            className="flex items-center gap-2 px-4 py-2 bg-foreground/5 border border-border rounded-xl text-sm font-medium hover:bg-foreground/10 transition-all disabled:opacity-50"
+            className="flex items-center gap-2 px-4 py-2 bg-foreground/5 border border-border rounded-xl text-sm font-semibold hover:bg-foreground/10 transition-all disabled:opacity-50 text-foreground"
           >
-            <RefreshCcw className={`w-4 h-4 ${isSyncing ? 'animate-spin text-primary' : 'text-foreground/60'}`} />
+            <RefreshCcw className={`w-4 h-4 ${isSyncing ? 'animate-spin text-foreground' : 'text-foreground/60'}`} />
             {isSyncing ? "Syncing…" : "Sync"}
           </button>
           <button
             onClick={() => setIsModalOpen(true)}
-            className="flex items-center gap-2 px-4 py-2 bg-primary text-primary-foreground rounded-xl text-sm font-semibold hover:bg-primary/90 transition-all shadow-sm hover:shadow-md hover:shadow-primary/20"
+            className="flex items-center gap-2 px-4 py-2 bg-foreground text-background rounded-xl text-sm font-semibold hover:bg-foreground/90 transition-all shadow-sm hover:shadow-md"
           >
             <Plus className="w-4 h-4" />
             New Invoice
@@ -300,7 +300,7 @@ export default function Dashboard() {
       </div>
 
       {/* ── AI insights ── */}
-      <div className="bg-card rounded-2xl border border-border shadow-sm overflow-hidden">
+      <div className="bg-card rounded-2xl border border-border shadow-sm overflow-hidden hover:shadow-premium hover:border-foreground/10 transition-all duration-300">
         <div className="px-6 py-4 border-b border-border flex items-center justify-between flex-wrap gap-3">
           <div className="flex items-center gap-2.5">
             <div className="w-8 h-8 bg-violet-500/10 border border-violet-500/20 rounded-xl flex items-center justify-center text-violet-600">
@@ -322,7 +322,7 @@ export default function Dashboard() {
           <button
             onClick={() => handleFetchAiInsights()}
             disabled={isGeneratingAi}
-            className="flex items-center gap-2 px-3.5 py-1.5 bg-violet-600 text-white rounded-xl text-xs font-semibold hover:bg-violet-700 transition-all shadow-sm disabled:opacity-50"
+            className="flex items-center gap-2 px-3.5 py-1.5 bg-foreground text-background rounded-xl text-xs font-semibold hover:bg-foreground/90 transition-all shadow-sm disabled:opacity-50"
           >
             <Sparkles className={`w-3.5 h-3.5 ${isGeneratingAi ? "animate-spin" : ""}`} />
             {isGeneratingAi ? "Analyzing Data..." : "Run AI Analysis"}
@@ -387,17 +387,17 @@ export default function Dashboard() {
       </div>
 
       {/* ── About Futrix Platform Section (Futrli-inspired) ── */}
-      <div className="bg-gradient-to-br from-slate-900 via-slate-900 to-emerald-950 text-white rounded-3xl p-8 shadow-xl relative overflow-hidden border border-slate-800">
-        <div className="absolute top-0 right-0 w-80 h-80 bg-emerald-500/10 rounded-full blur-3xl pointer-events-none" />
+      <div className="bg-card text-foreground rounded-3xl p-8 shadow-xl relative overflow-hidden border border-border">
+        <div className="absolute top-0 right-0 w-80 h-80 bg-foreground/5 rounded-full blur-3xl pointer-events-none" />
 
         <div className="max-w-3xl mb-8">
-          <span className="inline-block px-3.5 py-1 bg-emerald-500/15 border border-emerald-500/30 text-emerald-400 text-xs font-bold uppercase tracking-wider rounded-full mb-3">
+          <span className="inline-block px-3.5 py-1 bg-emerald-500/15 border border-emerald-500/30 text-emerald-500 text-xs font-bold uppercase tracking-wider rounded-full mb-3">
             About Futrix Engine
           </span>
           <h2 className="text-2xl sm:text-3xl font-black leading-tight mb-3">
             Built for modern finance teams who demand clarity, not chaos
           </h2>
-          <p className="text-slate-300 text-sm leading-relaxed">
+          <p className="text-foreground/80 text-sm leading-relaxed">
             Futrix brings your accounting data, cash flow forecasting, board reporting, and AI-powered advice under one intelligent roof — keeping you in command of your business growth.
           </p>
         </div>
@@ -409,13 +409,13 @@ export default function Dashboard() {
             return (
               <div
                 key={pillar.title}
-                className={`p-5 rounded-2xl border ${pillar.bg} bg-slate-900/60 backdrop-blur-sm hover:border-emerald-500/40 transition-all`}
+                className={`p-5 rounded-2xl border border-border bg-foreground/[0.02] hover:bg-foreground/5 transition-all`}
               >
-                <div className={`w-10 h-10 rounded-xl bg-slate-900 border border-slate-800 flex items-center justify-center mb-4 ${pillar.color}`}>
+                <div className={`w-10 h-10 rounded-xl bg-card border border-border flex items-center justify-center mb-4 ${pillar.color}`}>
                   <Icon className="w-5 h-5" />
                 </div>
-                <h3 className="font-bold text-sm text-white mb-1.5">{pillar.title}</h3>
-                <p className="text-xs text-slate-400 leading-relaxed">{pillar.desc}</p>
+                <h3 className="font-bold text-sm text-foreground mb-1.5">{pillar.title}</h3>
+                <p className="text-xs text-foreground/70 leading-relaxed">{pillar.desc}</p>
               </div>
             );
           })}

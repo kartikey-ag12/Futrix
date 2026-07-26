@@ -63,7 +63,7 @@ function SectionCard({ title, description, action, children }: {
   action?: React.ReactNode; children: React.ReactNode;
 }) {
   return (
-    <div className="bg-card rounded-2xl border border-border shadow-sm overflow-hidden">
+    <div className="bg-card rounded-2xl border border-border shadow-sm overflow-hidden hover:shadow-premium hover:border-foreground/10 transition-all duration-200">
       <div className="px-6 py-4 border-b border-border flex items-center justify-between gap-4">
         <div>
           <h3 className="font-semibold text-foreground">{title}</h3>
@@ -163,7 +163,7 @@ export default function SettingsPage() {
                     />
                   </FormField>
                   <div className="flex justify-end pt-1">
-                    <button className="px-5 py-2.5 bg-primary text-primary-foreground rounded-xl text-sm font-semibold hover:bg-primary/90 transition-all shadow-sm">
+                    <button className="px-5 py-2.5 bg-foreground text-background rounded-xl text-sm font-semibold hover:bg-foreground/90 transition-all shadow-sm">
                       Save Changes
                     </button>
                   </div>
@@ -194,7 +194,7 @@ export default function SettingsPage() {
                     <button
                       onClick={handleXeroSync}
                       disabled={isSyncing}
-                      className="flex items-center gap-1.5 px-3 py-1.5 bg-primary/8 text-primary rounded-lg text-xs font-semibold hover:bg-primary/15 transition-colors disabled:opacity-50"
+                      className="flex items-center gap-1.5 px-3 py-1.5 bg-foreground/5 text-foreground rounded-lg text-xs font-semibold hover:bg-foreground/10 transition-colors disabled:opacity-50"
                     >
                       <RefreshCcw className={`w-3.5 h-3.5 ${isSyncing ? 'animate-spin' : ''}`} />
                       {isSyncing ? "Syncing…" : "Sync"}
@@ -215,7 +215,7 @@ export default function SettingsPage() {
               title="Team Members"
               description="Manage who has access to your organisation."
               action={
-                <button className="flex items-center gap-2 px-3 py-1.5 bg-primary text-primary-foreground rounded-lg text-xs font-semibold hover:bg-primary/90 transition-colors">
+                <button className="flex items-center gap-2 px-3 py-1.5 bg-foreground text-background rounded-lg text-xs font-semibold hover:bg-foreground/90 transition-colors">
                   <UserPlus className="w-3.5 h-3.5" /> Invite
                 </button>
               }
@@ -254,8 +254,8 @@ export default function SettingsPage() {
                 <div className="flex items-center justify-between p-5 bg-gradient-to-r from-primary/8 to-transparent border border-primary/20 rounded-2xl">
                   <div>
                     <div className="flex items-center gap-2 mb-1">
-                      <h4 className="font-bold text-primary">Professional Plan</h4>
-                      <span className="px-2 py-0.5 bg-primary/10 text-primary text-[10px] font-bold rounded-full">Active</span>
+                      <h4 className="font-bold text-foreground">Professional Plan</h4>
+                      <span className="px-2 py-0.5 bg-emerald-500/10 text-emerald-600 text-[10px] font-bold rounded-full">Active</span>
                     </div>
                     <p className="text-sm text-foreground/60">$149/month · Next billing: Aug 1, 2026</p>
                   </div>
@@ -337,7 +337,7 @@ export default function SettingsPage() {
                   <FormField label="New Password" type="password" placeholder="••••••••" hint="Min. 8 characters" />
                   <FormField label="Confirm Password" type="password" placeholder="••••••••" />
                   <div className="sm:col-span-2 flex justify-end">
-                    <button className="px-5 py-2.5 bg-primary text-primary-foreground rounded-xl text-sm font-semibold hover:bg-primary/90 transition-all">
+                    <button className="px-5 py-2.5 bg-foreground text-background rounded-xl text-sm font-semibold hover:bg-foreground/90 transition-all">
                       Update Password
                     </button>
                   </div>

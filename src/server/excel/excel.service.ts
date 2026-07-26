@@ -116,7 +116,7 @@ export class ExcelService {
    */
   static async parseInvoicesExcel(buffer: Buffer): Promise<InvoiceData[]> {
     const workbook = new ExcelJS.Workbook();
-    await workbook.xlsx.load(buffer);
+    await workbook.xlsx.load(buffer as any);
     const sheet = workbook.getWorksheet(1); // Get first sheet
 
     if (!sheet) {

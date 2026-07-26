@@ -266,7 +266,7 @@ export default function TransactionsPage() {
           </button>
           <button
             onClick={handleExportCSV}
-            className="flex items-center gap-2 px-4 py-2 bg-primary text-primary-foreground rounded-xl text-sm font-semibold hover:bg-primary/90 transition-all shadow-sm"
+            className="flex items-center gap-2 px-4 py-2 bg-foreground text-background rounded-xl text-sm font-semibold hover:bg-foreground/90 transition-all shadow-sm"
           >
             <Download className="w-4 h-4" /> Export CSV
           </button>
@@ -280,8 +280,8 @@ export default function TransactionsPage() {
           onClick={() => handleSelectTypeFilter("revenue")}
           className={`cursor-pointer p-6 rounded-2xl border transition-all duration-200 shadow-sm relative overflow-hidden group select-none ${
             typeFilter === "revenue"
-              ? "bg-emerald-500/15 border-emerald-500/50 ring-2 ring-emerald-500/30 scale-[1.01]"
-              : "bg-card border-border hover:border-emerald-500/40 hover:shadow-md"
+              ? "bg-emerald-500/10 border-emerald-500/50 ring-2 ring-emerald-500/30 scale-[1.01] shadow-premium"
+              : "bg-card border-border hover:border-emerald-500/40 hover:shadow-premium"
           }`}
         >
           <div className="flex items-start justify-between mb-4">
@@ -306,8 +306,8 @@ export default function TransactionsPage() {
           onClick={() => handleSelectTypeFilter("expense")}
           className={`cursor-pointer p-6 rounded-2xl border transition-all duration-200 shadow-sm relative overflow-hidden group select-none ${
             typeFilter === "expense"
-              ? "bg-red-500/15 border-red-500/50 ring-2 ring-red-500/30 scale-[1.01]"
-              : "bg-card border-border hover:border-red-500/40 hover:shadow-md"
+              ? "bg-red-500/10 border-red-500/50 ring-2 ring-red-500/30 scale-[1.01] shadow-premium"
+              : "bg-card border-border hover:border-red-500/40 hover:shadow-premium"
           }`}
         >
           <div className="flex items-start justify-between mb-4">
@@ -332,8 +332,8 @@ export default function TransactionsPage() {
           onClick={() => handleSelectTypeFilter("all")}
           className={`cursor-pointer p-6 rounded-2xl border transition-all duration-200 shadow-sm relative overflow-hidden group select-none ${
             typeFilter === "all"
-              ? "bg-card border-primary/50 ring-2 ring-primary/20 shadow-md"
-              : "bg-card border-border hover:border-foreground/20 hover:shadow-md"
+              ? "bg-card border-foreground/30 ring-2 ring-foreground/10 shadow-premium scale-[1.01]"
+              : "bg-card border-border hover:border-foreground/20 hover:shadow-premium"
           }`}
         >
           <div className="flex items-start justify-between mb-4">
@@ -379,7 +379,7 @@ export default function TransactionsPage() {
                   onClick={() => setTypeFilter(t)}
                   className={`px-3 py-1.5 rounded-lg text-xs font-semibold capitalize transition-all ${
                     typeFilter === t
-                      ? "bg-primary text-primary-foreground shadow-sm font-bold"
+                      ? "bg-foreground text-background shadow-sm font-bold"
                       : "text-foreground/60 hover:text-foreground"
                   }`}
                 >
@@ -396,7 +396,7 @@ export default function TransactionsPage() {
                   onClick={() => setStatusFilter(s)}
                   className={`px-3 py-1.5 rounded-lg text-xs font-semibold capitalize transition-all ${
                     statusFilter === s
-                      ? "bg-primary text-primary-foreground shadow-sm font-bold"
+                      ? "bg-foreground text-background shadow-sm font-bold"
                       : "text-foreground/60 hover:text-foreground"
                   }`}
                 >

@@ -1,15 +1,16 @@
 @import "tailwindcss";
 
 :root {
-  --background: #f8fafc;
-  --foreground: #0f172a;
+  /* Linear/Vercel inspired premium minimalist colors */
+  --background: #fafafa;
+  --foreground: #171717;
   
-  --primary: #047857;
+  --primary: #171717;
   --primary-foreground: #ffffff;
   
   --card: #ffffff;
-  --card-foreground: #0f172a;
-  --border: #e2e8f0;
+  --card-foreground: #171717;
+  --border: #e5e5e5;
   
   --accent: #10b981;
   --accent-foreground: #ffffff;
@@ -25,33 +26,51 @@
   --color-border: var(--border);
   --color-accent: var(--accent);
   --color-accent-foreground: var(--accent-foreground);
-  --font-sans: var(--font-geist-sans);
-  --font-mono: var(--font-geist-mono);
+  
+  --font-sans: var(--font-geist-sans), ui-sans-serif, system-ui, sans-serif;
+  --font-mono: var(--font-geist-mono), ui-monospace, SFMono-Regular, monospace;
+  
+  /* Premium shadows */
+  --shadow-sm: 0 1px 2px 0 rgba(0, 0, 0, 0.04);
+  --shadow-md: 0 4px 6px -1px rgba(0, 0, 0, 0.04), 0 2px 4px -2px rgba(0, 0, 0, 0.04);
+  --shadow-lg: 0 10px 15px -3px rgba(0, 0, 0, 0.04), 0 4px 6px -4px rgba(0, 0, 0, 0.04);
+  --shadow-xl: 0 20px 25px -5px rgba(0, 0, 0, 0.04), 0 8px 10px -6px rgba(0, 0, 0, 0.04);
+  --shadow-premium: 0 2px 8px -2px rgba(0,0,0,0.05), 0 4px 16px -4px rgba(0,0,0,0.02);
+  --shadow-inner-border: inset 0 0 0 1px rgba(0, 0, 0, 0.06);
 }
 
 @media (prefers-color-scheme: dark) {
   :root {
-    --background: #020617;
-    --foreground: #f8fafc;
+    --background: #0a0a0a;
+    --foreground: #fafafa;
     
-    --primary: #10b981;
-    --primary-foreground: #020617;
+    --primary: #fafafa;
+    --primary-foreground: #171717;
     
-    --card: #0f172a;
-    --card-foreground: #f8fafc;
-    --border: #1e293b;
+    --card: #171717;
+    --card-foreground: #fafafa;
+    --border: #262626;
     
-    --accent: #34d399;
-    --accent-foreground: #020617;
+    --accent: #10b981;
+    --accent-foreground: #ffffff;
   }
 }
 
 body {
   background-color: var(--background);
   color: var(--foreground);
-  font-family: var(--font-sans), Arial, Helvetica, sans-serif;
+  font-family: var(--font-sans);
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
+}
+
+@layer utilities {
+  .text-balance {
+    text-wrap: balance;
+  }
+  .tabular-nums {
+    font-variant-numeric: tabular-nums;
+  }
 }
 
 /* ── Futrli-style Marquee Animation ── */

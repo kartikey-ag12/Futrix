@@ -124,7 +124,7 @@ function ProductDropdown() {
       <NavButton label="Product" open={open} onClick={() => setOpen(!open)} />
 
       {open && (
-        <div className="absolute top-[calc(100%+8px)] left-0 w-72 bg-card border border-border rounded-2xl shadow-xl ring-1 ring-black/5 overflow-hidden z-50">
+        <div className="absolute top-[calc(100%+8px)] left-0 w-72 bg-card border border-border rounded-2xl shadow-premium overflow-hidden z-50 animate-in fade-in slide-in-from-top-1">
           <div className="p-2 space-y-0.5">
             {PRODUCT_ITEMS.map((item) => {
               const Icon = item.icon;
@@ -165,7 +165,7 @@ function FeaturesDropdown() {
       <NavButton label="Features" open={open} onClick={() => setOpen(!open)} />
 
       {open && (
-        <div className="absolute top-[calc(100%+8px)] left-0 w-[420px] bg-card border border-border rounded-2xl shadow-xl ring-1 ring-black/5 overflow-hidden z-50">
+        <div className="absolute top-[calc(100%+8px)] left-0 w-[420px] bg-card border border-border rounded-2xl shadow-premium overflow-hidden z-50 animate-in fade-in slide-in-from-top-1">
           {/* Header */}
           <div className="px-4 pt-4 pb-2">
             <p className="text-[11px] font-bold uppercase tracking-widest text-foreground/40">
@@ -229,7 +229,7 @@ function IntegrationsDropdown() {
       <NavButton label="Integrations" open={open} onClick={() => setOpen(!open)} />
 
       {open && (
-        <div className="absolute top-[calc(100%+8px)] left-0 w-72 bg-card border border-border rounded-2xl shadow-xl ring-1 ring-black/5 overflow-hidden z-50">
+        <div className="absolute top-[calc(100%+8px)] left-0 w-72 bg-card border border-border rounded-2xl shadow-premium overflow-hidden z-50 animate-in fade-in slide-in-from-top-1">
           {/* Header */}
           <div className="px-4 pt-4 pb-2">
             <p className="text-[11px] font-bold uppercase tracking-widest text-foreground/40">
@@ -454,7 +454,7 @@ export function Header({ onOpenMobileSidebar }: HeaderProps) {
           </button>
 
           {showNotifications && (
-            <div className="absolute right-0 top-[calc(100%+8px)] w-80 bg-card border border-border rounded-2xl shadow-xl ring-1 ring-black/5 overflow-hidden z-50">
+            <div className="absolute right-0 top-[calc(100%+8px)] w-80 bg-card border border-border rounded-2xl shadow-premium overflow-hidden z-50 animate-in fade-in slide-in-from-top-1">
               <div className="px-4 py-3 border-b border-border flex items-center justify-between">
                 <h4 className="text-sm font-semibold">Notifications</h4>
                 <span className="text-xs text-foreground/40">{unreadCount} unread</span>
@@ -510,7 +510,7 @@ export function Header({ onOpenMobileSidebar }: HeaderProps) {
           </button>
 
           {showProfile && (
-            <div className="absolute right-0 top-[calc(100%+8px)] w-56 bg-card border border-border rounded-2xl shadow-xl ring-1 ring-black/5 overflow-hidden z-50">
+            <div className="absolute right-0 top-[calc(100%+8px)] w-56 bg-card border border-border rounded-2xl shadow-premium overflow-hidden z-50 animate-in fade-in slide-in-from-top-1">
               <div className="px-4 py-4 border-b border-border">
                 <p className="text-sm font-semibold">{userProfile?.name || "Demo User"}</p>
                 <p className="text-xs text-foreground/50 mt-0.5 truncate">{userProfile?.email || "user@futrix.demo"}</p>

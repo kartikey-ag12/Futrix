@@ -98,7 +98,7 @@ export default function ForecastingPage() {
         <button
           onClick={handleUpdateForecast}
           disabled={isUpdating}
-          className="self-start sm:self-auto flex items-center gap-2 px-4 py-2 bg-primary text-primary-foreground rounded-xl text-sm font-semibold hover:bg-primary/90 transition-all shadow-sm disabled:opacity-50"
+          className="self-start sm:self-auto flex items-center gap-2 px-4 py-2 bg-foreground text-background rounded-xl text-sm font-semibold hover:bg-foreground/90 transition-all shadow-sm disabled:opacity-50"
         >
           <RefreshCcw className={`w-4 h-4 ${isUpdating ? "animate-spin" : ""}`} />
           {isUpdating ? "Recalculating..." : "Update Forecast"}
@@ -132,7 +132,7 @@ export default function ForecastingPage() {
             <ChevronDown className={`w-4 h-4 text-foreground/40 transition-transform ${dropdownOpen ? "rotate-180" : ""}`} />
           </button>
           {dropdownOpen && (
-            <div className="absolute top-full mt-2 right-0 w-72 bg-card border border-border rounded-xl shadow-2xl z-50 overflow-hidden divide-y divide-border/60">
+            <div className="absolute top-full mt-2 right-0 w-72 bg-card border border-border rounded-xl shadow-premium z-50 overflow-hidden divide-y divide-border/60">
               {SCENARIOS.map(s => (
                 <button
                   key={s.id}
@@ -172,7 +172,7 @@ export default function ForecastingPage() {
           icon={<Target className="w-5 h-5" />}
           trendLabel="at current burn"
         />
-        <div className="bg-card p-6 rounded-2xl border border-border shadow-sm flex flex-col gap-3">
+        <div className="bg-card p-6 rounded-2xl border border-border shadow-sm flex flex-col gap-3 hover:shadow-premium hover:border-foreground/10 transition-all duration-200">
           <p className="text-sm font-medium text-foreground/60">Q3 Scenario Risk</p>
           <div className={`inline-flex items-center gap-2 px-3 py-1.5 rounded-xl border text-sm font-bold self-start ${data.riskColor}`}>
             {scenario === "worst" ? <AlertCircle className="w-4 h-4" /> : <CheckCircle2 className="w-4 h-4" />}
@@ -182,7 +182,7 @@ export default function ForecastingPage() {
       </div>
 
       {/* ── Projected Cash Flow Chart ── */}
-      <div className="bg-card border border-border rounded-3xl p-6 sm:p-8 shadow-sm">
+      <div className="bg-card border border-border rounded-3xl p-6 sm:p-8 shadow-sm hover:shadow-premium hover:border-foreground/10 transition-all duration-200">
         <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-6">
           <div>
             <h3 className="font-black text-xl text-foreground">90-Day Cash Flow Runway</h3>
@@ -198,7 +198,7 @@ export default function ForecastingPage() {
       </div>
 
       {/* ── Milestones Tracker ── */}
-      <div className="bg-card border border-border rounded-3xl p-6 sm:p-8 shadow-sm">
+      <div className="bg-card border border-border rounded-3xl p-6 sm:p-8 shadow-sm hover:shadow-premium hover:border-foreground/10 transition-all duration-200">
         <h3 className="font-black text-xl text-foreground mb-1">Q3 & Q4 Financial Milestones</h3>
         <p className="text-sm text-foreground/50 mb-6">Track execution against core financial targets</p>
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">

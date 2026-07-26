@@ -105,7 +105,6 @@ const FAQ_ITEMS = [
 ];
 
 function FAQItem({ q, a }: { q: string; a: string }) {
-  "use client";
   return (
     <details className="group border border-slate-200 rounded-2xl overflow-hidden">
       <summary className="flex items-center justify-between px-6 py-5 cursor-pointer hover:bg-slate-50 transition-colors list-none">
@@ -121,30 +120,30 @@ function FAQItem({ q, a }: { q: string; a: string }) {
 
 export default function HowItWorksPage() {
   return (
-    <div className="bg-white">
+    <div className="min-h-screen bg-background text-foreground font-sans flex flex-col">
 
       {/* ── Hero ── */}
-      <section className="relative overflow-hidden bg-gradient-to-br from-slate-900 via-slate-800 to-emerald-950 pt-24 pb-36">
+      <section className="relative overflow-hidden bg-gradient-to-br from-background via-foreground/5 to-background pt-24 pb-36 border-b border-border">
         <div className="absolute inset-0 pointer-events-none">
           <div className="absolute top-0 right-0 w-96 h-96 bg-emerald-500/10 rounded-full blur-3xl" />
           <div className="absolute bottom-0 left-0 w-80 h-80 bg-teal-500/10 rounded-full blur-3xl" />
         </div>
         <div className="relative max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 text-center">
-          <span className="inline-block px-4 py-1.5 bg-white/10 border border-white/20 text-slate-300 text-xs font-semibold uppercase tracking-wider rounded-full mb-6">
+          <span className="inline-block px-4 py-1.5 bg-foreground/5 border border-border text-foreground/70 text-xs font-semibold uppercase tracking-wider rounded-full mb-6">
             How It Works
           </span>
-          <h1 className="text-4xl sm:text-5xl lg:text-6xl font-black text-white leading-tight mb-6">
+          <h1 className="text-4xl sm:text-5xl lg:text-6xl font-black text-foreground leading-tight mb-6">
             From connection to
             <br />
-            <span className="bg-gradient-to-r from-emerald-400 to-teal-400 bg-clip-text text-transparent">
+            <span className="bg-gradient-to-r from-emerald-500 to-teal-500 bg-clip-text text-transparent">
               clarity in minutes
             </span>
           </h1>
-          <p className="text-slate-300 text-xl leading-relaxed mb-10 max-w-2xl mx-auto">
+          <p className="text-foreground/60 text-xl leading-relaxed mb-10 max-w-2xl mx-auto">
             Futrix combines real-time accounting data with AI-powered forecasting and beautiful
             reporting — all without any manual work.
           </p>
-          <Link href="/signup" className="inline-flex items-center gap-2 px-8 py-3.5 bg-gradient-to-r from-emerald-500 to-teal-600 text-white font-semibold rounded-xl hover:from-emerald-600 hover:to-teal-700 transition-all shadow-lg">
+          <Link href="/signup" className="inline-flex items-center gap-2 px-8 py-3.5 bg-gradient-to-r from-emerald-500 to-teal-600 text-white font-semibold rounded-xl hover:opacity-90 transition-all shadow-lg">
             Try it free — 14 days
             <ArrowRight className="w-5 h-5" />
           </Link>
@@ -152,7 +151,7 @@ export default function HowItWorksPage() {
       </section>
 
       {/* ── Steps ── */}
-      <section className="py-28 bg-slate-50">
+      <section className="py-28 bg-card border-b border-border">
         <div className="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="space-y-8">
             {STEPS.map((step, i) => {
@@ -160,7 +159,7 @@ export default function HowItWorksPage() {
               return (
                 <div
                   key={step.number}
-                  className={`flex flex-col md:flex-row gap-8 items-start bg-white rounded-2xl border border-slate-200 p-8 shadow-sm hover:shadow-md transition-shadow ${
+                  className={`flex flex-col md:flex-row gap-8 items-start bg-background rounded-2xl border border-border p-8 shadow-sm hover:shadow-premium transition-shadow ${
                     i % 2 === 1 ? "md:flex-row-reverse" : ""
                   }`}
                 >
@@ -169,18 +168,18 @@ export default function HowItWorksPage() {
                     <div className={`w-16 h-16 ${step.color} rounded-2xl flex items-center justify-center text-white shadow-lg`}>
                       <Icon className="w-8 h-8" />
                     </div>
-                    <span className="text-4xl font-black text-slate-100">{step.number}</span>
+                    <span className="text-4xl font-black text-foreground/10">{step.number}</span>
                   </div>
 
                   {/* Content */}
                   <div className="flex-1">
-                    <h2 className="text-2xl font-black text-slate-900 mb-3">{step.title}</h2>
-                    <p className="text-slate-600 leading-relaxed mb-6">{step.description}</p>
+                    <h2 className="text-2xl font-black text-foreground mb-3">{step.title}</h2>
+                    <p className="text-foreground/60 leading-relaxed mb-6">{step.description}</p>
                     <ul className="grid sm:grid-cols-2 gap-2.5">
                       {step.detail.map((d) => (
                         <li key={d} className="flex items-start gap-2">
                           <CheckCircle2 className={`w-4 h-4 ${step.textColor} flex-shrink-0 mt-0.5`} />
-                          <span className="text-sm text-slate-600">{d}</span>
+                          <span className="text-sm text-foreground/60">{d}</span>
                         </li>
                       ))}
                     </ul>
@@ -193,20 +192,20 @@ export default function HowItWorksPage() {
       </section>
 
       {/* ── Visual flow summary ── */}
-      <section className="py-20 bg-white">
+      <section className="py-20 bg-background border-b border-border">
         <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 text-center">
-          <h2 className="text-2xl font-black text-slate-900 mb-12">The Futrix flow at a glance</h2>
+          <h2 className="text-2xl font-black text-foreground mb-12">The Futrix flow at a glance</h2>
           <div className="flex flex-wrap justify-center items-center gap-3">
             {[
-              { label: "Xero / Tally", bg: "bg-slate-900 text-white" },
-              { label: "→", bg: "text-slate-400 font-bold text-xl" },
-              { label: "Auto Sync", bg: "bg-emerald-100 text-emerald-700" },
-              { label: "→", bg: "text-slate-400 font-bold text-xl" },
-              { label: "Live Dashboard", bg: "bg-blue-100 text-blue-700" },
-              { label: "→", bg: "text-slate-400 font-bold text-xl" },
-              { label: "AI Forecasts", bg: "bg-violet-100 text-violet-700" },
-              { label: "→", bg: "text-slate-400 font-bold text-xl" },
-              { label: "Smart Reports", bg: "bg-amber-100 text-amber-700" },
+              { label: "Xero", bg: "bg-foreground text-background" },
+              { label: "→", bg: "text-foreground/30 font-bold text-xl" },
+              { label: "Auto Sync", bg: "bg-emerald-500/10 text-emerald-600" },
+              { label: "→", bg: "text-foreground/30 font-bold text-xl" },
+              { label: "Live Dashboard", bg: "bg-blue-500/10 text-blue-600" },
+              { label: "→", bg: "text-foreground/30 font-bold text-xl" },
+              { label: "AI Forecasts", bg: "bg-violet-500/10 text-violet-600" },
+              { label: "→", bg: "text-foreground/30 font-bold text-xl" },
+              { label: "Smart Reports", bg: "bg-amber-500/10 text-amber-600" },
             ].map((node, i) =>
               node.label === "→" ? (
                 <span key={i} className={node.bg}>{node.label}</span>
@@ -221,10 +220,10 @@ export default function HowItWorksPage() {
       </section>
 
       {/* ── FAQ ── */}
-      <section className="py-24 bg-slate-50">
+      <section className="py-24 bg-card border-b border-border">
         <div className="max-w-3xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="text-center mb-12">
-            <h2 className="text-3xl font-black text-slate-900">Common questions</h2>
+            <h2 className="text-3xl font-black text-foreground">Common questions</h2>
           </div>
           <div className="space-y-3">
             {FAQ_ITEMS.map((faq) => (
@@ -235,20 +234,20 @@ export default function HowItWorksPage() {
       </section>
 
       {/* ── CTA ── */}
-      <section className="py-24 bg-gradient-to-r from-emerald-600 to-teal-600">
+      <section className="py-24 bg-foreground">
         <div className="max-w-3xl mx-auto px-4 sm:px-6 lg:px-8 text-center">
-          <h2 className="text-3xl sm:text-4xl font-black text-white mb-4">
+          <h2 className="text-3xl sm:text-4xl font-black text-background mb-4">
             See it yourself in 14 days — free
           </h2>
-          <p className="text-emerald-100 text-lg mb-10">
+          <p className="text-background/80 text-lg mb-10">
             No credit card. No long-term commitment. Just connect and go.
           </p>
           <div className="flex flex-col sm:flex-row gap-4 justify-center">
-            <Link href="/signup" className="inline-flex items-center justify-center gap-2 px-8 py-3.5 bg-white text-emerald-700 font-semibold rounded-xl hover:bg-emerald-50 transition-all shadow-lg">
+            <Link href="/signup" className="inline-flex items-center justify-center gap-2 px-8 py-3.5 bg-background text-foreground font-semibold rounded-xl hover:bg-background/90 transition-all shadow-lg">
               Start free trial
               <ArrowRight className="w-5 h-5" />
             </Link>
-            <Link href="/integrations/xero" className="inline-flex items-center justify-center gap-2 px-8 py-3.5 bg-white/10 text-white font-semibold rounded-xl border border-white/30 hover:bg-white/20 transition-all">
+            <Link href="/integrations/xero" className="inline-flex items-center justify-center gap-2 px-8 py-3.5 bg-foreground text-background font-semibold rounded-xl border border-border hover:bg-background/10 transition-all">
               Xero integration
             </Link>
           </div>
