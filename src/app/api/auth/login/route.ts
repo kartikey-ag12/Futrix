@@ -1,5 +1,8 @@
 import { NextResponse } from "next/server";
 import { cookies } from "next/headers";
+import { prisma } from "@/lib/prisma";
+import bcrypt from "bcryptjs";
+import { signAccessToken, signRefreshToken } from "@/lib/auth/jwt";
 
 export async function POST(req: Request) {
   try {
@@ -13,43 +16,75 @@ export async function POST(req: Request) {
       return NextResponse.json({ error: "Please enter a valid email address." }, { status: 400 });
     }
 
-    if (password.length < 6) {
-      return NextResponse.json({ error: "Password must be at least 6 characters." }, { status: 400 });
+    // Find user
+    const user = await prisma.user.findUnique({ where: { email } });
+    if (!user || !user.passwordHash) {
+      return NextResponse.json({ error: "Invalid email or password." }, { status: 401 });
     }
 
-    // Extract user display name from email (or default)
-    const name = email.split("@")[0].replace(/[._-]/g, " ").replace(/\b\w/g, (c: string) => c.toUpperCase());
+    // Verify password
+    const isPasswordValid = await bcrypt.compare(password, user.passwordHash);
+    if (!isPasswordValid) {
+      return NextResponse.json({ error: "Invalid email or password." }, { status: 401 });
+    }
+
+    // Issue tokens
+    const tokenPayload = { userId: user.id, email: user.email! };
+    const accessToken = await signAccessToken(tokenPayload);
+    const refreshToken = await signRefreshToken(tokenPayload);
+
+    // Save refresh token
+    const refreshAgeDays = remember ? 30 : 7;
+    const expiresAt = new Date(Date.now() + refreshAgeDays * 24 * 60 * 60 * 1000);
+    
+    await prisma.refreshToken.create({
+      data: {
+        token: refreshToken,
+        userId: user.id,
+        expiresAt,
+      },
+    });
 
     const cookieStore = await cookies();
-    const maxAge = remember ? 60 * 60 * 24 * 30 : 60 * 60 * 24 * 7; // 30 days or 7 days
+    const isProduction = process.env.NODE_ENV === "production";
 
-    cookieStore.set("futrix_auth_token", `token_${Date.now()}`, {
+    cookieStore.set("futrix_access_token", accessToken, {
       httpOnly: true,
-      secure: process.env.NODE_ENV === "production",
+      secure: isProduction,
+      sameSite: "strict",
       path: "/",
-      maxAge,
+      maxAge: 15 * 60, // 15 mins
+    });
+
+    cookieStore.set("futrix_refresh_token", refreshToken, {
+      httpOnly: true,
+      secure: isProduction,
+      sameSite: "strict",
+      path: "/",
+      maxAge: refreshAgeDays * 24 * 60 * 60,
     });
 
     cookieStore.set("futrix_user_email", email, {
-      httpOnly: false, // client-readable for UI headers
-      secure: process.env.NODE_ENV === "production",
+      httpOnly: false,
+      secure: isProduction,
       path: "/",
-      maxAge,
+      maxAge: refreshAgeDays * 24 * 60 * 60,
     });
 
-    cookieStore.set("futrix_user_name", name, {
+    cookieStore.set("futrix_user_name", user.name || "", {
       httpOnly: false,
-      secure: process.env.NODE_ENV === "production",
+      secure: isProduction,
       path: "/",
-      maxAge,
+      maxAge: refreshAgeDays * 24 * 60 * 60,
     });
 
     return NextResponse.json({
       status: "success",
       message: "Successfully logged in!",
       user: {
-        email,
-        name,
+        id: user.id,
+        email: user.email,
+        name: user.name,
       },
     });
   } catch (error) {
