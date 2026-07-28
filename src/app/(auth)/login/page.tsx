@@ -58,7 +58,7 @@ export default function LoginPage() {
   };
 
   return (
-    <div className="w-full max-w-md">
+    <div className="w-full max-w-md" suppressHydrationWarning>
       {/* Auth Card */}
       <div className="bg-card border border-border rounded-3xl p-8 shadow-2xl relative overflow-hidden">
         {/* Top subtle border glow */}
@@ -82,6 +82,7 @@ export default function LoginPage() {
           <button
             type="button"
             onClick={handleAutofillDemo}
+            suppressHydrationWarning
             className="px-3 py-1 bg-foreground text-background font-bold text-xs rounded-xl transition-all hover:bg-foreground/90 shadow-sm flex-shrink-0"
           >
             Autofill
@@ -105,7 +106,7 @@ export default function LoginPage() {
         )}
 
         {/* Login Form */}
-        <form onSubmit={handleSubmit} className="space-y-5">
+        <form onSubmit={handleSubmit} className="space-y-5" suppressHydrationWarning>
           {/* Email */}
           <div>
             <label className="block text-xs font-semibold text-foreground/70 mb-1.5 uppercase tracking-wider">

@@ -25,7 +25,7 @@ export async function proxy(request: NextRequest) {
   }
 
   const isProtectedRoute = protectedRoutes.some(route => pathname.startsWith(route));
-  const isProtectedApiRoute = protectedApiRoutes.some(route => pathname.startsWith(route));
+  const isProtectedApiRoute = protectedApiRoutes.some(route => pathname.startsWith(route)) && !pathname.startsWith('/api/xero/callback');
   const isAuthRoute = authRoutes.some(route => pathname.startsWith(route));
   const isHomeRoute = pathname === '/';
 

@@ -33,7 +33,7 @@ export async function POST() {
     cookieStore.set("futrix_access_token", newAccessToken, {
       httpOnly: true,
       secure: process.env.NODE_ENV === "production",
-      sameSite: "strict",
+      sameSite: "lax",
       path: "/",
       maxAge: 15 * 60, // 15 mins
     });

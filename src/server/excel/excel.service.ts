@@ -293,7 +293,9 @@ export class ExcelService {
         const row = sheet.getRow(currentRow);
         const qty = item.quantity || 1;
         const price = item.unitAmount || 0;
-        const taxAmt = item.taxAmount || 0;
+        // HARDCODED TAX RATES (8.25%, 4%, 4.25%) - To be replaced with dynamic values from Xero's TaxType/LineItem API in the future.
+        const taxRate = 0.0825;
+        const taxAmt = price * qty * taxRate;
         const total = item.lineAmount || (qty * price);
 
         row.values = [
@@ -304,7 +306,7 @@ export class ExcelService {
           price, 
           item.discountRate || "", 
           item.accountCode || "200 - Sales", 
-          item.taxType || "", 
+          "Tax on Consulting (8.25%)", 
           taxAmt, 
           "", 
           "", 
@@ -348,11 +350,26 @@ export class ExcelService {
     sheet.getCell(`L${currentRow}`).alignment = { horizontal: "right" };
     sheet.getCell(`L${currentRow}`).numFmt = '#,##0.00';
 
+    // HARDCODED TAX RATES (8.25%, 4%, 4.25%) - To be replaced with dynamic values from Xero's TaxType/LineItem API in the future.
+    const subtotal = invoice.subTotal || 0;
+    const cityTax = subtotal * 0.04;
+    const stateTax = subtotal * 0.0425;
+    const calculatedTotal = subtotal + cityTax + stateTax;
+
     currentRow += 2;
-    sheet.getCell(`K${currentRow}`).value = "Total Tax";
+    sheet.getCell(`K${currentRow}`).value = "Total City Tax 4%";
     sheet.getCell(`K${currentRow}`).font = valueFont;
     sheet.getCell(`K${currentRow}`).alignment = { horizontal: "left" };
-    sheet.getCell(`L${currentRow}`).value = invoice.totalTax || 0;
+    sheet.getCell(`L${currentRow}`).value = cityTax;
+    sheet.getCell(`L${currentRow}`).font = valueFont;
+    sheet.getCell(`L${currentRow}`).alignment = { horizontal: "right" };
+    sheet.getCell(`L${currentRow}`).numFmt = '#,##0.00';
+
+    currentRow += 1;
+    sheet.getCell(`K${currentRow}`).value = "Total State Tax 4.25%";
+    sheet.getCell(`K${currentRow}`).font = valueFont;
+    sheet.getCell(`K${currentRow}`).alignment = { horizontal: "left" };
+    sheet.getCell(`L${currentRow}`).value = stateTax;
     sheet.getCell(`L${currentRow}`).font = valueFont;
     sheet.getCell(`L${currentRow}`).alignment = { horizontal: "right" };
     sheet.getCell(`L${currentRow}`).numFmt = '#,##0.00';
@@ -367,7 +384,7 @@ export class ExcelService {
     sheet.getCell(`K${currentRow}`).font = { size: 14, bold: true, color: { argb: "FF111827" } };
     sheet.getCell(`K${currentRow}`).alignment = { vertical: "middle" };
     
-    sheet.getCell(`L${currentRow}`).value = invoice.total || 0;
+    sheet.getCell(`L${currentRow}`).value = calculatedTotal;
     sheet.getCell(`L${currentRow}`).font = { size: 14, bold: true, color: { argb: "FF111827" } };
     sheet.getCell(`L${currentRow}`).alignment = { horizontal: "right", vertical: "middle" };
     sheet.getCell(`L${currentRow}`).numFmt = '#,##0.00';

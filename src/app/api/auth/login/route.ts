@@ -51,7 +51,7 @@ export async function POST(req: Request) {
     cookieStore.set("futrix_access_token", accessToken, {
       httpOnly: true,
       secure: isProduction,
-      sameSite: "strict",
+      sameSite: "lax",
       path: "/",
       maxAge: 15 * 60, // 15 mins
     });
@@ -59,7 +59,7 @@ export async function POST(req: Request) {
     cookieStore.set("futrix_refresh_token", refreshToken, {
       httpOnly: true,
       secure: isProduction,
-      sameSite: "strict",
+      sameSite: "lax",
       path: "/",
       maxAge: refreshAgeDays * 24 * 60 * 60,
     });
