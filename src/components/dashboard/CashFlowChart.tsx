@@ -14,14 +14,23 @@ import {
 interface CashFlowChartProps {
   totalRevenue?: number;
   totalExpenses?: number;
+  data?: any[];
 }
 
 export function CashFlowChart({
   totalRevenue = 45231.89,
   totalExpenses = 23194.0,
+  data,
 }: CashFlowChartProps) {
-  // Dynamically compute net cash flow projections based on revenue & expense data
+  // Use real data if provided, otherwise dynamically compute net cash flow projections
   const chartData = useMemo(() => {
+    if (data && data.length > 0) {
+      return data.map((d) => ({
+        name: d.month,
+        cashflow: d.profit ?? (d.revenue - d.expenses),
+      }));
+    }
+
     const rev = totalRevenue || 45231.89;
     const exp = totalExpenses || 23194.0;
     const currentNet = rev - exp;
@@ -37,7 +46,7 @@ export function CashFlowChart({
         cashflow: netVal,
       };
     });
-  }, [totalRevenue, totalExpenses]);
+  }, [totalRevenue, totalExpenses, data]);
 
   const fmtCurrency = (val: number) =>
     new Intl.NumberFormat("en-US", {

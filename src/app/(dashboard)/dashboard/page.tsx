@@ -283,7 +283,7 @@ export default function Dashboard() {
               View all <ArrowUpRight className="w-3.5 h-3.5" />
             </Link>
           </div>
-          <RevenueChart totalRevenue={metrics.totalRevenue} totalExpenses={metrics.totalExpenses} />
+          <RevenueChart totalRevenue={metrics.totalRevenue} totalExpenses={metrics.totalExpenses} data={metrics.cashFlow} />
         </div>
         <div className="bg-card rounded-2xl border border-border shadow-sm p-6">
           <div className="flex items-center justify-between mb-5">
@@ -294,8 +294,7 @@ export default function Dashboard() {
             <Link href="/forecasting" className="flex items-center gap-1 text-xs font-medium text-primary hover:text-primary/80 transition-colors">
               Forecast <ArrowUpRight className="w-3.5 h-3.5" />
             </Link>
-          </div>
-          <CashFlowChart totalRevenue={metrics.totalRevenue} totalExpenses={metrics.totalExpenses} />
+          <CashFlowChart totalRevenue={metrics.totalRevenue} totalExpenses={metrics.totalExpenses} data={metrics.cashFlow} />
         </div>
       </div>
 
