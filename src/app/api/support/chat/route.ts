@@ -1,5 +1,5 @@
 import { NextResponse } from "next/server";
-import OpenAI from "openai";
+import { GoogleGenerativeAI } from "@google/generative-ai";
 
 const SUPPORT_KNOWLEDGE = `
 You are the official Futrix AI Support Assistant for the Futrix Financial Intelligence Platform.
@@ -24,37 +24,36 @@ export async function POST(req: Request) {
       return NextResponse.json({ error: "Message is required" }, { status: 400 });
     }
 
-    const apiKey = process.env.OPENAI_API_KEY;
+    const apiKey = process.env.GEMINI_API_KEY;
 
-    // ── 1. Call OpenAI API if key is present ──────────────────────────────
-    if (apiKey && apiKey.startsWith("sk-")) {
+    // ── 1. Call Gemini API if key is present ──────────────────────────────
+    if (apiKey) {
       try {
-        const openai = new OpenAI({ apiKey });
-
-        const messages = [
-          { role: "system", content: SUPPORT_KNOWLEDGE },
-          ...(history || []).map((h: any) => ({
-            role: h.sender === "user" ? "user" : "assistant",
-            content: h.text,
-          })),
-          { role: "user", content: message },
-        ];
-
-        const response = await openai.chat.completions.create({
-          model: "gpt-4o-mini",
-          messages: messages as any,
-          temperature: 0.7,
+        const genAI = new GoogleGenerativeAI(apiKey);
+        const model = genAI.getGenerativeModel({
+          model: "gemini-2.5-flash",
+          systemInstruction: SUPPORT_KNOWLEDGE,
         });
 
-        const reply = response.choices[0]?.message?.content || "I am here to help! Could you please clarify your question?";
+        const formattedHistory = (history || []).map((h: any) => ({
+          role: h.sender === "user" ? "user" : "model",
+          parts: [{ text: h.text }],
+        }));
+
+        const chat = model.startChat({
+          history: formattedHistory,
+        });
+
+        const result = await chat.sendMessage(message);
+        const reply = result.response.text();
 
         return NextResponse.json({
           status: "success",
           reply,
-          source: "openai_live",
+          source: "gemini_live",
         });
       } catch (err: any) {
-        console.error("Support Chat OpenAI Error:", err?.message);
+        console.error("Support Chat Gemini Error:", err?.message);
       }
     }
 

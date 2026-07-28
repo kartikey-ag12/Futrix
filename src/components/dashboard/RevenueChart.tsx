@@ -13,24 +13,14 @@ import {
 interface RevenueChartProps {
   totalRevenue?: number;
   totalExpenses?: number;
-  data?: any[];
 }
 
 export function RevenueChart({
   totalRevenue = 45231.89,
   totalExpenses = 23194.0,
-  data,
 }: RevenueChartProps) {
-  // Use real data if provided, otherwise dynamically generate monthly data
+  // Dynamically generate monthly data based on actual total revenue & expenses
   const chartData = useMemo(() => {
-    if (data && data.length > 0) {
-      return data.map((d) => ({
-        name: d.month,
-        revenue: d.revenue,
-        expense: d.expenses,
-      }));
-    }
-
     const revBase = totalRevenue || 45231.89;
     const expBase = totalExpenses || 23194.0;
 
@@ -44,7 +34,7 @@ export function RevenueChart({
       revenue: Math.round(revBase * revMultipliers[i]),
       expense: Math.round(expBase * expMultipliers[i]),
     }));
-  }, [totalRevenue, totalExpenses, data]);
+  }, [totalRevenue, totalExpenses]);
 
   const fmtCurrency = (val: number) =>
     new Intl.NumberFormat("en-US", {

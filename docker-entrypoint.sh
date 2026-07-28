@@ -1,11 +1,13 @@
 #!/bin/sh
-# docker-entrypoint.sh
-# Runs Prisma migrations then starts the Next.js server.
 
-set -e
+echo "Waiting for postgres to be ready..."
+until nc -z db 5432; do
+  sleep 1
+done
+echo "Postgres is ready!"
 
-echo "🔄 Running Prisma database migrations..."
-npx prisma migrate deploy
+echo "Running Prisma DB push..."
+npx prisma db push
 
-echo "🚀 Starting Futrix server on port ${PORT:-3000}..."
+echo "Starting Next.js..."
 exec node server.js

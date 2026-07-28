@@ -33,7 +33,6 @@ tsconfig.tsbuildinfo
 # Docker
 Dockerfile
 docker-compose*.yml
-docker-entrypoint.sh
 
 # Docs / scratch
 *.md

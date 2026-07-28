@@ -12,13 +12,6 @@ export interface Transaction {
   status: "cleared" | "pending";
 }
 
-export interface CashFlowMonth {
-  month: string;   // "YYYY-MM"
-  revenue: number;
-  expenses: number;
-  profit: number;
-}
-
 export interface FinancialMetrics {
   totalRevenue: number;
   totalExpenses: number;
@@ -26,7 +19,6 @@ export interface FinancialMetrics {
   healthScore: number;
   incomeItems: Array<{ code: string; label: string; amount: number; pct: string; category: string }>;
   expenseCategories: Array<{ id: string; label: string; amount: number; pct: number; dept: string; chartLabel: string; color: string; desc: string }>;
-  cashFlow?: CashFlowMonth[];
 }
 
 interface FinancialContextType {
@@ -63,8 +55,7 @@ const defaultMetrics: FinancialMetrics = {
   ],
   expenseCategories: [
     { id: "exp-1", label: "General Expenses", chartLabel: "General", dept: "Operations", amount: 23194.00, color: "#10b981", pct: 100, desc: "General operations" }
-  ],
-  cashFlow: [],
+  ]
 };
 
 const FinancialContext = createContext<FinancialContextType | undefined>(undefined);

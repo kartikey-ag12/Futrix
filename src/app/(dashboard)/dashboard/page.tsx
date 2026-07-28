@@ -8,10 +8,26 @@ import { RevenueChart } from "@/components/dashboard/RevenueChart";
 import { CashFlowChart } from "@/components/dashboard/CashFlowChart";
 import { CreateInvoiceModal } from "@/components/dashboard/CreateInvoiceModal";
 import {
-  DollarSign, TrendingUp, TrendingDown, Activity,
-  RefreshCcw, Plus, Zap, ArrowUpRight, AlertTriangle, Lightbulb,
-  Sparkles, CheckCircle2, Star, Shield, Lock, Layers,
-  Building, Quote, ChevronRight, ChevronLeft
+  DollarSign,
+  TrendingUp,
+  TrendingDown,
+  Activity,
+  RefreshCcw,
+  Plus,
+  Zap,
+  ArrowUpRight,
+  AlertTriangle,
+  Lightbulb,
+  Sparkles,
+  CheckCircle2,
+  Star,
+  Shield,
+  Lock,
+  Layers,
+  Building,
+  Quote,
+  ChevronRight,
+  ChevronLeft,
 } from "lucide-react";
 
 type InsightItem = {
@@ -31,35 +47,40 @@ const LOGO_PARTNERS = [
 
 const REVIEWS = [
   {
-    quote: "Futrix transformed how we present financials to our board. What used to take a full day in spreadsheets now takes under 20 minutes.",
+    quote:
+      "Futrix transformed how we present financials to our board. What used to take a full day in spreadsheets now takes under 20 minutes.",
     author: "Rachel Osei",
     role: "CFO, Greenpath Ventures",
     rating: 5,
     verified: true,
   },
   {
-    quote: "The daily cash flow forecasting caught a potential deficit six weeks out. We had time to act. It literally saved us from a cash crunch.",
+    quote:
+      "The daily cash flow forecasting caught a potential deficit six weeks out. We had time to act. It literally saved us from a cash crunch.",
     author: "Daniel Fitzpatrick",
     role: "Finance Director, Apex Retail",
     rating: 5,
     verified: true,
   },
   {
-    quote: "Our accountants now spend time advising clients instead of manually copying data. Futrix is the platform that made that transition possible.",
+    quote:
+      "Our accountants now spend time advising clients instead of manually copying data. Futrix is the platform that made that transition possible.",
     author: "Mei Lin",
     role: "Partner, Horizon Advisory",
     rating: 5,
     verified: true,
   },
   {
-    quote: "The Xero live integration synced 3 years of invoice ledgers in seconds. Our month-end reporting time has been cut by 70%.",
+    quote:
+      "The Xero live integration synced 3 years of invoice ledgers in seconds. Our month-end reporting time has been cut by 70%.",
     author: "Marcus Vance",
     role: "Group Controller, Vance & Co",
     rating: 5,
     verified: true,
   },
   {
-    quote: "Scenario planning in Futrix allowed us to model our hiring plan safely before committing to Q4 headcount.",
+    quote:
+      "Scenario planning in Futrix allowed us to model our hiring plan safely before committing to Q4 headcount.",
     author: "Elena Rostova",
     role: "VP of Finance, TechScale Global",
     rating: 5,
@@ -99,7 +120,8 @@ const ABOUT_PILLARS = [
 ];
 
 export default function Dashboard() {
-  const { metrics, isSyncing, orgName, lastSynced, handleXeroSync } = useFinancial();
+  const { metrics, isSyncing, orgName, lastSynced, handleXeroSync } =
+    useFinancial();
   const [isGeneratingAi, setIsGeneratingAi] = useState(false);
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [aiSource, setAiSource] = useState<string | null>(null);
@@ -111,19 +133,23 @@ export default function Dashboard() {
   };
 
   const handlePrevReview = () => {
-    setActiveReviewIndex((prev) => (prev - 1 + REVIEWS.length) % REVIEWS.length);
+    setActiveReviewIndex(
+      (prev) => (prev - 1 + REVIEWS.length) % REVIEWS.length,
+    );
   };
 
   const [aiInsights, setAiInsights] = useState<InsightItem[]>([
     {
       type: "warning",
       title: "Cash Flow Alert",
-      description: "Based on historical trends, you're projected to have a cash deficit of $4,500 in mid-August. Consider delaying the upcoming software purchase.",
+      description:
+        "Based on historical trends, you're projected to have a cash deficit of $4,500 in mid-August. Consider delaying the upcoming software purchase.",
     },
     {
       type: "suggestion",
       title: "Expense Optimisation",
-      description: "Your SaaS subscriptions have increased by 15% this quarter. Reviewing inactive accounts could save up to $850/month.",
+      description:
+        "Your SaaS subscriptions have increased by 15% this quarter. Reviewing inactive accounts could save up to $850/month.",
     },
   ]);
 
@@ -145,7 +171,11 @@ export default function Dashboard() {
       const data = await res.json();
       if (res.ok && data.insights && Array.isArray(data.insights)) {
         setAiInsights(data.insights);
-        setAiSource(data.source === "openai_live" ? "OpenAI GPT-4o" : "Futrix Financial Engine");
+        setAiSource(
+          data.source === "openai_live"
+            ? "OpenAI GPT-4o"
+            : "Futrix Financial Engine",
+        );
       }
     } catch (err) {
       console.error("AI Insights fetch error:", err);
@@ -164,18 +194,27 @@ export default function Dashboard() {
   }, []);
 
   const fmt = (n: number) =>
-    new Intl.NumberFormat('en-US', { style: 'currency', currency: 'USD' }).format(n);
+    new Intl.NumberFormat("en-US", {
+      style: "currency",
+      currency: "USD",
+    }).format(n);
 
   return (
     <div className="flex flex-col gap-8 pb-12">
-
       {/* ── Page header ── */}
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
         <div>
-          <h1 className="text-2xl font-black text-foreground tracking-tight">Dashboard</h1>
+          <h1 className="text-2xl font-black text-foreground tracking-tight">
+            Dashboard
+          </h1>
           <p className="text-sm text-foreground/50 mt-0.5">
             {orgName ? (
-              <>Connected to <span className="font-semibold text-emerald-600">{orgName}</span></>
+              <>
+                Connected to{" "}
+                <span className="font-semibold text-emerald-600">
+                  {orgName}
+                </span>
+              </>
             ) : (
               "Live financial overview for this month"
             )}
@@ -192,7 +231,9 @@ export default function Dashboard() {
             disabled={isSyncing}
             className="flex items-center gap-2 px-4 py-2 bg-foreground/5 border border-border rounded-xl text-sm font-semibold hover:bg-foreground/10 transition-all disabled:opacity-50 text-foreground"
           >
-            <RefreshCcw className={`w-4 h-4 ${isSyncing ? 'animate-spin text-foreground' : 'text-foreground/60'}`} />
+            <RefreshCcw
+              className={`w-4 h-4 ${isSyncing ? "animate-spin text-foreground" : "text-foreground/60"}`}
+            />
             {isSyncing ? "Syncing…" : "Sync"}
           </button>
           <button
@@ -217,7 +258,9 @@ export default function Dashboard() {
               {orgName ? `Xero — ${orgName}` : "Xero Accounting"}
             </p>
             <p className="text-xs text-foreground/50 truncate">
-              {orgName ? "Invoices & bills synced automatically" : "Connect Xero for live cloud sync"}
+              {orgName
+                ? "Invoices & bills synced automatically"
+                : "Connect Xero for live cloud sync"}
             </p>
           </div>
           <div className="flex items-center gap-2 flex-shrink-0">
@@ -227,7 +270,10 @@ export default function Dashboard() {
                 Live Sync
               </span>
             ) : (
-              <Link href="/integrations/xero" className="flex items-center gap-1.5 px-3 py-1.5 bg-[#1AB4D7] text-white text-xs font-semibold rounded-lg hover:bg-[#1AB4D7]/90 transition-colors">
+              <Link
+                href="/integrations/xero"
+                className="flex items-center gap-1.5 px-3 py-1.5 bg-[#1AB4D7] text-white text-xs font-semibold rounded-lg hover:bg-[#1AB4D7]/90 transition-colors"
+              >
                 <Zap className="w-3.5 h-3.5" /> Connect
               </Link>
             )}
@@ -264,10 +310,34 @@ export default function Dashboard() {
           This Month&apos;s Overview
         </h2>
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-5">
-          <KPICard title="Total Revenue"    value={fmt(metrics.totalRevenue)}  trend={12.5} trendLabel="vs last month" icon={<DollarSign className="w-5 h-5" />} />
-          <KPICard title="Total Expenses"   value={fmt(metrics.totalExpenses)} trend={-4.5} trendLabel="vs last month" icon={<TrendingDown className="w-5 h-5" />} />
-          <KPICard title="Net Profit"       value={fmt(metrics.netProfit)}     trend={8.2}  trendLabel="vs last month" icon={<TrendingUp className="w-5 h-5" />} />
-          <KPICard title="Health Score"     value={`${metrics.healthScore}/100`} trend={2.4} trendLabel="stable"      icon={<Activity className="w-5 h-5" />} />
+          <KPICard
+            title="Total Revenue"
+            value={fmt(metrics.totalRevenue)}
+            trend={12.5}
+            trendLabel="vs last month"
+            icon={<DollarSign className="w-5 h-5" />}
+          />
+          <KPICard
+            title="Total Expenses"
+            value={fmt(metrics.totalExpenses)}
+            trend={-4.5}
+            trendLabel="vs last month"
+            icon={<TrendingDown className="w-5 h-5" />}
+          />
+          <KPICard
+            title="Net Profit"
+            value={fmt(metrics.netProfit)}
+            trend={8.2}
+            trendLabel="vs last month"
+            icon={<TrendingUp className="w-5 h-5" />}
+          />
+          <KPICard
+            title="Health Score"
+            value={`${metrics.healthScore}/100`}
+            trend={2.4}
+            trendLabel="stable"
+            icon={<Activity className="w-5 h-5" />}
+          />
         </div>
       </div>
 
@@ -277,24 +347,41 @@ export default function Dashboard() {
           <div className="flex items-center justify-between mb-5">
             <div>
               <h3 className="font-semibold text-foreground">Revenue Trend</h3>
-              <p className="text-xs text-foreground/50 mt-0.5">Monthly revenue over time</p>
+              <p className="text-xs text-foreground/50 mt-0.5">
+                Monthly revenue over time
+              </p>
             </div>
-            <Link href="/transactions" className="flex items-center gap-1 text-xs font-medium text-primary hover:text-primary/80 transition-colors">
+            <Link
+              href="/transactions"
+              className="flex items-center gap-1 text-xs font-medium text-primary hover:text-primary/80 transition-colors"
+            >
               View all <ArrowUpRight className="w-3.5 h-3.5" />
             </Link>
           </div>
-          <RevenueChart totalRevenue={metrics.totalRevenue} totalExpenses={metrics.totalExpenses} data={metrics.cashFlow} />
+          <RevenueChart
+            totalRevenue={metrics.totalRevenue}
+            totalExpenses={metrics.totalExpenses}
+          />
         </div>
         <div className="bg-card rounded-2xl border border-border shadow-sm p-6">
           <div className="flex items-center justify-between mb-5">
             <div>
               <h3 className="font-semibold text-foreground">Cash Flow</h3>
-              <p className="text-xs text-foreground/50 mt-0.5">Inflows vs outflows</p>
+              <p className="text-xs text-foreground/50 mt-0.5">
+                Inflows vs outflows
+              </p>
             </div>
-            <Link href="/forecasting" className="flex items-center gap-1 text-xs font-medium text-primary hover:text-primary/80 transition-colors">
+            <Link
+              href="/forecasting"
+              className="flex items-center gap-1 text-xs font-medium text-primary hover:text-primary/80 transition-colors"
+            >
               Forecast <ArrowUpRight className="w-3.5 h-3.5" />
             </Link>
-          <CashFlowChart totalRevenue={metrics.totalRevenue} totalExpenses={metrics.totalExpenses} data={metrics.cashFlow} />
+          </div>
+          <CashFlowChart
+            totalRevenue={metrics.totalRevenue}
+            totalExpenses={metrics.totalExpenses}
+          />
         </div>
       </div>
 
@@ -307,14 +394,18 @@ export default function Dashboard() {
             </div>
             <div>
               <div className="flex items-center gap-2">
-                <h3 className="font-bold text-foreground text-sm">AI Financial Insights</h3>
+                <h3 className="font-bold text-foreground text-sm">
+                  AI Financial Insights
+                </h3>
                 {aiSource && (
                   <span className="px-2 py-0.5 bg-violet-500/10 text-violet-600 text-[10px] font-bold rounded-full">
                     {aiSource}
                   </span>
                 )}
               </div>
-              <p className="text-xs text-foreground/50">Real-time LLM financial analysis & risk detector</p>
+              <p className="text-xs text-foreground/50">
+                Real-time LLM financial analysis & risk detector
+              </p>
             </div>
           </div>
 
@@ -323,7 +414,9 @@ export default function Dashboard() {
             disabled={isGeneratingAi}
             className="flex items-center gap-2 px-3.5 py-1.5 bg-foreground text-background rounded-xl text-xs font-semibold hover:bg-foreground/90 transition-all shadow-sm disabled:opacity-50"
           >
-            <Sparkles className={`w-3.5 h-3.5 ${isGeneratingAi ? "animate-spin" : ""}`} />
+            <Sparkles
+              className={`w-3.5 h-3.5 ${isGeneratingAi ? "animate-spin" : ""}`}
+            />
             {isGeneratingAi ? "Analyzing Data..." : "Run AI Analysis"}
           </button>
         </div>
@@ -339,8 +432,8 @@ export default function Dashboard() {
                   isWarning
                     ? "bg-amber-500/8 border-amber-500/20"
                     : isSuggestion
-                    ? "bg-blue-500/8 border-blue-500/20"
-                    : "bg-emerald-500/8 border-emerald-500/20"
+                      ? "bg-blue-500/8 border-blue-500/20"
+                      : "bg-emerald-500/8 border-emerald-500/20"
                 }`}
               >
                 <div>
@@ -352,9 +445,13 @@ export default function Dashboard() {
                     ) : (
                       <CheckCircle2 className="w-4 h-4 text-emerald-500 flex-shrink-0" />
                     )}
-                    <h4 className="font-bold text-foreground text-sm leading-tight">{insight.title}</h4>
+                    <h4 className="font-bold text-foreground text-sm leading-tight">
+                      {insight.title}
+                    </h4>
                   </div>
-                  <p className="text-xs text-foreground/70 leading-relaxed">{insight.description}</p>
+                  <p className="text-xs text-foreground/70 leading-relaxed">
+                    {insight.description}
+                  </p>
                 </div>
               </div>
             );
@@ -365,7 +462,9 @@ export default function Dashboard() {
       {/* ── Futrli-Style Infinite Scrolling Partner Marquee ── */}
       <div className="bg-card rounded-2xl border border-border shadow-sm p-4 overflow-hidden">
         <div className="flex items-center gap-3 mb-3 px-2">
-          <span className="text-xs font-bold uppercase tracking-wider text-foreground/40">Verified Partners & Integrations</span>
+          <span className="text-xs font-bold uppercase tracking-wider text-foreground/40">
+            Verified Partners & Integrations
+          </span>
           <div className="h-px bg-border flex-1" />
         </div>
         <div className="relative w-full overflow-hidden mask-fade">
@@ -375,10 +474,14 @@ export default function Dashboard() {
                 key={i}
                 className="flex items-center gap-2.5 px-4 py-2 bg-foreground/5 border border-border rounded-xl flex-shrink-0"
               >
-                <div className={`w-6 h-6 rounded-lg bg-card border border-border flex items-center justify-center font-black text-xs ${partner.color}`}>
+                <div
+                  className={`w-6 h-6 rounded-lg bg-card border border-border flex items-center justify-center font-black text-xs ${partner.color}`}
+                >
                   {partner.icon}
                 </div>
-                <span className="text-xs font-semibold text-foreground/80 whitespace-nowrap">{partner.name}</span>
+                <span className="text-xs font-semibold text-foreground/80 whitespace-nowrap">
+                  {partner.name}
+                </span>
               </div>
             ))}
           </div>
@@ -397,7 +500,9 @@ export default function Dashboard() {
             Built for modern finance teams who demand clarity, not chaos
           </h2>
           <p className="text-foreground/80 text-sm leading-relaxed">
-            Futrix brings your accounting data, cash flow forecasting, board reporting, and AI-powered advice under one intelligent roof — keeping you in command of your business growth.
+            Futrix brings your accounting data, cash flow forecasting, board
+            reporting, and AI-powered advice under one intelligent roof —
+            keeping you in command of your business growth.
           </p>
         </div>
 
@@ -410,11 +515,17 @@ export default function Dashboard() {
                 key={pillar.title}
                 className={`p-5 rounded-2xl border border-border bg-foreground/[0.02] hover:bg-foreground/5 transition-all`}
               >
-                <div className={`w-10 h-10 rounded-xl bg-card border border-border flex items-center justify-center mb-4 ${pillar.color}`}>
+                <div
+                  className={`w-10 h-10 rounded-xl bg-card border border-border flex items-center justify-center mb-4 ${pillar.color}`}
+                >
                   <Icon className="w-5 h-5" />
                 </div>
-                <h3 className="font-bold text-sm text-foreground mb-1.5">{pillar.title}</h3>
-                <p className="text-xs text-foreground/70 leading-relaxed">{pillar.desc}</p>
+                <h3 className="font-bold text-sm text-foreground mb-1.5">
+                  {pillar.title}
+                </h3>
+                <p className="text-xs text-foreground/70 leading-relaxed">
+                  {pillar.desc}
+                </p>
               </div>
             );
           })}
@@ -427,21 +538,33 @@ export default function Dashboard() {
         <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 pb-6 border-b border-border mb-6">
           <div>
             <div className="flex items-center gap-2 mb-1">
-              <span className="text-xs font-bold uppercase tracking-wide text-foreground/50">Customer Satisfaction</span>
-              <span className="px-2 py-0.5 bg-emerald-500/10 text-emerald-600 text-[10px] font-bold rounded-full">Trustpilot Verified</span>
+              <span className="text-xs font-bold uppercase tracking-wide text-foreground/50">
+                Customer Satisfaction
+              </span>
+              <span className="px-2 py-0.5 bg-emerald-500/10 text-emerald-600 text-[10px] font-bold rounded-full">
+                Trustpilot Verified
+              </span>
             </div>
-            <h3 className="text-xl font-black text-foreground">Why 2,400+ Finance Leaders Choose Futrix</h3>
+            <h3 className="text-xl font-black text-foreground">
+              Why 2,400+ Finance Leaders Choose Futrix
+            </h3>
           </div>
 
           <div className="flex items-center gap-3">
             <div className="flex items-center gap-3 px-4 py-2 bg-foreground/5 rounded-2xl border border-border">
               <div className="flex gap-1">
                 {[...Array(5)].map((_, i) => (
-                  <Star key={i} className="w-4 h-4 fill-amber-400 text-amber-400" />
+                  <Star
+                    key={i}
+                    className="w-4 h-4 fill-amber-400 text-amber-400"
+                  />
                 ))}
               </div>
               <div className="text-xs font-bold text-foreground">
-                4.9 / 5 <span className="text-foreground/40 font-normal hidden sm:inline">from 320+ reviews</span>
+                4.9 / 5{" "}
+                <span className="text-foreground/40 font-normal hidden sm:inline">
+                  from 320+ reviews
+                </span>
               </div>
             </div>
 
@@ -475,9 +598,14 @@ export default function Dashboard() {
               <div className="mb-6">
                 <div className="flex items-center gap-1 mb-4">
                   {[...Array(currentRev.rating)].map((_, i) => (
-                    <Star key={i} className="w-4 h-4 fill-amber-400 text-amber-400" />
+                    <Star
+                      key={i}
+                      className="w-4 h-4 fill-amber-400 text-amber-400"
+                    />
                   ))}
-                  <span className="text-xs text-foreground/40 font-medium ml-2">Verified Review</span>
+                  <span className="text-xs text-foreground/40 font-medium ml-2">
+                    Verified Review
+                  </span>
                 </div>
 
                 <p className="text-base sm:text-lg font-medium text-foreground leading-relaxed italic">
@@ -492,10 +620,14 @@ export default function Dashboard() {
                   </div>
                   <div>
                     <div className="flex items-center gap-1.5">
-                      <p className="text-sm font-bold text-foreground">{currentRev.author}</p>
+                      <p className="text-sm font-bold text-foreground">
+                        {currentRev.author}
+                      </p>
                       <CheckCircle2 className="w-4 h-4 text-emerald-500" />
                     </div>
-                    <p className="text-xs text-foreground/50">{currentRev.role}</p>
+                    <p className="text-xs text-foreground/50">
+                      {currentRev.role}
+                    </p>
                   </div>
                 </div>
 
@@ -523,9 +655,10 @@ export default function Dashboard() {
       <CreateInvoiceModal
         isOpen={isModalOpen}
         onClose={() => setIsModalOpen(false)}
-        onSuccess={() => { handleSync(); }}
+        onSuccess={() => {
+          handleSync();
+        }}
       />
-
     </div>
   );
 }
