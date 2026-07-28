@@ -3,35 +3,13 @@ import { ArrowRight, BarChart3, TrendingUp, Shield, Zap, DollarSign, Activity, C
 import { KPICard } from "@/components/dashboard/KPICard";
 import { RevenueChart } from "@/components/dashboard/RevenueChart";
 import { CashFlowChart } from "@/components/dashboard/CashFlowChart";
+import { Navbar } from "@/components/layout/Navbar";
 
 export default function LandingPage() {
   return (
     <div className="min-h-screen bg-background flex flex-col text-foreground font-sans scroll-smooth">
       {/* ── Navbar ── */}
-      <header className="px-6 py-4 flex items-center justify-between border-b border-border/40 backdrop-blur-md sticky top-0 z-50 bg-background/80">
-        <Link href="#" className="flex items-center gap-2">
-          <div className="w-8 h-8 rounded-xl bg-foreground flex items-center justify-center">
-            <TrendingUp className="w-5 h-5 text-background" />
-          </div>
-          <span className="text-lg font-black tracking-tight">Futrix</span>
-        </Link>
-        <nav className="hidden md:flex items-center gap-6 text-sm font-medium text-foreground/70">
-          <Link href="#features" className="hover:text-foreground transition-colors">Features</Link>
-          <Link href="#how-it-works" className="hover:text-foreground transition-colors">How it works</Link>
-          <Link href="#overview" className="hover:text-foreground transition-colors">Overview</Link>
-          <Link href="#reviews" className="hover:text-foreground transition-colors">Reviews</Link>
-          <Link href="#pricing" className="hover:text-foreground transition-colors">Pricing</Link>
-          <Link href="#faq" className="hover:text-foreground transition-colors">FAQ</Link>
-        </nav>
-        <div className="flex items-center gap-3">
-          <Link href="/login" className="px-4 py-2 text-sm font-semibold hover:text-foreground/80 transition-colors">
-            Sign In
-          </Link>
-          <Link href="/signup" className="px-4 py-2 bg-foreground text-background rounded-xl text-sm font-semibold hover:bg-foreground/90 transition-all shadow-sm">
-            Get Started
-          </Link>
-        </div>
-      </header>
+      <Navbar />
 
       {/* ── Hero Section ── */}
       <main className="flex-1 flex flex-col items-center justify-center text-center px-4 pt-24 pb-20 sm:pt-32 sm:pb-32 relative overflow-hidden">

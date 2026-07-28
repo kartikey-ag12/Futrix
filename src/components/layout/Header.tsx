@@ -402,40 +402,26 @@ export function Header({ onOpenMobileSidebar }: HeaderProps) {
       </div>
 
       {/* ── Nav items ── */}
-      <nav className="hidden xl:flex items-center gap-1">
-        <ProductDropdown />
-        <FeaturesDropdown />
-        <IntegrationsDropdown />
+      <div className="hidden xl:flex flex-1 justify-center">
+        <nav className="flex items-center gap-1">
+          <Link
+            href={userProfile ? "/dashboard" : "/"}
+            className="px-4 py-2 rounded-lg text-sm font-medium text-foreground/70 hover:text-foreground hover:bg-foreground/5 transition-all duration-150"
+          >
+            Home
+          </Link>
+          <ProductDropdown />
+          <FeaturesDropdown />
+          <IntegrationsDropdown />
 
-        <Link
-          href="/pricing"
-          className="px-4 py-2 rounded-lg text-sm font-medium text-foreground/70 hover:text-foreground hover:bg-foreground/5 transition-all duration-150"
-        >
-          Pricing
-        </Link>
-      </nav>
-
-      {/* ── Divider ── */}
-      <div className="h-6 w-px bg-border flex-shrink-0" />
-
-      {/* ── Auth buttons ── */}
-      <div className="hidden sm:flex items-center gap-2 flex-shrink-0">
-        <Link
-          href="/login"
-          className="px-4 py-2 rounded-lg text-sm font-medium text-foreground/70 hover:text-foreground hover:bg-foreground/5 transition-all duration-150"
-        >
-          Log in
-        </Link>
-        <Link
-          href="/signup"
-          className="px-4 py-2 rounded-xl text-sm font-semibold bg-primary text-primary-foreground hover:bg-primary/90 transition-all duration-150 shadow-sm hover:shadow-md"
-        >
-          Sign up
-        </Link>
+          <Link
+            href="/pricing"
+            className="px-4 py-2 rounded-lg text-sm font-medium text-foreground/70 hover:text-foreground hover:bg-foreground/5 transition-all duration-150"
+          >
+            Pricing
+          </Link>
+        </nav>
       </div>
-
-      {/* ── Spacer ── */}
-      <div className="flex-1" />
 
       {/* ── Right: Notifications + Profile ── */}
       <div className="flex items-center gap-2 flex-shrink-0">

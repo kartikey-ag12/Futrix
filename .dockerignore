@@ -1,0 +1,40 @@
+# Dependencies
+node_modules
+npm-debug.log*
+
+# Next.js build output (rebuilt inside container)
+.next
+out
+
+# Environment files with secrets
+.env
+.env.local
+.env.production.local
+.env.development.local
+
+# Git
+.git
+.gitignore
+
+# Editor / OS
+.DS_Store
+*.swp
+.vscode
+.idea
+Thumbs.db
+
+# Logs
+logs
+*.log
+
+# TypeScript build info
+tsconfig.tsbuildinfo
+
+# Docker
+Dockerfile
+docker-compose*.yml
+docker-entrypoint.sh
+
+# Docs / scratch
+*.md
+scratch

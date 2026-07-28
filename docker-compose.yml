@@ -1,0 +1,55 @@
+services:
+  # ─── PostgreSQL database ───────────────────────────────────────────────────
+  db:
+    image: postgres:16-alpine
+    container_name: futrix_db
+    restart: unless-stopped
+    environment:
+      POSTGRES_USER: futrix
+      POSTGRES_PASSWORD: futrixsecret
+      POSTGRES_DB: futrix
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    ports:
+      - "5432:5432"
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U futrix -d futrix"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  # ─── Futrix Next.js application ───────────────────────────────────────────
+  app:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: futrix_app
+    restart: unless-stopped
+    depends_on:
+      db:
+        condition: service_healthy
+    ports:
+      - "3000:3000"
+    environment:
+      # Database (points to the db service above)
+      DATABASE_URL: postgresql://futrix:futrixsecret@db:5432/futrix
+
+      # Xero OAuth
+      XERO_CLIENT_ID: ${XERO_CLIENT_ID}
+      XERO_CLIENT_SECRET: ${XERO_CLIENT_SECRET}
+      XERO_REDIRECT_URI: ${XERO_REDIRECT_URI:-http://localhost:3000/api/xero/callback}
+
+      # AI / OpenAI
+      OPENAI_API_KEY: ${OPENAI_API_KEY}
+      GEMINI_API_KEY: ${GEMINI_API_KEY}
+
+      # NextAuth
+      NEXTAUTH_SECRET: ${NEXTAUTH_SECRET}
+      NEXTAUTH_URL: ${NEXTAUTH_URL:-http://localhost:3000}
+
+      NODE_ENV: production
+    env_file:
+      - .env.local   # local overrides (not committed)
+
+volumes:
+  postgres_data:

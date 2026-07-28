@@ -291,6 +291,24 @@ function IntegrationsDropdown() {
 export function Navbar() {
   const [mobileOpen, setMobileOpen] = useState(false);
   const [scrolled, setScrolled] = useState(false);
+  const [userProfile, setUserProfile] = useState<{ name: string; email: string } | null>(null);
+
+  useEffect(() => {
+    async function loadUser() {
+      try {
+        const res = await fetch("/api/auth/me");
+        if (res.ok) {
+          const data = await res.json();
+          if (data.authenticated && data.user) {
+            setUserProfile(data.user);
+          }
+        }
+      } catch (err) {
+        console.error(err);
+      }
+    }
+    loadUser();
+  }, []);
 
   useEffect(() => {
     const onScroll = () => setScrolled(window.scrollY > 8);
@@ -307,52 +325,67 @@ export function Navbar() {
       }`}
     >
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-        <div className="flex items-center justify-between h-16">
-          {/* Logo */}
-          <Link href="/" className="flex items-center gap-2.5 flex-shrink-0">
-            <div className="w-8 h-8 bg-foreground rounded-lg flex items-center justify-center shadow-sm">
-              <span className="text-background font-black text-sm">F</span>
-            </div>
-            <span className="text-lg font-bold text-foreground tracking-tight">Futrix</span>
-          </Link>
-
-          {/* Desktop nav */}
-          <nav className="hidden md:flex items-center gap-1">
-            <ProductDropdown />
-            <FeaturesDropdown />
-            <IntegrationsDropdown />
-            <Link
-              href="/pricing"
-              className="px-3 py-2 rounded-lg text-sm font-medium text-foreground/80 hover:text-foreground hover:bg-foreground/5 transition-all duration-200"
-            >
-              Pricing
-            </Link>
-          </nav>
-
-          {/* Auth buttons */}
-          <div className="hidden md:flex items-center gap-3">
-            <Link
-              href="/login"
-              className="px-4 py-2 text-sm font-medium text-foreground/70 hover:text-foreground transition-colors"
-            >
-              Log in
-            </Link>
-            <Link
-              href="/signup"
-              className="px-4 py-2 bg-foreground text-background text-sm font-semibold rounded-xl hover:bg-foreground/90 transition-all duration-200 shadow-sm hover:shadow-md"
-            >
-              Start free trial
+        <div className="flex items-center justify-between h-16 gap-3 sm:gap-4">
+          
+          {/* ── Left: Logo ── */}
+          <div className="flex items-center gap-3 flex-shrink-0">
+            <Link href="/" className="flex items-center gap-2.5">
+              <div className="w-8 h-8 bg-foreground rounded-lg flex items-center justify-center shadow-sm">
+                <span className="text-background font-black text-sm">F</span>
+              </div>
+              <span className="text-lg font-bold text-foreground tracking-tight">Futrix</span>
             </Link>
           </div>
 
-          {/* Mobile hamburger */}
-          <button
-            className="md:hidden p-2 rounded-lg text-foreground/80 hover:bg-foreground/5 transition-colors"
-            onClick={() => setMobileOpen(!mobileOpen)}
-            aria-label="Toggle menu"
-          >
-            {mobileOpen ? <X className="w-5 h-5" /> : <Menu className="w-5 h-5" />}
-          </button>
+          {/* ── Middle: Desktop Nav ── */}
+          <div className="hidden md:flex flex-1 justify-center">
+            <nav className="flex items-center gap-1">
+              <Link
+                href={userProfile ? "/dashboard" : "/"}
+                className="px-3 py-2 rounded-lg text-sm font-medium text-foreground/80 hover:text-foreground hover:bg-foreground/5 transition-all duration-200"
+              >
+                Home
+              </Link>
+              <ProductDropdown />
+              <FeaturesDropdown />
+              <IntegrationsDropdown />
+              <Link
+                href="/pricing"
+                className="px-3 py-2 rounded-lg text-sm font-medium text-foreground/80 hover:text-foreground hover:bg-foreground/5 transition-all duration-200"
+              >
+                Pricing
+              </Link>
+            </nav>
+          </div>
+
+          {/* ── Right: Auth buttons & Mobile menu ── */}
+          <div className="flex items-center gap-3 flex-shrink-0">
+            {!userProfile && (
+              <div className="hidden md:flex items-center gap-3">
+                <Link
+                  href="/login"
+                  className="px-4 py-2 text-sm font-medium text-foreground/70 hover:text-foreground transition-colors"
+                >
+                  Log in
+                </Link>
+                <Link
+                  href="/signup"
+                  className="px-4 py-2 bg-foreground text-background text-sm font-semibold rounded-xl hover:bg-foreground/90 transition-all duration-200 shadow-sm hover:shadow-md"
+                >
+                  Start free trial
+                </Link>
+              </div>
+            )}
+
+            {/* Mobile hamburger */}
+            <button
+              className="md:hidden p-2 rounded-lg text-foreground/80 hover:bg-foreground/5 transition-colors"
+              onClick={() => setMobileOpen(!mobileOpen)}
+              aria-label="Toggle menu"
+            >
+              {mobileOpen ? <X className="w-5 h-5" /> : <Menu className="w-5 h-5" />}
+            </button>
+          </div>
         </div>
       </div>
 
@@ -360,6 +393,13 @@ export function Navbar() {
       {mobileOpen && (
         <div className="md:hidden border-t border-border bg-card">
           <div className="max-w-7xl mx-auto px-4 py-4 space-y-1">
+            <Link
+              href={userProfile ? "/dashboard" : "/"}
+              onClick={() => setMobileOpen(false)}
+              className="block px-3 py-2 rounded-lg text-sm font-medium text-foreground/80 hover:bg-foreground/5 hover:text-foreground transition-colors"
+            >
+              Home
+            </Link>
             <p className="px-3 py-1 text-[11px] font-semibold uppercase tracking-wider text-foreground/50">
               Product
             </p>
@@ -416,22 +456,24 @@ export function Navbar() {
                 Pricing
               </Link>
             </div>
-            <div className="pt-4 border-t border-border flex flex-col gap-2">
-              <Link
-                href="/login"
-                onClick={() => setMobileOpen(false)}
-                className="block px-4 py-2.5 rounded-xl text-sm font-medium text-center text-foreground border border-border hover:border-foreground/20 hover:bg-foreground/5 transition-colors"
-              >
-                Log in
-              </Link>
-              <Link
-                href="/signup"
-                onClick={() => setMobileOpen(false)}
-                className="block px-4 py-2.5 rounded-xl text-sm font-semibold text-center bg-foreground text-background shadow-sm hover:bg-foreground/90 transition-colors"
-              >
-                Start free trial
-              </Link>
-            </div>
+            {!userProfile && (
+              <div className="pt-4 border-t border-border flex flex-col gap-2">
+                <Link
+                  href="/login"
+                  onClick={() => setMobileOpen(false)}
+                  className="block px-4 py-2.5 rounded-xl text-sm font-medium text-center text-foreground border border-border hover:border-foreground/20 hover:bg-foreground/5 transition-colors"
+                >
+                  Log in
+                </Link>
+                <Link
+                  href="/signup"
+                  onClick={() => setMobileOpen(false)}
+                  className="block px-4 py-2.5 rounded-xl text-sm font-semibold text-center bg-foreground text-background shadow-sm hover:bg-foreground/90 transition-colors"
+                >
+                  Start free trial
+                </Link>
+              </div>
+            )}
           </div>
         </div>
       )}

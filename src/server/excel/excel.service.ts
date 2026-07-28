@@ -153,4 +153,227 @@ export class ExcelService {
 
     return invoices;
   }
+
+  static async generateProfessionalXeroInvoice(invoice: any): Promise<Buffer> {
+    const workbook = new ExcelJS.Workbook();
+    const sheet = workbook.addWorksheet("Invoice");
+
+    // Columns setup mimicking the Xero UI table
+    // A: Padding, B: Item, C: Description, D: Qty, E: Price, F: Disc, G: Account, H: Tax rate, I: Tax amount, J: Region, K: Project, L: Amount
+    sheet.columns = [
+      { width: 3 },   // A
+      { width: 12 },  // B: Item
+      { width: 30 },  // C: Description
+      { width: 10 },  // D: Qty
+      { width: 12 },  // E: Price
+      { width: 8 },   // F: Disc
+      { width: 15 },  // G: Account
+      { width: 22 },  // H: Tax rate
+      { width: 12 },  // I: Tax amount
+      { width: 12 },  // J: Region
+      { width: 12 },  // K: Project
+      { width: 15 }   // L: Amount
+    ];
+
+    // Common styles
+    const labelFont = { size: 9, color: { argb: "FF4B5563" }, bold: true };
+    const valueFont = { size: 10, color: { argb: "FF111827" } };
+    const boxBorder: Partial<ExcelJS.Borders> = {
+      top: { style: "thin", color: { argb: "FFD1D5DB" } },
+      left: { style: "thin", color: { argb: "FFD1D5DB" } },
+      bottom: { style: "thin", color: { argb: "FFD1D5DB" } },
+      right: { style: "thin", color: { argb: "FFD1D5DB" } }
+    };
+
+    // --- Top Form Section ---
+    // Row 2 Labels
+    sheet.getCell("B2").value = "Contact";
+    sheet.getCell("B2").font = labelFont;
+    
+    sheet.getCell("E2").value = "Issue date";
+    sheet.getCell("E2").font = labelFont;
+
+    sheet.getCell("G2").value = "Due date";
+    sheet.getCell("G2").font = labelFont;
+
+    sheet.getCell("I2").value = "Invoice number";
+    sheet.getCell("I2").font = labelFont;
+
+    sheet.getCell("K2").value = "Reference";
+    sheet.getCell("K2").font = labelFont;
+
+    // Row 3 Values (Merged for inputs)
+    sheet.mergeCells("B3:D3");
+    sheet.getCell("B3").value = invoice.contact?.name || "";
+    sheet.getCell("B3").font = valueFont;
+    sheet.getCell("B3").border = boxBorder as any;
+
+    sheet.mergeCells("E3:F3");
+    sheet.getCell("E3").value = invoice.date ? new Date(invoice.date).toLocaleDateString('en-GB', { day: 'numeric', month: 'short', year: 'numeric' }) : "";
+    sheet.getCell("E3").font = valueFont;
+    sheet.getCell("E3").border = boxBorder as any;
+
+    sheet.mergeCells("G3:H3");
+    sheet.getCell("G3").value = invoice.dueDate ? new Date(invoice.dueDate).toLocaleDateString('en-GB', { day: 'numeric', month: 'short', year: 'numeric' }) : "";
+    sheet.getCell("G3").font = valueFont;
+    sheet.getCell("G3").border = boxBorder as any;
+
+    sheet.mergeCells("I3:J3");
+    sheet.getCell("I3").value = invoice.invoiceNumber ? `# ${invoice.invoiceNumber}` : "";
+    sheet.getCell("I3").font = valueFont;
+    sheet.getCell("I3").border = boxBorder as any;
+
+    sheet.mergeCells("K3:L3");
+    sheet.getCell("K3").value = invoice.reference || "";
+    sheet.getCell("K3").font = valueFont;
+    sheet.getCell("K3").border = boxBorder as any;
+
+    // Row 5 Labels
+    sheet.getCell("B5").value = "Branding theme";
+    sheet.getCell("B5").font = labelFont;
+
+    sheet.getCell("E5").value = "Online payments";
+    sheet.getCell("E5").font = labelFont;
+
+    sheet.getCell("G5").value = "Currency";
+    sheet.getCell("G5").font = labelFont;
+
+    sheet.getCell("I5").value = "Amounts are";
+    sheet.getCell("I5").font = labelFont;
+
+    // Row 6 Values
+    sheet.mergeCells("B6:D6");
+    sheet.getCell("B6").value = "Standard";
+    sheet.getCell("B6").font = valueFont;
+    sheet.getCell("B6").border = boxBorder as any;
+
+    sheet.mergeCells("E6:F6");
+    sheet.getCell("E6").value = "PayPal";
+    sheet.getCell("E6").font = valueFont;
+    sheet.getCell("E6").border = boxBorder as any;
+    sheet.getCell("E6").fill = { type: "pattern", pattern: "solid", fgColor: { argb: "FFF3F4F6" } };
+
+    sheet.mergeCells("G6:H6");
+    sheet.getCell("G6").value = invoice.currencyCode === 'USD' ? 'United States Dollar' : (invoice.currencyCode || 'USD');
+    sheet.getCell("G6").font = valueFont;
+    sheet.getCell("G6").border = boxBorder as any;
+
+    sheet.mergeCells("I6:J6");
+    sheet.getCell("I6").value = invoice.lineAmountTypes === 'Exclusive' ? 'Tax exclusive' : (invoice.lineAmountTypes === 'Inclusive' ? 'Tax inclusive' : 'No tax');
+    sheet.getCell("I6").font = valueFont;
+    sheet.getCell("I6").border = boxBorder as any;
+
+    // --- Line Items Table ---
+    let currentRow = 8;
+    const headerRow = sheet.getRow(currentRow);
+    headerRow.values = ["", "Item", "Description", "Qty.", "Price", "Disc.", "Account", "Tax rate", "Tax amount", "Region", "Project", `Amount ${invoice.currencyCode || 'USD'}`];
+    
+    headerRow.height = 30;
+    
+    // Header styles
+    for (let c = 2; c <= 12; c++) {
+      const cell = headerRow.getCell(c);
+      cell.font = { size: 9, bold: true, color: { argb: "FF374151" } };
+      cell.fill = { type: "pattern", pattern: "solid", fgColor: { argb: "FFF9FAFB" } };
+      cell.alignment = { vertical: "middle", horizontal: (c === 2 || c === 3 || c === 7 || c === 8) ? "left" : "right" };
+      cell.border = { 
+        top: { style: "thin", color: { argb: "FFE5E7EB" } },
+        bottom: { style: "thin", color: { argb: "FFE5E7EB" } }
+      } as any;
+    }
+
+    currentRow++;
+    const items = invoice.lineItems || [];
+    
+    if (items.length === 0) {
+      // Empty row if no items
+      currentRow++;
+    } else {
+      items.forEach((item: any) => {
+        const row = sheet.getRow(currentRow);
+        const qty = item.quantity || 1;
+        const price = item.unitAmount || 0;
+        const taxAmt = item.taxAmount || 0;
+        const total = item.lineAmount || (qty * price);
+
+        row.values = [
+          "", 
+          item.itemCode || "", 
+          item.description || "", 
+          qty, 
+          price, 
+          item.discountRate || "", 
+          item.accountCode || "200 - Sales", 
+          item.taxType || "", 
+          taxAmt, 
+          "", 
+          "", 
+          total
+        ];
+
+        row.height = 30;
+
+        for (let c = 2; c <= 12; c++) {
+          const cell = row.getCell(c);
+          cell.font = valueFont;
+          cell.alignment = { vertical: "middle", horizontal: (c === 2 || c === 3 || c === 7 || c === 8) ? "left" : "right", wrapText: true };
+          cell.border = { 
+            bottom: { style: "thin", color: { argb: "FFE5E7EB" } },
+            left: { style: "thin", color: { argb: "FFE5E7EB" } },
+            right: { style: "thin", color: { argb: "FFE5E7EB" } }
+          } as any;
+          
+          if (c === 5 || c === 9 || c === 12) {
+             cell.numFmt = '#,##0.00';
+          }
+        }
+        currentRow++;
+      });
+    }
+
+    // Add row button placeholder
+    currentRow++;
+    sheet.getCell(`B${currentRow}`).value = "Add row";
+    sheet.getCell(`B${currentRow}`).font = { size: 9, color: { argb: "FF0284C7" }, bold: true };
+    sheet.getCell(`B${currentRow}`).border = boxBorder as any;
+    sheet.getCell(`B${currentRow}`).alignment = { horizontal: "center", vertical: "middle" };
+    
+    // --- Totals Section ---
+    currentRow += 2;
+    sheet.getCell(`K${currentRow}`).value = "Subtotal";
+    sheet.getCell(`K${currentRow}`).font = valueFont;
+    sheet.getCell(`K${currentRow}`).alignment = { horizontal: "left" };
+    sheet.getCell(`L${currentRow}`).value = invoice.subTotal || 0;
+    sheet.getCell(`L${currentRow}`).font = valueFont;
+    sheet.getCell(`L${currentRow}`).alignment = { horizontal: "right" };
+    sheet.getCell(`L${currentRow}`).numFmt = '#,##0.00';
+
+    currentRow += 2;
+    sheet.getCell(`K${currentRow}`).value = "Total Tax";
+    sheet.getCell(`K${currentRow}`).font = valueFont;
+    sheet.getCell(`K${currentRow}`).alignment = { horizontal: "left" };
+    sheet.getCell(`L${currentRow}`).value = invoice.totalTax || 0;
+    sheet.getCell(`L${currentRow}`).font = valueFont;
+    sheet.getCell(`L${currentRow}`).alignment = { horizontal: "right" };
+    sheet.getCell(`L${currentRow}`).numFmt = '#,##0.00';
+
+    currentRow += 2;
+    
+    // Thick line before Total
+    sheet.getCell(`K${currentRow}`).border = { top: { style: "medium", color: { argb: "FF9CA3AF" } }, bottom: { style: "medium", color: { argb: "FF9CA3AF" } } } as any;
+    sheet.getCell(`L${currentRow}`).border = { top: { style: "medium", color: { argb: "FF9CA3AF" } }, bottom: { style: "medium", color: { argb: "FF9CA3AF" } } } as any;
+
+    sheet.getCell(`K${currentRow}`).value = "Total";
+    sheet.getCell(`K${currentRow}`).font = { size: 14, bold: true, color: { argb: "FF111827" } };
+    sheet.getCell(`K${currentRow}`).alignment = { vertical: "middle" };
+    
+    sheet.getCell(`L${currentRow}`).value = invoice.total || 0;
+    sheet.getCell(`L${currentRow}`).font = { size: 14, bold: true, color: { argb: "FF111827" } };
+    sheet.getCell(`L${currentRow}`).alignment = { horizontal: "right", vertical: "middle" };
+    sheet.getCell(`L${currentRow}`).numFmt = '#,##0.00';
+    sheet.getRow(currentRow).height = 35;
+
+    const buffer = await workbook.xlsx.writeBuffer();
+    return Buffer.from(buffer);
+  }
 }

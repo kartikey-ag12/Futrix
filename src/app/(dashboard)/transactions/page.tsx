@@ -4,41 +4,20 @@ import { useState, useMemo } from "react";
 import {
   createColumnHelper, flexRender,
   getCoreRowModel, useReactTable, getSortedRowModel,
-  getFilteredRowModel, type SortingState,
+  getFilteredRowModel, getPaginationRowModel, type SortingState,
 } from "@tanstack/react-table";
 import {
   Search, Download, Filter, ArrowUpDown,
   ArrowUpRight, ArrowDownRight, RefreshCcw, CheckCircle2, Clock, FileSpreadsheet
 } from "lucide-react";
+import { useFinancial, Transaction } from "@/context/FinancialContext";
 
-type Transaction = {
-  id: string;
-  date: string;
-  description: string;
-  account: string;
-  amount: number;
-  type: "revenue" | "expense";
-  status: "cleared" | "pending";
-};
 
-const INITIAL_DATA: Transaction[] = [
-  { id: "1",  date: "2024-07-20", description: "Software Subscription",         account: "Operating Expenses", amount: -150.00,   type: "expense", status: "cleared"  },
-  { id: "2",  date: "2024-07-19", description: "Client Retainer — Acme Corp",   account: "Sales Revenue",      amount:  5000.00,  type: "revenue", status: "cleared"  },
-  { id: "3",  date: "2024-07-18", description: "Office Supplies",               account: "Operating Expenses", amount: -45.20,    type: "expense", status: "cleared"  },
-  { id: "4",  date: "2024-07-15", description: "Consulting Fee",                account: "Services Revenue",   amount:  2500.00,  type: "revenue", status: "cleared"  },
-  { id: "5",  date: "2024-07-12", description: "Cloud Hosting — AWS",           account: "IT Expenses",        amount: -850.00,   type: "expense", status: "cleared"  },
-  { id: "6",  date: "2024-07-10", description: "Invoice #INV-0042 — Delta Ltd", account: "Sales Revenue",      amount:  8200.00,  type: "revenue", status: "pending"  },
-  { id: "7",  date: "2024-07-08", description: "Contractor Payment — Design",   account: "Freelance Costs",    amount: -1200.00,  type: "expense", status: "cleared"  },
-  { id: "8",  date: "2024-07-05", description: "Ad Spend — Google",             account: "Marketing",          amount: -640.00,   type: "expense", status: "cleared"  },
-  { id: "9",  date: "2024-07-03", description: "Monthly Retainer — Beta Inc",   account: "Sales Revenue",      amount:  3750.00,  type: "revenue", status: "cleared"  },
-  { id: "10", date: "2024-07-01", description: "Payroll — July",                account: "Salaries",           amount: -12500.00, type: "expense", status: "cleared"  },
-];
 
 const columnHelper = createColumnHelper<Transaction>();
 
 export default function TransactionsPage() {
-  const [data, setData] = useState<Transaction[]>(INITIAL_DATA);
-  const [isSyncing, setIsSyncing] = useState(false);
+  const { transactions: data, isSyncing, handleXeroSync } = useFinancial();
   const [sorting, setSorting] = useState<SortingState>([{ id: "date", desc: true }]);
   const [globalFilter, setGlobalFilter] = useState("");
   const [typeFilter, setTypeFilter] = useState<"all" | "revenue" | "expense">("all");
@@ -77,36 +56,7 @@ export default function TransactionsPage() {
   const fmt = (n: number) =>
     new Intl.NumberFormat("en-US", { style: "currency", currency: "USD" }).format(Math.abs(n));
 
-  // Sync with live Xero API
-  const handleSync = async () => {
-    setIsSyncing(true);
-    try {
-      const response = await fetch('/api/xero/sync', { method: 'POST' });
-      const resData = await response.json();
-      if (response.ok && resData.data && Array.isArray(resData.data)) {
-        const syncedInvoices: Transaction[] = resData.data.map((inv: any, idx: number) => {
-          const type = (inv.type || inv.Type) === 'ACCREC' ? 'revenue' : 'expense';
-          const amt = inv.total || inv.Total || 0;
-          return {
-            id: `xero-${idx}`,
-            date: inv.DateString ? inv.DateString.split('T')[0] : '2026-07-24',
-            description: `${inv.Contact?.Name || 'Xero Client'} — ${inv.InvoiceNumber || 'INV'}`,
-            account: type === 'revenue' ? 'Sales Revenue' : 'Operating Expenses',
-            amount: type === 'revenue' ? amt : -amt,
-            type,
-            status: (inv.Status || inv.status) === 'PAID' ? 'cleared' : 'pending',
-          };
-        });
-        if (syncedInvoices.length > 0) {
-          setData(syncedInvoices);
-        }
-      }
-    } catch (err) {
-      console.error("Sync error:", err);
-    } finally {
-      setIsSyncing(false);
-    }
-  };
+
 
   // Export to CSV
   const handleExportCSV = () => {
@@ -244,6 +194,12 @@ export default function TransactionsPage() {
     getCoreRowModel: getCoreRowModel(),
     getSortedRowModel: getSortedRowModel(),
     getFilteredRowModel: getFilteredRowModel(),
+    getPaginationRowModel: getPaginationRowModel(),
+    initialState: {
+      pagination: {
+        pageSize: 10,
+      },
+    },
   });
 
   return (
@@ -257,7 +213,7 @@ export default function TransactionsPage() {
         </div>
         <div className="flex items-center gap-3">
           <button
-            onClick={handleSync}
+            onClick={handleXeroSync}
             disabled={isSyncing}
             className="flex items-center gap-2 px-4 py-2 bg-foreground/5 border border-border rounded-xl text-sm font-medium hover:bg-foreground/10 transition-all disabled:opacity-50"
           >
@@ -457,14 +413,31 @@ export default function TransactionsPage() {
         </div>
 
         {/* Footer */}
-        <div className="px-6 py-3.5 border-t border-border bg-foreground/[0.02] flex items-center justify-between text-xs text-foreground/50">
+        <div className="px-6 py-4 border-t border-border bg-foreground/[0.02] flex items-center justify-between text-xs text-foreground/50">
           <span>
-            Showing <strong className="text-foreground font-semibold">{table.getRowModel().rows.length}</strong> of{" "}
-            <strong className="text-foreground font-semibold">{data.length}</strong> entries
+            Showing <strong className="text-foreground font-semibold">
+              {table.getFilteredRowModel().rows.length === 0 ? 0 : table.getState().pagination.pageIndex * table.getState().pagination.pageSize + 1}
+            </strong> to <strong className="text-foreground font-semibold">
+              {Math.min((table.getState().pagination.pageIndex + 1) * table.getState().pagination.pageSize, table.getFilteredRowModel().rows.length)}
+            </strong> of{" "}
+            <strong className="text-foreground font-semibold">{table.getFilteredRowModel().rows.length}</strong> entries
           </span>
-          <span className="text-foreground/40 font-medium">
-            Active Filter: <span className="uppercase text-primary font-bold">{typeFilter}</span>
-          </span>
+          <div className="flex items-center gap-2">
+            <button
+              onClick={() => table.previousPage()}
+              disabled={!table.getCanPreviousPage()}
+              className="px-3 py-1.5 border border-border bg-card text-foreground rounded-lg disabled:opacity-50 hover:bg-foreground/5 transition-colors font-medium"
+            >
+              Previous
+            </button>
+            <button
+              onClick={() => table.nextPage()}
+              disabled={!table.getCanNextPage()}
+              className="px-3 py-1.5 border border-border bg-card text-foreground rounded-lg disabled:opacity-50 hover:bg-foreground/5 transition-colors font-medium"
+            >
+              Next
+            </button>
+          </div>
         </div>
       </div>
     </div>

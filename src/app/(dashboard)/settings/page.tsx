@@ -76,22 +76,11 @@ function SectionCard({ title, description, action, children }: {
   );
 }
 
+import { useFinancial } from "@/context/FinancialContext";
+
 export default function SettingsPage() {
   const [activeTab, setActiveTab] = useState("integrations");
-  const [isSyncing, setIsSyncing] = useState(false);
-
-  const handleXeroSync = async () => {
-    setIsSyncing(true);
-    try {
-      const res = await fetch('/api/xero/sync', { method: 'POST' });
-      const data = await res.json();
-      if (res.ok) alert(`${data.message}\nFound ${data.records_synced} invoices.`);
-      else alert(`Error: ${data.error}`);
-    } catch { alert("Failed to connect to sync endpoint."); }
-    finally { setIsSyncing(false); }
-  };
-
-
+  const { isSyncing, handleXeroSync } = useFinancial();
 
   return (
     <div className="flex flex-col gap-7 max-w-4xl">

@@ -79,6 +79,20 @@ export async function POST(req: Request) {
       desc: `Expenses from ${label}`
     }));
 
+    const transactions = invoices.map((inv: any, idx: number) => {
+      const type = (inv.type || inv.Type) === 'ACCREC' ? 'revenue' : 'expense';
+      const amt = inv.total || inv.Total || 0;
+      return {
+        id: `xero-${idx}`,
+        date: inv.DateString ? inv.DateString.split('T')[0] : new Date().toISOString().split('T')[0],
+        description: `${inv.Contact?.Name || 'Xero Client'} — ${inv.InvoiceNumber || 'INV'}`,
+        account: type === 'revenue' ? 'Sales Revenue' : 'Operating Expenses',
+        amount: type === 'revenue' ? amt : -amt,
+        type,
+        status: (inv.Status || inv.status) === 'PAID' || (inv.Status || inv.status) === 'AUTHORISED' ? 'cleared' : 'pending',
+      };
+    });
+
     return NextResponse.json({
       status: "success",
       message: `Successfully synced with Xero org: ${orgName}`,
@@ -91,7 +105,7 @@ export async function POST(req: Request) {
         incomeItems,
         expenseCategories
       },
-      data: invoices.slice(0, 5) // Return top 5 for demo
+      transactions
     });
 
   } catch (error) {
