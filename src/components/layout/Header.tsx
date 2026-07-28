@@ -314,6 +314,7 @@ export function Header({ onOpenMobileSidebar }: HeaderProps) {
   const [showProfile, setShowProfile] = useState(false);
   const [showNotifications, setShowNotifications] = useState(false);
   const [userProfile, setUserProfile] = useState<{ name: string; email: string } | null>(null);
+  const [isLoadingUser, setIsLoadingUser] = useState(true);
 
   const [notifications, setNotifications] = useState([
     {
@@ -353,6 +354,8 @@ export function Header({ onOpenMobileSidebar }: HeaderProps) {
         }
       } catch (err) {
         console.error(err);
+      } finally {
+        setIsLoadingUser(false);
       }
     }
     loadUser();
@@ -498,8 +501,17 @@ export function Header({ onOpenMobileSidebar }: HeaderProps) {
           {showProfile && (
             <div className="absolute right-0 top-[calc(100%+8px)] w-56 bg-card border border-border rounded-2xl shadow-premium overflow-hidden z-50 animate-in fade-in slide-in-from-top-1">
               <div className="px-4 py-4 border-b border-border">
-                <p className="text-sm font-semibold">{userProfile?.name || "Demo User"}</p>
-                <p className="text-xs text-foreground/50 mt-0.5 truncate">{userProfile?.email || "user@futrix.demo"}</p>
+                {isLoadingUser ? (
+                  <div className="animate-pulse flex flex-col gap-2">
+                    <div className="h-4 bg-foreground/10 rounded w-24"></div>
+                    <div className="h-3 bg-foreground/10 rounded w-32"></div>
+                  </div>
+                ) : (
+                  <>
+                    <p className="text-sm font-semibold">{userProfile?.name}</p>
+                    <p className="text-xs text-foreground/50 mt-0.5 truncate">{userProfile?.email}</p>
+                  </>
+                )}
               </div>
               <div className="p-1.5 border-b border-border">
                 <Link
