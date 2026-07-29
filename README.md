@@ -120,3 +120,5 @@ git push origin <branch-name> --force-with-lease
 4. Write meaningful commit messages.
 5. Run `npm run lint` and `npm run build` before opening a PR.
 6. Ashutosh writes/updates tests for any new feature before it merges to `main`.
+ # Email: Admin123@gmail.com
+Password: password123
