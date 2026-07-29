@@ -29,6 +29,22 @@ export async function proxy(request: NextRequest) {
     }
   }
 
+  if (!isValidToken) {
+    const refreshToken = request.cookies.get('futrix_refresh_token')?.value;
+    if (refreshToken) {
+      try {
+        const refreshSecret = new TextEncoder().encode(process.env.JWT_REFRESH_SECRET || "fallback_refresh_secret_for_dev_only");
+        const { payload } = await jwtVerify(refreshToken, refreshSecret);
+        isValidToken = true;
+        if (payload && payload.role) {
+          userRole = payload.role as string;
+        }
+      } catch (e) {
+        isValidToken = false;
+      }
+    }
+  }
+
   const isProtectedRoute = protectedRoutes.some(route => pathname.startsWith(route));
   const isProtectedApiRoute = protectedApiRoutes.some(route => pathname.startsWith(route)) && !pathname.startsWith('/api/xero/callback');
   const isAdminRoute = protectedAdminRoutes.some(route => pathname.startsWith(route));

@@ -33,13 +33,14 @@ export async function POST(req: Request) {
     const accessToken = await signAccessToken(tokenPayload);
     const refreshToken = await signRefreshToken(tokenPayload);
 
-    // Save refresh token
+    // Save refresh token (HASHED)
     const refreshAgeDays = remember ? 30 : 7;
     const expiresAt = new Date(Date.now() + refreshAgeDays * 24 * 60 * 60 * 1000);
+    const hashedRefreshToken = await bcrypt.hash(refreshToken, 10);
     
     await prisma.refreshToken.create({
       data: {
-        token: refreshToken,
+        token: hashedRefreshToken,
         userId: user.id,
         expiresAt,
       },

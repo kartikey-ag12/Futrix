@@ -55,7 +55,7 @@ export function SupportModal({ isOpen, onClose }: SupportModalProps) {
     if (!query || isLoading) return;
 
     const userMsg: Message = {
-      id: `user_${Date.now()}`,
+      id: `user_${crypto.randomUUID()}`,
       sender: "user",
       text: query,
       time: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }),
@@ -77,7 +77,7 @@ export function SupportModal({ isOpen, onClose }: SupportModalProps) {
 
       const data = await res.json();
       const botMsg: Message = {
-        id: `bot_${Date.now()}`,
+        id: `bot_${crypto.randomUUID()}`,
         sender: "bot",
         text: data.reply || "I am here to help! Please let me know if you need assistance with forecasting or Xero.",
         time: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }),
@@ -89,7 +89,7 @@ export function SupportModal({ isOpen, onClose }: SupportModalProps) {
       setMessages((prev) => [
         ...prev,
         {
-          id: `err_${Date.now()}`,
+          id: `err_${crypto.randomUUID()}`,
           sender: "bot",
           text: "I'm having trouble connecting right now. Please email our support team at **support@futrix.com**.",
           time: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }),

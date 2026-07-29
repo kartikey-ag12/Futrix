@@ -223,7 +223,7 @@ function FeaturesDropdown() {
 
 // ─── Integrations dropdown ────────────────────────────────────────────────────
 
-function IntegrationsDropdown() {
+function IntegrationsDropdown({ isAdmin }: { isAdmin: boolean }) {
   const { open, setOpen, ref } = useDropdown();
   return (
     <div className="relative" ref={ref}>
@@ -263,41 +263,46 @@ function IntegrationsDropdown() {
               <Zap className="flex-shrink-0 w-4 h-4 text-foreground/20 group-hover:text-emerald-500 transition-colors" />
             </Link>
 
-            {/* Excel item */}
-            <Link
-              href="/excel-tools"
-              onClick={() => setOpen(false)}
-              className="flex items-center gap-3 px-3 py-2.5 rounded-xl hover:bg-foreground/5 transition-colors group"
-            >
-              <div className="flex-shrink-0 w-9 h-9 rounded-xl bg-emerald-500/10 border border-emerald-500/20 flex items-center justify-center font-black text-sm text-emerald-500">
-                E
-              </div>
-              <div className="flex-1 min-w-0">
-                <div className="flex items-center gap-2 mb-0.5">
-                  <p className="text-sm font-semibold text-foreground leading-tight">Excel Tools</p>
-                  <span className="px-2 py-0.5 bg-emerald-500/10 text-emerald-600 text-[10px] font-bold rounded-full leading-none">
-                    Supported
-                  </span>
+            {/* Excel item (conditionally rendered) */}
+            {!isAdmin && (
+              <Link
+                href="/excel-tools"
+                onClick={() => setOpen(false)}
+                className="flex items-center gap-3 px-3 py-2.5 rounded-xl hover:bg-foreground/5 transition-colors group"
+              >
+                <div className="flex-shrink-0 w-9 h-9 rounded-xl bg-emerald-500/10 border border-emerald-500/20 flex items-center justify-center font-black text-sm text-emerald-500">
+                  E
                 </div>
-                <p className="text-xs text-foreground/50 leading-snug truncate">
-                  Import data &amp; export .xlsx reports
-                </p>
-              </div>
-              <Zap className="flex-shrink-0 w-4 h-4 text-foreground/20 group-hover:text-emerald-500 transition-colors" />
-            </Link>
+                <div className="flex-1 min-w-0">
+                  <div className="flex items-center gap-2 mb-0.5">
+                    <p className="text-sm font-semibold text-foreground leading-tight">Excel Tools</p>
+                    <span className="px-2 py-0.5 bg-emerald-500/10 text-emerald-600 text-[10px] font-bold rounded-full leading-none">
+                      Supported
+                    </span>
+                  </div>
+                  <p className="text-xs text-foreground/50 leading-snug truncate">
+                    Import data &amp; export .xlsx reports
+                  </p>
+                </div>
+                <Zap className="flex-shrink-0 w-4 h-4 text-foreground/20 group-hover:text-emerald-500 transition-colors" />
+              </Link>
+            )}
+
           </div>
 
           {/* Footer */}
           <div className="px-5 py-3 border-t border-border bg-foreground/[0.02] flex items-center justify-between">
-            <span className="text-xs text-foreground/40">2 apps supported</span>
-            <Link
-              href="/settings"
-              onClick={() => setOpen(false)}
-              className="flex items-center gap-1.5 text-xs font-semibold text-primary hover:text-primary/80 transition-colors"
-            >
-              Manage integrations
-              <ArrowRight className="w-3.5 h-3.5" />
-            </Link>
+            <span className="text-xs text-foreground/40">{isAdmin ? "1 app supported" : "2 apps supported"}</span>
+            {!isAdmin && (
+              <Link
+                href="/settings"
+                onClick={() => setOpen(false)}
+                className="flex items-center gap-1.5 text-xs font-semibold text-primary hover:text-primary/80 transition-colors"
+              >
+                Manage integrations
+                <ArrowRight className="w-3.5 h-3.5" />
+              </Link>
+            )}
           </div>
         </div>
       )}
@@ -419,7 +424,7 @@ export function Header({ onOpenMobileSidebar }: HeaderProps) {
           </Link>
           <ProductDropdown />
           <FeaturesDropdown />
-          <IntegrationsDropdown />
+          <IntegrationsDropdown isAdmin={isAdmin} />
 
           <Link
             href="/pricing"

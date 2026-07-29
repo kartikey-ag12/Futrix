@@ -40,40 +40,44 @@ export async function POST(req: Request) {
     // Determine role
     const assignedRole = isAdminSignup ? "ADMIN" : "USER";
 
-    // Create user
-    const user = await prisma.user.create({
-      data: {
-        name,
-        email,
-        passwordHash,
-        role: assignedRole,
-      },
-    });
-
-    // Optionally create Workspace here if needed...
-    if (company) {
-      const workspace = await prisma.workspace.create({
-        data: { name: company },
-      });
-      await prisma.workspaceMember.create({
+    // Create user and workspace within a transaction to maintain data integrity
+    const user = await prisma.$transaction(async (tx) => {
+      const newUser = await tx.user.create({
         data: {
-          userId: user.id,
-          workspaceId: workspace.id,
-          role: role === "Owner" ? "ADMIN" : "MEMBER",
-        }
+          name,
+          email,
+          passwordHash,
+          role: assignedRole,
+        },
       });
-    }
+
+      if (company) {
+        const workspace = await tx.workspace.create({
+          data: { name: company },
+        });
+        await tx.workspaceMember.create({
+          data: {
+            userId: newUser.id,
+            workspaceId: workspace.id,
+            role: role === "Owner" ? "ADMIN" : "MEMBER",
+          }
+        });
+      }
+      return newUser;
+    });
 
     // Issue tokens
     const tokenPayload = { userId: user.id, email: user.email!, role: user.role };
     const accessToken = await signAccessToken(tokenPayload);
     const refreshToken = await signRefreshToken(tokenPayload);
 
-    // Save refresh token to DB
+    // Save refresh token to DB (HASHED)
     const expiresAt = new Date(Date.now() + 7 * 24 * 60 * 60 * 1000); // 7 days
+    const hashedRefreshToken = await bcrypt.hash(refreshToken, 10);
+    
     await prisma.refreshToken.create({
       data: {
-        token: refreshToken, // ideally this should be hashed, but as per prompt we are storing it in DB.
+        token: hashedRefreshToken,
         userId: user.id,
         expiresAt,
       },

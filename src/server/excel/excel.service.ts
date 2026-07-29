@@ -9,6 +9,26 @@ export interface InvoiceData {
   status?: string;
 }
 
+export interface XeroInvoiceData {
+  contact?: { name?: string };
+  date?: string;
+  dueDate?: string;
+  invoiceNumber?: string;
+  reference?: string;
+  currencyCode?: string;
+  lineAmountTypes?: string;
+  subTotal?: number;
+  lineItems?: Array<{
+    itemCode?: string;
+    description?: string;
+    quantity?: number;
+    unitAmount?: number;
+    discountRate?: number;
+    accountCode?: string;
+    lineAmount?: number;
+  }>;
+}
+
 export class ExcelService {
   /**
    * Generates an Excel file for a single invoice.
@@ -73,7 +93,7 @@ export class ExcelService {
     };
 
     ["A9", "B9", "C9", "D9", "A10", "B10", "C10", "D10"].forEach(cellRef => {
-      sheet.getCell(cellRef).border = borderStyle as any;
+      sheet.getCell(cellRef).border = borderStyle as Partial<ExcelJS.Borders>;
     });
 
     const buffer = await workbook.xlsx.writeBuffer();
@@ -116,7 +136,7 @@ export class ExcelService {
    */
   static async parseInvoicesExcel(buffer: Buffer): Promise<InvoiceData[]> {
     const workbook = new ExcelJS.Workbook();
-    await workbook.xlsx.load(buffer as any);
+    await workbook.xlsx.load(buffer as unknown as ArrayBuffer);
     const sheet = workbook.getWorksheet(1); // Get first sheet
 
     if (!sheet) {
@@ -154,7 +174,7 @@ export class ExcelService {
     return invoices;
   }
 
-  static async generateProfessionalXeroInvoice(invoice: any): Promise<Buffer> {
+  static async generateProfessionalXeroInvoice(invoice: XeroInvoiceData): Promise<Buffer> {
     const workbook = new ExcelJS.Workbook();
     const sheet = workbook.addWorksheet("Invoice");
 
@@ -206,27 +226,27 @@ export class ExcelService {
     sheet.mergeCells("B3:D3");
     sheet.getCell("B3").value = invoice.contact?.name || "";
     sheet.getCell("B3").font = valueFont;
-    sheet.getCell("B3").border = boxBorder as any;
+    sheet.getCell("B3").border = boxBorder as Partial<ExcelJS.Borders>;
 
     sheet.mergeCells("E3:F3");
     sheet.getCell("E3").value = invoice.date ? new Date(invoice.date).toLocaleDateString('en-GB', { day: 'numeric', month: 'short', year: 'numeric' }) : "";
     sheet.getCell("E3").font = valueFont;
-    sheet.getCell("E3").border = boxBorder as any;
+    sheet.getCell("E3").border = boxBorder as Partial<ExcelJS.Borders>;
 
     sheet.mergeCells("G3:H3");
     sheet.getCell("G3").value = invoice.dueDate ? new Date(invoice.dueDate).toLocaleDateString('en-GB', { day: 'numeric', month: 'short', year: 'numeric' }) : "";
     sheet.getCell("G3").font = valueFont;
-    sheet.getCell("G3").border = boxBorder as any;
+    sheet.getCell("G3").border = boxBorder as Partial<ExcelJS.Borders>;
 
     sheet.mergeCells("I3:J3");
     sheet.getCell("I3").value = invoice.invoiceNumber ? `# ${invoice.invoiceNumber}` : "";
     sheet.getCell("I3").font = valueFont;
-    sheet.getCell("I3").border = boxBorder as any;
+    sheet.getCell("I3").border = boxBorder as Partial<ExcelJS.Borders>;
 
     sheet.mergeCells("K3:L3");
     sheet.getCell("K3").value = invoice.reference || "";
     sheet.getCell("K3").font = valueFont;
-    sheet.getCell("K3").border = boxBorder as any;
+    sheet.getCell("K3").border = boxBorder as Partial<ExcelJS.Borders>;
 
     // Row 5 Labels
     sheet.getCell("B5").value = "Branding theme";
@@ -245,23 +265,23 @@ export class ExcelService {
     sheet.mergeCells("B6:D6");
     sheet.getCell("B6").value = "Standard";
     sheet.getCell("B6").font = valueFont;
-    sheet.getCell("B6").border = boxBorder as any;
+    sheet.getCell("B6").border = boxBorder as Partial<ExcelJS.Borders>;
 
     sheet.mergeCells("E6:F6");
     sheet.getCell("E6").value = "PayPal";
     sheet.getCell("E6").font = valueFont;
-    sheet.getCell("E6").border = boxBorder as any;
+    sheet.getCell("E6").border = boxBorder as Partial<ExcelJS.Borders>;
     sheet.getCell("E6").fill = { type: "pattern", pattern: "solid", fgColor: { argb: "FFF3F4F6" } };
 
     sheet.mergeCells("G6:H6");
     sheet.getCell("G6").value = invoice.currencyCode === 'USD' ? 'United States Dollar' : (invoice.currencyCode || 'USD');
     sheet.getCell("G6").font = valueFont;
-    sheet.getCell("G6").border = boxBorder as any;
+    sheet.getCell("G6").border = boxBorder as Partial<ExcelJS.Borders>;
 
     sheet.mergeCells("I6:J6");
     sheet.getCell("I6").value = invoice.lineAmountTypes === 'Exclusive' ? 'Tax exclusive' : (invoice.lineAmountTypes === 'Inclusive' ? 'Tax inclusive' : 'No tax');
     sheet.getCell("I6").font = valueFont;
-    sheet.getCell("I6").border = boxBorder as any;
+    sheet.getCell("I6").border = boxBorder as Partial<ExcelJS.Borders>;
 
     // --- Line Items Table ---
     let currentRow = 8;
@@ -279,7 +299,7 @@ export class ExcelService {
       cell.border = { 
         top: { style: "thin", color: { argb: "FFE5E7EB" } },
         bottom: { style: "thin", color: { argb: "FFE5E7EB" } }
-      } as any;
+      } as Partial<ExcelJS.Borders>;
     }
 
     currentRow++;
@@ -289,7 +309,7 @@ export class ExcelService {
       // Empty row if no items
       currentRow++;
     } else {
-      items.forEach((item: any) => {
+      items.forEach((item: NonNullable<XeroInvoiceData['lineItems']>[number]) => {
         const row = sheet.getRow(currentRow);
         const qty = item.quantity || 1;
         const price = item.unitAmount || 0;
@@ -323,7 +343,7 @@ export class ExcelService {
             bottom: { style: "thin", color: { argb: "FFE5E7EB" } },
             left: { style: "thin", color: { argb: "FFE5E7EB" } },
             right: { style: "thin", color: { argb: "FFE5E7EB" } }
-          } as any;
+          } as Partial<ExcelJS.Borders>;
           
           if (c === 5 || c === 9 || c === 12) {
              cell.numFmt = '#,##0.00';
@@ -337,7 +357,7 @@ export class ExcelService {
     currentRow++;
     sheet.getCell(`B${currentRow}`).value = "Add row";
     sheet.getCell(`B${currentRow}`).font = { size: 9, color: { argb: "FF0284C7" }, bold: true };
-    sheet.getCell(`B${currentRow}`).border = boxBorder as any;
+    sheet.getCell(`B${currentRow}`).border = boxBorder as Partial<ExcelJS.Borders>;
     sheet.getCell(`B${currentRow}`).alignment = { horizontal: "center", vertical: "middle" };
     
     // --- Totals Section ---
@@ -377,8 +397,8 @@ export class ExcelService {
     currentRow += 2;
     
     // Thick line before Total
-    sheet.getCell(`K${currentRow}`).border = { top: { style: "medium", color: { argb: "FF9CA3AF" } }, bottom: { style: "medium", color: { argb: "FF9CA3AF" } } } as any;
-    sheet.getCell(`L${currentRow}`).border = { top: { style: "medium", color: { argb: "FF9CA3AF" } }, bottom: { style: "medium", color: { argb: "FF9CA3AF" } } } as any;
+    sheet.getCell(`K${currentRow}`).border = { top: { style: "medium", color: { argb: "FF9CA3AF" } }, bottom: { style: "medium", color: { argb: "FF9CA3AF" } } } as Partial<ExcelJS.Borders>;
+    sheet.getCell(`L${currentRow}`).border = { top: { style: "medium", color: { argb: "FF9CA3AF" } }, bottom: { style: "medium", color: { argb: "FF9CA3AF" } } } as Partial<ExcelJS.Borders>;
 
     sheet.getCell(`K${currentRow}`).value = "Total";
     sheet.getCell(`K${currentRow}`).font = { size: 14, bold: true, color: { argb: "FF111827" } };

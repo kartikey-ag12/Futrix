@@ -28,7 +28,7 @@ export async function POST() {
     }
 
     // Issue a new access token
-    const newAccessToken = await signAccessToken({ userId: payload.userId, email: payload.email });
+    const newAccessToken = await signAccessToken({ userId: payload.userId, email: payload.email, role: payload.role as any });
 
     cookieStore.set("futrix_access_token", newAccessToken, {
       httpOnly: true,

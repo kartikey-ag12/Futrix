@@ -1,7 +1,7 @@
 import { NextResponse } from "next/server";
 import { XeroClient } from "xero-node";
 import { cookies } from "next/headers";
-import { ExcelService } from "@/server/excel/excel.service";
+import { ExcelService, XeroInvoiceData } from "@/server/excel/excel.service";
 
 const xero = new XeroClient({
   clientId: process.env.XERO_CLIENT_ID || '',
@@ -36,13 +36,13 @@ export async function GET(req: Request) {
     }
 
     // Generate a professional Excel invoice
-    const buffer = await ExcelService.generateProfessionalXeroInvoice(invoice);
+    const buffer = await ExcelService.generateProfessionalXeroInvoice(invoice as unknown as XeroInvoiceData);
 
     const contactName = invoice.contact?.name || "Unknown";
     const invoiceNumber = invoice.invoiceNumber || invoiceId.substring(0, 8);
     const safeContactName = contactName.replace(/[\s\W]+/g, '_');
 
-    return new NextResponse(buffer as any, {
+    return new NextResponse(buffer as unknown as BodyInit, {
       status: 200,
       headers: {
         "Content-Type": "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
