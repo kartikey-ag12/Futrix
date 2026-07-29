@@ -1,6 +1,8 @@
 import { NextResponse } from "next/server";
 import { cookies } from "next/headers";
 import { prisma } from "@/lib/prisma";
+import bcrypt from "bcryptjs";
+import { decodeJwt } from "jose";
 
 export async function POST() {
   try {
@@ -9,9 +11,25 @@ export async function POST() {
 
     // Delete refresh token from DB if it exists
     if (refreshToken) {
-      await prisma.refreshToken.deleteMany({
-        where: { token: refreshToken },
-      });
+      try {
+        const payload = decodeJwt(refreshToken);
+        const userId = payload.userId as string;
+        
+        if (userId) {
+          const userTokens = await prisma.refreshToken.findMany({
+            where: { userId }
+          });
+          
+          for (const t of userTokens) {
+            const match = await bcrypt.compare(refreshToken, t.token);
+            if (match) {
+              await prisma.refreshToken.delete({ where: { id: t.id } });
+            }
+          }
+        }
+      } catch (err) {
+        console.error("Failed to decode or delete refresh token on logout", err);
+      }
     }
 
     // Clear all auth cookies

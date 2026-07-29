@@ -1,5 +1,5 @@
 import { NextResponse } from "next/server";
-import OpenAI from "openai";
+import { GoogleGenAI } from "@google/genai";
 
 export async function POST(req: Request) {
   try {
@@ -12,12 +12,12 @@ export async function POST(req: Request) {
       companyName = "Futrix Client",
     } = body;
 
-    const apiKey = process.env.OPENAI_API_KEY;
+    const apiKey = process.env.GEMINI_API_KEY;
 
-    // ── 1. If OpenAI API Key is present, call Live OpenAI Model ─────────────
-    if (apiKey && apiKey.startsWith("sk-")) {
+    // ── 1. If Gemini API Key is present, call Live Gemini Model ─────────────
+    if (apiKey) {
       try {
-        const openai = new OpenAI({ apiKey });
+        const ai = new GoogleGenAI({ apiKey });
 
         const prompt = `
 Analyze the following financial summary for "${companyName}":
@@ -35,20 +35,17 @@ Each object in the array must have:
 - "description": A 2-sentence actionable CFO recommendation based on these numbers
 `;
 
-        const response = await openai.chat.completions.create({
-          model: "gpt-4o-mini",
-          messages: [
-            {
-              role: "system",
-              content: "You are a financial AI advisor. Respond strictly with a JSON object containing an 'insights' array.",
-            },
-            { role: "user", content: prompt },
-          ],
-          temperature: 0.7,
-          response_format: { type: "json_object" },
+        const response = await ai.models.generateContent({
+          model: "gemini-2.5-flash",
+          contents: prompt,
+          config: {
+            systemInstruction: "You are a financial AI advisor. Respond strictly with a JSON object containing an 'insights' array.",
+            responseMimeType: "application/json",
+            temperature: 0.7,
+          }
         });
 
-        const content = response.choices[0]?.message?.content || "{}";
+        const content = response.text || "{}";
         const parsed = JSON.parse(content);
         const insightsList = Array.isArray(parsed)
           ? parsed
@@ -57,12 +54,12 @@ Each object in the array must have:
         if (insightsList.length > 0) {
           return NextResponse.json({
             status: "success",
-            source: "openai_live",
+            source: "gemini_live",
             insights: insightsList,
           });
         }
-      } catch (openAiError: any) {
-        console.error("OpenAI API call failed, using engine fallback:", openAiError?.message);
+      } catch (geminiError: any) {
+        console.error("Gemini API call failed, using engine fallback:", geminiError?.message);
       }
     }
 
