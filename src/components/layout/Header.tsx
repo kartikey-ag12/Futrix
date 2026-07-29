@@ -19,6 +19,7 @@ import {
   Menu,
 } from "lucide-react";
 import Link from "next/link";
+import { usePathname } from "next/navigation";
 
 // ─── Nav data ────────────────────────────────────────────────────────────────
 
@@ -311,6 +312,9 @@ interface HeaderProps {
 }
 
 export function Header({ onOpenMobileSidebar }: HeaderProps) {
+  const pathname = usePathname();
+  const isAdmin = pathname?.startsWith("/admin") || false;
+
   const [showProfile, setShowProfile] = useState(false);
   const [showNotifications, setShowNotifications] = useState(false);
   const [userProfile, setUserProfile] = useState<{ name: string; email: string } | null>(null);
@@ -408,7 +412,7 @@ export function Header({ onOpenMobileSidebar }: HeaderProps) {
       <div className="hidden xl:flex flex-1 justify-center">
         <nav className="flex items-center gap-1">
           <Link
-            href={userProfile ? "/dashboard" : "/"}
+            href={isAdmin ? "/admin" : (userProfile ? "/dashboard" : "/")}
             className="px-4 py-2 rounded-lg text-sm font-medium text-foreground/70 hover:text-foreground hover:bg-foreground/5 transition-all duration-150"
           >
             Home

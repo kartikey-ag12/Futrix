@@ -14,6 +14,7 @@ export default function LoginPage() {
   const [password, setPassword] = useState("");
   const [remember, setRemember] = useState(true);
   const [showPassword, setShowPassword] = useState(false);
+  const [authMode, setAuthMode] = useState<"user" | "admin">("user");
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [success, setSuccess] = useState<string | null>(null);
@@ -45,9 +46,9 @@ export default function LoginPage() {
         return;
       }
 
-      setSuccess("Login successful! Redirecting to dashboard...");
+      setSuccess(data.user?.role === "ADMIN" ? "Admin login successful! Redirecting..." : "Login successful! Redirecting to dashboard...");
       setTimeout(() => {
-        router.push("/dashboard");
+        router.push(data.user?.role === "ADMIN" ? "/admin" : "/dashboard");
         router.refresh();
       }, 800);
     } catch (err) {
@@ -64,13 +65,35 @@ export default function LoginPage() {
         {/* Top subtle border glow */}
         <div className="absolute top-0 left-0 right-0 h-1 bg-gradient-to-r from-foreground/5 via-foreground/20 to-foreground/5" />
 
+        {/* Role Toggle */}
+        <div className="flex bg-foreground/5 p-1 rounded-xl mb-6 relative z-10">
+          <button
+            type="button"
+            onClick={() => setAuthMode("user")}
+            className={`flex-1 py-2 text-sm font-semibold rounded-lg transition-all duration-300 ${authMode === "user" ? "bg-background text-foreground shadow-sm" : "text-foreground/50 hover:text-foreground/80"}`}
+          >
+            User Login
+          </button>
+          <button
+            type="button"
+            onClick={() => setAuthMode("admin")}
+            className={`flex-1 py-2 text-sm font-semibold rounded-lg transition-all duration-300 ${authMode === "admin" ? "bg-background text-foreground shadow-sm" : "text-foreground/50 hover:text-foreground/80"}`}
+          >
+            Admin Login
+          </button>
+        </div>
+
         {/* Card Title */}
-        <div className="text-center mb-8">
+        <div className="text-center mb-6">
           <div className="w-12 h-12 bg-foreground/5 border border-border rounded-2xl flex items-center justify-center mx-auto mb-4 text-foreground shadow-sm">
             <KeyRound className="w-6 h-6" />
           </div>
-          <h1 className="text-2xl font-black text-foreground tracking-tight">Welcome back</h1>
-          <p className="text-sm text-foreground/50 mt-1">Sign in to your Futrix account to continue</p>
+          <h1 className="text-2xl font-black text-foreground tracking-tight">
+            {authMode === "admin" ? "Admin Login" : "Welcome back"}
+          </h1>
+          <p className="text-sm text-foreground/50 mt-1">
+            {authMode === "admin" ? "Sign in to access the platform admin dashboard." : "Sign in to your Futrix account to continue"}
+          </p>
         </div>
 
         {/* Demo Quick Fill Banner */}

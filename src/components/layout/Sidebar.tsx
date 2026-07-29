@@ -12,7 +12,11 @@ import {
   Zap,
   ChevronRight,
   X,
-  Table
+  Table,
+  Users,
+  Folders,
+  Link2,
+  ShieldAlert
 } from "lucide-react";
 import clsx from "clsx";
 
@@ -25,6 +29,14 @@ const NAV_LINKS = [
   { name: "Settings", href: "/settings", icon: Settings },
 ];
 
+const ADMIN_NAV_LINKS = [
+  { name: "Dashboard", href: "/admin", icon: LayoutDashboard },
+  { name: "Users", href: "/admin/users", icon: Users },
+  { name: "Workspaces", href: "/admin/workspaces", icon: Folders },
+  { name: "Integrations", href: "/admin/integrations", icon: Link2 },
+  { name: "Audit Log", href: "/admin/audit-log", icon: ShieldAlert },
+];
+
 interface SidebarProps {
   isOpen?: boolean;
   onClose?: () => void;
@@ -33,6 +45,8 @@ interface SidebarProps {
 
 export function Sidebar({ isOpen = false, onClose, onOpenSupport }: SidebarProps) {
   const pathname = usePathname();
+  const isAdmin = pathname?.startsWith("/admin") || false;
+  const currentLinks = isAdmin ? ADMIN_NAV_LINKS : NAV_LINKS;
 
   return (
     <>
@@ -53,11 +67,16 @@ export function Sidebar({ isOpen = false, onClose, onOpenSupport }: SidebarProps
       >
         {/* Logo & Close */}
         <div className="h-16 flex items-center justify-between px-5 border-b border-border flex-shrink-0">
-          <Link href="/" onClick={onClose} className="flex items-center gap-2.5">
+          <Link href={isAdmin ? "/admin" : "/"} onClick={onClose} className="flex items-center gap-2.5">
             <div className="w-8 h-8 bg-foreground rounded-lg flex items-center justify-center shadow-sm">
               <span className="text-background font-black text-sm">F</span>
             </div>
             <span className="text-foreground font-bold text-lg tracking-tight">Futrix</span>
+            {isAdmin && (
+              <span className="px-1.5 py-0.5 bg-red-500/10 text-red-600 text-[9px] font-bold rounded-full border border-red-500/20">
+                ADMIN
+              </span>
+            )}
           </Link>
 
           {/* Close button on mobile */}
@@ -75,7 +94,7 @@ export function Sidebar({ isOpen = false, onClose, onOpenSupport }: SidebarProps
           <p className="px-3 mb-3 text-[11px] font-semibold uppercase tracking-widest text-foreground/40">
             Main Menu
           </p>
-          {NAV_LINKS.map((link) => {
+          {currentLinks.map((link) => {
             const Icon = link.icon;
             const isActive = pathname === link.href;
             return (
@@ -102,56 +121,60 @@ export function Sidebar({ isOpen = false, onClose, onOpenSupport }: SidebarProps
           })}
 
           {/* Divider */}
-          <div className="pt-6 pb-2 space-y-1">
-            <p className="px-3 mb-3 text-[11px] font-semibold uppercase tracking-widest text-foreground/40">
-              Integrations
-            </p>
-            <Link
-              href="/integrations/xero"
-              onClick={onClose}
-              className="flex items-center gap-3 px-3 py-2 rounded-xl text-sm font-medium text-foreground/60 hover:bg-foreground/5 hover:text-foreground transition-all duration-150 group"
-            >
-              <div className="w-5 h-5 flex-shrink-0 bg-[#1AB4D7]/10 border border-[#1AB4D7]/20 rounded flex items-center justify-center">
-                <span className="text-[#1AB4D7] font-black text-[10px] leading-none">X</span>
-              </div>
-              <span className="flex-1">Xero</span>
-              <span className="px-1.5 py-0.5 bg-emerald-100 text-emerald-700 text-[9px] font-bold rounded-full">
-                Live
-              </span>
-            </Link>
-            <Link
-              href="/excel-tools"
-              onClick={onClose}
-              className="flex items-center gap-3 px-3 py-2 rounded-xl text-sm font-medium text-foreground/60 hover:bg-foreground/5 hover:text-foreground transition-all duration-150 group"
-            >
-              <div className="w-5 h-5 flex-shrink-0 bg-emerald-100 border border-emerald-200 rounded flex items-center justify-center">
-                <span className="text-emerald-600 font-black text-[10px] leading-none">E</span>
-              </div>
-              <span className="flex-1">Excel Tools</span>
-              <span className="px-1.5 py-0.5 bg-emerald-100 text-emerald-700 text-[9px] font-bold rounded-full">
-                Active
-              </span>
-            </Link>
-          </div>
+          {!isAdmin && (
+            <div className="pt-6 pb-2 space-y-1">
+              <p className="px-3 mb-3 text-[11px] font-semibold uppercase tracking-widest text-foreground/40">
+                Integrations
+              </p>
+              <Link
+                href="/integrations/xero"
+                onClick={onClose}
+                className="flex items-center gap-3 px-3 py-2 rounded-xl text-sm font-medium text-foreground/60 hover:bg-foreground/5 hover:text-foreground transition-all duration-150 group"
+              >
+                <div className="w-5 h-5 flex-shrink-0 bg-[#1AB4D7]/10 border border-[#1AB4D7]/20 rounded flex items-center justify-center">
+                  <span className="text-[#1AB4D7] font-black text-[10px] leading-none">X</span>
+                </div>
+                <span className="flex-1">Xero</span>
+                <span className="px-1.5 py-0.5 bg-emerald-100 text-emerald-700 text-[9px] font-bold rounded-full">
+                  Live
+                </span>
+              </Link>
+              <Link
+                href="/excel-tools"
+                onClick={onClose}
+                className="flex items-center gap-3 px-3 py-2 rounded-xl text-sm font-medium text-foreground/60 hover:bg-foreground/5 hover:text-foreground transition-all duration-150 group"
+              >
+                <div className="w-5 h-5 flex-shrink-0 bg-emerald-100 border border-emerald-200 rounded flex items-center justify-center">
+                  <span className="text-emerald-600 font-black text-[10px] leading-none">E</span>
+                </div>
+                <span className="flex-1">Excel Tools</span>
+                <span className="px-1.5 py-0.5 bg-emerald-100 text-emerald-700 text-[9px] font-bold rounded-full">
+                  Active
+                </span>
+              </Link>
+            </div>
+          )}
         </nav>
 
         {/* Upgrade nudge */}
-        <div className="mx-3 mb-3 p-4 rounded-xl bg-foreground/5 border border-border shadow-inner-border">
-          <div className="flex items-center gap-2 mb-2">
-            <Zap className="w-4 h-4 text-emerald-500" />
-            <span className="text-xs font-semibold text-foreground">Pro features</span>
+        {!isAdmin && (
+          <div className="mx-3 mb-3 p-4 rounded-xl bg-foreground/5 border border-border shadow-inner-border">
+            <div className="flex items-center gap-2 mb-2">
+              <Zap className="w-4 h-4 text-emerald-500" />
+              <span className="text-xs font-semibold text-foreground">Pro features</span>
+            </div>
+            <p className="text-xs text-foreground/60 leading-snug mb-3">
+              Unlock AI insights, multi-entity consolidation, and unlimited reports.
+            </p>
+            <Link
+              href="/pricing"
+              onClick={onClose}
+              className="block text-center text-xs font-semibold py-1.5 px-3 rounded-lg bg-foreground text-background shadow-md hover:bg-foreground/90 transition-colors"
+            >
+              Upgrade plan
+            </Link>
           </div>
-          <p className="text-xs text-foreground/60 leading-snug mb-3">
-            Unlock AI insights, multi-entity consolidation, and unlimited reports.
-          </p>
-          <Link
-            href="/pricing"
-            onClick={onClose}
-            className="block text-center text-xs font-semibold py-1.5 px-3 rounded-lg bg-foreground text-background shadow-md hover:bg-foreground/90 transition-colors"
-          >
-            Upgrade plan
-          </Link>
-        </div>
+        )}
 
         {/* Support */}
         <div className="px-3 pb-4 border-t border-border pt-3">

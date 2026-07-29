@@ -29,7 +29,7 @@ export async function POST(req: Request) {
     }
 
     // Issue tokens
-    const tokenPayload = { userId: user.id, email: user.email! };
+    const tokenPayload = { userId: user.id, email: user.email!, role: user.role };
     const accessToken = await signAccessToken(tokenPayload);
     const refreshToken = await signRefreshToken(tokenPayload);
 
@@ -78,6 +78,13 @@ export async function POST(req: Request) {
       maxAge: refreshAgeDays * 24 * 60 * 60,
     });
 
+    cookieStore.set("futrix_user_role", user.role, {
+      httpOnly: false,
+      secure: isProduction,
+      path: "/",
+      maxAge: refreshAgeDays * 24 * 60 * 60,
+    });
+
     return NextResponse.json({
       status: "success",
       message: "Successfully logged in!",
@@ -85,6 +92,7 @@ export async function POST(req: Request) {
         id: user.id,
         email: user.email,
         name: user.name,
+        role: user.role,
       },
     });
   } catch (error) {

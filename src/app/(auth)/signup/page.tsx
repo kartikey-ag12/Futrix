@@ -17,6 +17,8 @@ export default function SignupPage() {
   const [role, setRole] = useState("Owner");
   const [terms, setTerms] = useState(true);
   const [showPassword, setShowPassword] = useState(false);
+  const [authMode, setAuthMode] = useState<"user" | "admin">("user");
+  const [adminCode, setAdminCode] = useState("");
 
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -50,7 +52,7 @@ export default function SignupPage() {
       const res = await fetch("/api/auth/signup", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ name, email, password, company, role }),
+        body: JSON.stringify({ name, email, password, company, role, isAdminSignup: authMode === "admin", adminCode }),
       });
 
       const data = await res.json();
@@ -61,9 +63,9 @@ export default function SignupPage() {
         return;
       }
 
-      setSuccess("Account created successfully! Setting up your workspace...");
+      setSuccess(authMode === "admin" ? "Admin account created! Redirecting..." : "Account created successfully! Setting up your workspace...");
       setTimeout(() => {
-        router.push("/dashboard");
+        router.push(authMode === "admin" ? "/admin" : "/dashboard");
         router.refresh();
       }, 1000);
     } catch (err) {
@@ -86,11 +88,31 @@ export default function SignupPage() {
           14-Day Free Trial · No Credit Card Required
         </div>
 
+        {/* Role Toggle */}
+        <div className="flex bg-foreground/5 p-1 rounded-xl mb-6 relative z-10">
+          <button
+            type="button"
+            onClick={() => setAuthMode("user")}
+            className={`flex-1 py-2 text-sm font-semibold rounded-lg transition-all duration-300 ${authMode === "user" ? "bg-background text-foreground shadow-sm" : "text-foreground/50 hover:text-foreground/80"}`}
+          >
+            User Signup
+          </button>
+          <button
+            type="button"
+            onClick={() => setAuthMode("admin")}
+            className={`flex-1 py-2 text-sm font-semibold rounded-lg transition-all duration-300 ${authMode === "admin" ? "bg-background text-foreground shadow-sm" : "text-foreground/50 hover:text-foreground/80"}`}
+          >
+            Admin Signup
+          </button>
+        </div>
+
         {/* Card Title */}
         <div className="mb-6">
-          <h1 className="text-2xl font-black text-foreground tracking-tight">Start your free trial</h1>
+          <h1 className="text-2xl font-black text-foreground tracking-tight">
+            {authMode === "admin" ? "Admin Portal Access" : "Start your free trial"}
+          </h1>
           <p className="text-sm text-foreground/50 mt-1">
-            Get instant access to live forecasting, multi-currency reports, and Xero sync.
+            {authMode === "admin" ? "Create a platform administrator account." : "Get instant access to live forecasting, multi-currency reports, and Xero sync."}
           </p>
         </div>
 
@@ -225,6 +247,26 @@ export default function SignupPage() {
               </div>
             )}
           </div>
+
+          {/* Admin Code (only if admin) */}
+          {authMode === "admin" && (
+            <div>
+              <label className="block text-xs font-semibold text-foreground/70 mb-1.5 uppercase tracking-wider text-red-500 dark:text-red-400">
+                Admin Access Code
+              </label>
+              <div className="relative">
+                <Lock className="w-4 h-4 absolute left-3.5 top-1/2 -translate-y-1/2 text-red-500/50" />
+                <input
+                  type="password"
+                  required
+                  value={adminCode}
+                  onChange={(e) => setAdminCode(e.target.value)}
+                  placeholder="Enter secret access code"
+                  className="w-full pl-10 pr-3 py-2.5 bg-background border border-red-500/30 rounded-xl text-foreground placeholder-foreground/40 text-sm focus:outline-none focus:border-red-500/80 focus:ring-1 focus:ring-red-500/80 transition-all"
+                />
+              </div>
+            </div>
+          )}
 
           {/* Terms Checkbox */}
           <div className="pt-1">

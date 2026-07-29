@@ -3,6 +3,7 @@ import { jwtVerify, SignJWT } from "jose";
 type JwtPayload = {
   userId: string;
   email: string;
+  role: string;
 };
 
 // Next.js Edge runtime (which Middleware uses) requires standard Web Crypto API.

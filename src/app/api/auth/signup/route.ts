@@ -6,7 +6,7 @@ import { signAccessToken, signRefreshToken } from "@/lib/auth/jwt";
 
 export async function POST(req: Request) {
   try {
-    const { name, email, password, company, role } = await req.json();
+    const { name, email, password, company, role, isAdminSignup, adminCode } = await req.json();
 
     if (!email || !password || !name) {
       return NextResponse.json({ error: "Name, email, and password are required." }, { status: 400 });
@@ -20,6 +20,13 @@ export async function POST(req: Request) {
       return NextResponse.json({ error: "Password must be at least 6 characters long." }, { status: 400 });
     }
 
+    if (isAdminSignup) {
+      const secret = process.env.ADMIN_SIGNUP_SECRET || "dev-admin-secret-123";
+      if (adminCode !== secret) {
+        return NextResponse.json({ error: "Unauthorized: Invalid Admin Access Code." }, { status: 403 });
+      }
+    }
+
     // Check if user exists
     const existingUser = await prisma.user.findUnique({ where: { email } });
     if (existingUser) {
@@ -30,12 +37,16 @@ export async function POST(req: Request) {
     const salt = await bcrypt.genSalt(10);
     const passwordHash = await bcrypt.hash(password, salt);
 
+    // Determine role
+    const assignedRole = isAdminSignup ? "ADMIN" : "USER";
+
     // Create user
     const user = await prisma.user.create({
       data: {
         name,
         email,
         passwordHash,
+        role: assignedRole,
       },
     });
 
@@ -54,7 +65,7 @@ export async function POST(req: Request) {
     }
 
     // Issue tokens
-    const tokenPayload = { userId: user.id, email: user.email! };
+    const tokenPayload = { userId: user.id, email: user.email!, role: user.role };
     const accessToken = await signAccessToken(tokenPayload);
     const refreshToken = await signRefreshToken(tokenPayload);
 
@@ -100,6 +111,12 @@ export async function POST(req: Request) {
       path: "/",
       maxAge: 7 * 24 * 60 * 60,
     });
+    cookieStore.set("futrix_user_role", user.role, {
+      httpOnly: false,
+      secure: isProduction,
+      path: "/",
+      maxAge: 7 * 24 * 60 * 60,
+    });
 
     return NextResponse.json({
       status: "success",
@@ -108,6 +125,7 @@ export async function POST(req: Request) {
         id: user.id,
         name: user.name,
         email: user.email,
+        role: user.role,
         company: company || "My Enterprise",
       },
     });
