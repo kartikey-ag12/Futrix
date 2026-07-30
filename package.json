@@ -9,8 +9,6 @@
     "lint": "eslint"
   },
   "dependencies": {
-    "@google/genai": "^2.13.0",
-    "@google/generative-ai": "^0.24.1",
     "@prisma/client": "^6.19.3",
     "@tanstack/react-table": "^8.21.3",
     "bcryptjs": "^3.0.3",

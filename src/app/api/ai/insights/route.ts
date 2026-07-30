@@ -1,5 +1,5 @@
 import { NextResponse } from "next/server";
-import { GoogleGenAI } from "@google/genai";
+import OpenAI from "openai";
 
 export async function POST(req: Request) {
   try {
@@ -12,12 +12,15 @@ export async function POST(req: Request) {
       companyName = "Futrix Client",
     } = body;
 
-    const apiKey = process.env.GEMINI_API_KEY;
+    const apiKey = process.env.PERPLEXITY_API_KEY;
 
-    // ── 1. If Gemini API Key is present, call Live Gemini Model ─────────────
+    // ── 1. If API Key is present, call Live Perplexity Model ─────────────
     if (apiKey) {
       try {
-        const ai = new GoogleGenAI({ apiKey });
+        const client = new OpenAI({
+          apiKey: apiKey,
+          baseURL: "https://api.perplexity.ai",
+        });
 
         const prompt = `
 Analyze the following financial summary for "${companyName}":
@@ -35,18 +38,19 @@ Each object in the array must have:
 - "description": A 2-sentence actionable CFO recommendation based on these numbers
 `;
 
-        const response = await ai.models.generateContent({
-          model: "gemini-2.5-flash",
-          contents: prompt,
-          config: {
-            systemInstruction: "You are a financial AI advisor. Respond strictly with a JSON object containing an 'insights' array.",
-            responseMimeType: "application/json",
-            temperature: 0.7,
-          }
+        const response = await client.chat.completions.create({
+          model: "sonar-pro",
+          messages: [
+            { role: "system", content: "You are a financial AI advisor. Respond strictly with a JSON object containing an 'insights' array. Do not include markdown code blocks or other text outside the JSON." },
+            { role: "user", content: prompt }
+          ],
+          temperature: 0.7,
         });
 
-        const content = response.text || "{}";
-        const parsed = JSON.parse(content);
+        const content = response.choices[0]?.message?.content || "{}";
+        // Clean markdown backticks if Perplexity returns them despite instructions
+        const cleanContent = content.replace(/```json/g, "").replace(/```/g, "").trim();
+        const parsed = JSON.parse(cleanContent);
         const insightsList = Array.isArray(parsed)
           ? parsed
           : parsed.insights || parsed.data || parsed.results || [];
@@ -54,12 +58,12 @@ Each object in the array must have:
         if (insightsList.length > 0) {
           return NextResponse.json({
             status: "success",
-            source: "gemini_live",
+            source: "perplexity_live",
             insights: insightsList,
           });
         }
-      } catch (geminiError: any) {
-        console.error("Gemini API call failed, using engine fallback:", geminiError?.message);
+      } catch (aiError: any) {
+        console.error("Perplexity API call failed, using engine fallback:", aiError?.message);
       }
     }
 

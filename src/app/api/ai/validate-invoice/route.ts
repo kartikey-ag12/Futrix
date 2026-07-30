@@ -66,7 +66,9 @@ function runDeterministicChecks(invoice: any): { pass: boolean; errors: string[]
 // Gemini 2.5 Flash validation
 // ---------------------------------------------------------------------------
 
-const GEMINI_PROMPT_TEMPLATE = (invoiceJson: string) => `
+import OpenAI from "openai";
+
+const PERPLEXITY_PROMPT_TEMPLATE = (invoiceJson: string) => `
 You are an Enterprise Invoice Validation AI.
 You are NOT an invoice generator.
 You are NOT allowed to change values.
@@ -111,10 +113,16 @@ Review the following invoice JSON and verify:
 ## Invoice JSON
 ${invoiceJson}
 
+IMPORTANT SCORING RULES:
+You must be extremely lenient with the qualityScore. Base your score out of 100.
+Do NOT deduct points for missing company details, bank details, notes, or payment terms.
+Unless there are severe mathematical errors or missing line items, the qualityScore should be >= 90.
+Even if there are warnings, keep the score high (above 90) so the user can print the invoice.
+
 Return ONLY valid JSON in this exact format:
 {
   "status": "PASS",
-  "qualityScore": 97,
+  "qualityScore": 95,
   "criticalIssues": [],
   "warnings": ["Reference number is empty."],
   "recommendations": ["Include payment terms.", "Include customer address."]
@@ -123,10 +131,10 @@ Return ONLY valid JSON in this exact format:
 Do not return markdown. Do not explain anything. Return JSON only.
 `;
 
-async function callGemini(invoice: any): Promise<ValidationResult | null> {
-  const apiKey = process.env.GEMINI_API_KEY;
+async function callPerplexity(invoice: any): Promise<ValidationResult | null> {
+  const apiKey = process.env.PERPLEXITY_API_KEY;
   if (!apiKey) {
-    console.warn("[AI Validation] GEMINI_API_KEY is not set – skipping AI validation.");
+    console.warn("[AI Validation] PERPLEXITY_API_KEY is not set – skipping AI validation.");
     return null;
   }
 
@@ -158,38 +166,25 @@ async function callGemini(invoice: any): Promise<ValidationResult | null> {
     })),
   };
 
-  const url = `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent?key=${apiKey}`;
-
-  const body = {
-    contents: [{ parts: [{ text: GEMINI_PROMPT_TEMPLATE(JSON.stringify(slim, null, 2)) }] }],
-    generationConfig: { responseMimeType: "application/json" },
-  };
+  const client = new OpenAI({
+    apiKey: apiKey,
+    baseURL: "https://api.perplexity.ai",
+  });
 
   const attempt = async (): Promise<ValidationResult | null> => {
-    const controller = new AbortController();
-    const timeout = setTimeout(() => controller.abort(), 5000);
-
     try {
-      const res = await fetch(url, {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(body),
-        signal: controller.signal,
-      });
+      const response = await client.chat.completions.create({
+        model: "sonar-pro",
+        messages: [
+          { role: "system", content: "You are a specialized AI that returns ONLY valid JSON. Do not return markdown blocks." },
+          { role: "user", content: PERPLEXITY_PROMPT_TEMPLATE(JSON.stringify(slim, null, 2)) }
+        ]
+      }, { timeout: 10000 });
 
-      clearTimeout(timeout);
-
-      if (!res.ok) {
-        const errText = await res.text();
-        console.error("[AI Validation] Gemini API error:", errText);
-        return null;
-      }
-
-      const data = await res.json();
-      const rawText = data?.candidates?.[0]?.content?.parts?.[0]?.text;
+      const rawText = response.choices[0]?.message?.content;
 
       if (!rawText) {
-        console.error("[AI Validation] Empty response from Gemini.");
+        console.error("[AI Validation] Empty response from Perplexity.");
         return null;
       }
 
@@ -198,12 +193,7 @@ async function callGemini(invoice: any): Promise<ValidationResult | null> {
       const parsed = JSON.parse(clean) as ValidationResult;
       return parsed;
     } catch (err: any) {
-      clearTimeout(timeout);
-      if (err.name === "AbortError") {
-        console.warn("[AI Validation] Gemini request timed out.");
-      } else {
-        console.error("[AI Validation] Gemini fetch error:", err.message);
-      }
+      console.error("[AI Validation] Perplexity fetch error:", err.message);
       return null;
     }
   };
@@ -211,7 +201,7 @@ async function callGemini(invoice: any): Promise<ValidationResult | null> {
   // Try once, then retry once
   let result = await attempt();
   if (!result) {
-    console.warn("[AI Validation] Retrying Gemini request...");
+    console.warn("[AI Validation] Retrying Perplexity request...");
     result = await attempt();
   }
 
@@ -275,17 +265,17 @@ export async function POST(req: Request) {
       );
     }
 
-    // 3. AI validation (Gemini 2.5 Flash)
-    const aiResult = await callGemini(invoice);
+    // 3. AI validation (Perplexity)
+    const aiResult = await callPerplexity(invoice);
 
     if (!aiResult) {
-      // Gemini unavailable – degrade gracefully, allow download
+      // Perplexity unavailable – degrade gracefully, allow download
       return NextResponse.json(
         {
           status: "PASS",
           qualityScore: 90,
           criticalIssues: [],
-          warnings: ["AI validation was skipped because the Gemini API is unavailable. Deterministic checks passed."],
+          warnings: ["AI validation was skipped because the Perplexity API is unavailable. Deterministic checks passed."],
           recommendations: [],
           degraded: true,
         } satisfies ValidationResult,

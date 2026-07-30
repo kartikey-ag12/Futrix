@@ -291,7 +291,7 @@ function IntegrationsDropdown() {
 export function Navbar() {
   const [mobileOpen, setMobileOpen] = useState(false);
   const [scrolled, setScrolled] = useState(false);
-  const [userProfile, setUserProfile] = useState<{ name: string; email: string } | null>(null);
+  const [userProfile, setUserProfile] = useState<{ name: string; email: string; role?: string } | null>(null);
 
   useEffect(() => {
     async function loadUser() {
@@ -341,7 +341,7 @@ export function Navbar() {
           <div className="hidden md:flex flex-1 justify-center">
             <nav className="flex items-center gap-1">
               <Link
-                href={userProfile ? "/dashboard" : "/"}
+                href={userProfile ? (userProfile.role === "ADMIN" ? "/admin" : "/dashboard") : "/"}
                 className="px-3 py-2 rounded-lg text-sm font-medium text-foreground/80 hover:text-foreground hover:bg-foreground/5 transition-all duration-200"
               >
                 Home
@@ -394,7 +394,7 @@ export function Navbar() {
         <div className="md:hidden border-t border-border bg-card">
           <div className="max-w-7xl mx-auto px-4 py-4 space-y-1">
             <Link
-              href={userProfile ? "/dashboard" : "/"}
+              href={userProfile ? (userProfile.role === "ADMIN" ? "/admin" : "/dashboard") : "/"}
               onClick={() => setMobileOpen(false)}
               className="block px-3 py-2 rounded-lg text-sm font-medium text-foreground/80 hover:bg-foreground/5 hover:text-foreground transition-colors"
             >

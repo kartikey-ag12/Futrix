@@ -191,7 +191,7 @@ export class ExcelService {
       { width: 22 },  // H: Tax rate
       { width: 12 },  // I: Tax amount
       { width: 12 },  // J: Region
-      { width: 12 },  // K: Project
+      { width: 22 },  // K: Project
       { width: 15 }   // L: Amount
     ];
 
@@ -346,7 +346,7 @@ export class ExcelService {
           } as Partial<ExcelJS.Borders>;
           
           if (c === 5 || c === 9 || c === 12) {
-             cell.numFmt = '#,##0.00';
+             cell.numFmt = '"$"#,##0.00';
           }
         }
         currentRow++;
@@ -368,7 +368,7 @@ export class ExcelService {
     sheet.getCell(`L${currentRow}`).value = invoice.subTotal || 0;
     sheet.getCell(`L${currentRow}`).font = valueFont;
     sheet.getCell(`L${currentRow}`).alignment = { horizontal: "right" };
-    sheet.getCell(`L${currentRow}`).numFmt = '#,##0.00';
+    sheet.getCell(`L${currentRow}`).numFmt = '"$"#,##0.00';
 
     // HARDCODED TAX RATES (8.25%, 4%, 4.25%) - To be replaced with dynamic values from Xero's TaxType/LineItem API in the future.
     const subtotal = invoice.subTotal || 0;
@@ -383,7 +383,7 @@ export class ExcelService {
     sheet.getCell(`L${currentRow}`).value = cityTax;
     sheet.getCell(`L${currentRow}`).font = valueFont;
     sheet.getCell(`L${currentRow}`).alignment = { horizontal: "right" };
-    sheet.getCell(`L${currentRow}`).numFmt = '#,##0.00';
+    sheet.getCell(`L${currentRow}`).numFmt = '"$"#,##0.00';
 
     currentRow += 1;
     sheet.getCell(`K${currentRow}`).value = "Total State Tax 4.25%";
@@ -392,7 +392,7 @@ export class ExcelService {
     sheet.getCell(`L${currentRow}`).value = stateTax;
     sheet.getCell(`L${currentRow}`).font = valueFont;
     sheet.getCell(`L${currentRow}`).alignment = { horizontal: "right" };
-    sheet.getCell(`L${currentRow}`).numFmt = '#,##0.00';
+    sheet.getCell(`L${currentRow}`).numFmt = '"$"#,##0.00';
 
     currentRow += 2;
     
@@ -407,7 +407,7 @@ export class ExcelService {
     sheet.getCell(`L${currentRow}`).value = calculatedTotal;
     sheet.getCell(`L${currentRow}`).font = { size: 14, bold: true, color: { argb: "FF111827" } };
     sheet.getCell(`L${currentRow}`).alignment = { horizontal: "right", vertical: "middle" };
-    sheet.getCell(`L${currentRow}`).numFmt = '#,##0.00';
+    sheet.getCell(`L${currentRow}`).numFmt = '"$"#,##0.00';
     sheet.getRow(currentRow).height = 35;
 
     const buffer = await workbook.xlsx.writeBuffer();

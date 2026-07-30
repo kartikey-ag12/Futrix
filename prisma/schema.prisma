@@ -43,9 +43,13 @@ model RefreshToken {
 }
 
 model Workspace {
-  id        String   @id @default(cuid())
-  name      String
-  createdAt DateTime @default(now())
+  id          String   @id @default(cuid())
+  name        String
+  industry    String?
+  email       String?
+  country     String?
+  description String?  @db.Text
+  createdAt   DateTime @default(now())
 
   members      WorkspaceMember[]
   integrations Integration[]

@@ -439,8 +439,9 @@ export function Header({ onOpenMobileSidebar }: HeaderProps) {
       <div className="flex items-center gap-2 flex-shrink-0">
 
         {/* Notifications */}
-        <div className="relative" ref={notifRef}>
-          <button
+        {!isAdmin && (
+          <div className="relative" ref={notifRef}>
+            <button
             onClick={() => setShowNotifications(!showNotifications)}
             className="relative w-9 h-9 flex items-center justify-center rounded-xl text-foreground/60 hover:text-foreground hover:bg-foreground/5 transition-colors"
             aria-label="Notifications"
@@ -496,6 +497,7 @@ export function Header({ onOpenMobileSidebar }: HeaderProps) {
             </div>
           )}
         </div>
+        )}
 
         {/* Profile */}
         <div className="relative" ref={profileRef}>
@@ -522,16 +524,18 @@ export function Header({ onOpenMobileSidebar }: HeaderProps) {
                   </>
                 )}
               </div>
-              <div className="p-1.5 border-b border-border">
-                <Link
-                  href="/settings"
-                  onClick={() => setShowProfile(false)}
-                  className="flex items-center gap-2.5 px-3 py-2.5 text-sm text-foreground/75 hover:bg-foreground/5 hover:text-foreground rounded-xl transition-colors"
-                >
-                  <SettingsIcon className="w-4 h-4" />
-                  Account Settings
-                </Link>
-              </div>
+              {!isAdmin && (
+                <div className="p-1.5 border-b border-border">
+                  <Link
+                    href="/settings"
+                    onClick={() => setShowProfile(false)}
+                    className="flex items-center gap-2.5 px-3 py-2.5 text-sm text-foreground/75 hover:bg-foreground/5 hover:text-foreground rounded-xl transition-colors"
+                  >
+                    <SettingsIcon className="w-4 h-4" />
+                    Account Settings
+                  </Link>
+                </div>
+              )}
               <div className="p-1.5">
                 <button
                   onClick={handleLogout}

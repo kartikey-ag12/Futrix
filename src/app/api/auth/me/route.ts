@@ -20,7 +20,7 @@ export async function GET() {
 
     const user = await prisma.user.findUnique({
       where: { id: payload.userId },
-      select: { id: true, name: true, email: true }
+      select: { id: true, name: true, email: true, role: true }
     });
 
     if (!user) {
@@ -33,6 +33,7 @@ export async function GET() {
         id: user.id,
         name: user.name || user.email?.split("@")[0] || "Futrix User",
         email: user.email,
+        role: user.role,
       },
     });
   } catch (error) {

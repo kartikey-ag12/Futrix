@@ -1,5 +1,5 @@
 import { NextResponse } from "next/server";
-import { GoogleGenerativeAI } from "@google/generative-ai";
+import OpenAI from "openai";
 
 const SUPPORT_KNOWLEDGE = `
 You are the official Futrix AI Support Assistant for the Futrix Financial Intelligence Platform.
@@ -24,36 +24,39 @@ export async function POST(req: Request) {
       return NextResponse.json({ error: "Message is required" }, { status: 400 });
     }
 
-    const apiKey = process.env.GEMINI_API_KEY;
+    const apiKey = process.env.PERPLEXITY_API_KEY;
 
-    // ── 1. Call Gemini API if key is present ──────────────────────────────
+    // ── 1. Call Perplexity API if key is present ──────────────────────────────
     if (apiKey) {
       try {
-        const genAI = new GoogleGenerativeAI(apiKey);
-        const model = genAI.getGenerativeModel({
-          model: "gemini-2.5-flash",
-          systemInstruction: SUPPORT_KNOWLEDGE,
+        const client = new OpenAI({
+          apiKey: apiKey,
+          baseURL: "https://api.perplexity.ai",
         });
 
-        const formattedHistory = (history || []).map((h: any) => ({
-          role: h.sender === "user" ? "user" : "model",
-          parts: [{ text: h.text }],
-        }));
+        const messages = [
+          { role: "system", content: SUPPORT_KNOWLEDGE },
+          ...(history || []).map((h: any) => ({
+            role: h.sender === "user" ? "user" : "assistant",
+            content: h.text,
+          })),
+          { role: "user", content: message }
+        ];
 
-        const chat = model.startChat({
-          history: formattedHistory,
+        const response = await client.chat.completions.create({
+          model: "sonar-pro",
+          messages: messages as any,
         });
 
-        const result = await chat.sendMessage(message);
-        const reply = result.response.text();
+        const reply = response.choices[0]?.message?.content || "";
 
         return NextResponse.json({
           status: "success",
           reply,
-          source: "gemini_live",
+          source: "perplexity_live",
         });
       } catch (err: any) {
-        console.error("Support Chat Gemini Error:", err?.message);
+        console.error("Support Chat Perplexity Error:", err?.message);
       }
     }
 
