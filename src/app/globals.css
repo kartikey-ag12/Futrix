@@ -73,7 +73,7 @@ body {
   }
 }
 
-/* ── Futrli-style Marquee Animation ── */
+/* ── Marquee Animation ── */
 @keyframes marquee {
   0% { transform: translateX(0%); }
   100% { transform: translateX(-50%); }
@@ -83,8 +83,55 @@ body {
   display: flex;
   width: max-content;
   animation: marquee 30s linear infinite;
+  /* Promote to GPU compositor layer — prevents forced reflow */
+  will-change: transform;
 }
 
 .animate-marquee:hover {
   animation-play-state: paused;
+}
+
+/* ── Marquee edge fade mask ── */
+.mask-fade {
+  -webkit-mask-image: linear-gradient(to right, transparent 0%, black 8%, black 92%, transparent 100%);
+  mask-image: linear-gradient(to right, transparent 0%, black 8%, black 92%, transparent 100%);
+}
+
+/* ── Chart skeleton placeholder — reserves space while recharts loads ── */
+@keyframes shimmer {
+  0%   { background-position: -400px 0; }
+  100% { background-position: 400px 0; }
+}
+
+.chart-skeleton {
+  height: 300px;
+  width: 100%;
+  border-radius: 12px;
+  background: linear-gradient(
+    90deg,
+    var(--border) 25%,
+    color-mix(in srgb, var(--border) 60%, var(--card)) 50%,
+    var(--border) 75%
+  );
+  background-size: 800px 100%;
+  animation: shimmer 1.4s ease-in-out infinite;
+}
+
+/* ── Spin animation (used for loading indicators) ── */
+@keyframes spin {
+  to { transform: rotate(360deg); }
+}
+
+/* ── Reduce motion — respect user OS preference ── */
+@media (prefers-reduced-motion: reduce) {
+  .animate-marquee,
+  .chart-skeleton {
+    animation: none;
+  }
+}
+
+/* ── content-visibility helper for below-fold sections ── */
+.cv-auto {
+  content-visibility: auto;
+  contain-intrinsic-size: 0 400px;
 }

@@ -17,6 +17,8 @@ export const metadata: Metadata = {
   description: "Centralized financial intelligence platform with Xero and Tally integration.",
 };
 
+// Preconnect to external APIs used by the app — establishes TCP/TLS early
+// so the first API call (Xero, Perplexity) doesn't pay connection overhead.
 export default function RootLayout({
   children,
 }: Readonly<{
@@ -24,6 +26,12 @@ export default function RootLayout({
 }>) {
   return (
     <html lang="en" suppressHydrationWarning>
+      <head>
+        <link rel="preconnect" href="https://api.perplexity.ai" />
+        <link rel="preconnect" href="https://api.xero.com" />
+        <link rel="dns-prefetch" href="https://api.perplexity.ai" />
+        <link rel="dns-prefetch" href="https://api.xero.com" />
+      </head>
       <body
         suppressHydrationWarning
         className={`${geistSans.variable} ${geistMono.variable} antialiased`}

@@ -1,6 +1,10 @@
 "use client";
 
-import { useMemo } from "react";
+import { useMemo, memo } from "react";
+
+// Module-scope formatter — created once, never re-instantiated on re-render
+const _fmt = new Intl.NumberFormat("en-US", { style: "currency", currency: "USD", maximumFractionDigits: 0 });
+const fmtCurrency = (val: number) => _fmt.format(val);
 import {
   Area,
   AreaChart,
@@ -15,7 +19,7 @@ interface RevenueChartProps {
   totalExpenses?: number;
 }
 
-export function RevenueChart({
+function RevenueChartBase({
   totalRevenue = 45231.89,
   totalExpenses = 23194.0,
 }: RevenueChartProps) {
@@ -36,12 +40,7 @@ export function RevenueChart({
     }));
   }, [totalRevenue, totalExpenses]);
 
-  const fmtCurrency = (val: number) =>
-    new Intl.NumberFormat("en-US", {
-      style: "currency",
-      currency: "USD",
-      maximumFractionDigits: 0,
-    }).format(val);
+  // fmtCurrency is now at module scope — no re-instantiation
 
   return (
     <div className="h-[300px] w-full">
@@ -108,3 +107,6 @@ export function RevenueChart({
     </div>
   );
 }
+
+// memo prevents re-render when parent re-renders with same props
+export const RevenueChart = memo(RevenueChartBase);

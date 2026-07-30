@@ -1,6 +1,6 @@
 "use client";
 
-import React, { createContext, useContext, useState, useCallback } from "react";
+import React, { createContext, useContext, useState, useCallback, useMemo } from "react";
 
 export interface Transaction {
   id: string;
@@ -93,17 +93,17 @@ export function FinancialProvider({ children }: { children: React.ReactNode }) {
 
 
 
+  const contextValue = useMemo(() => ({
+    metrics,
+    transactions,
+    isSyncing,
+    orgName,
+    lastSynced,
+    handleXeroSync,
+  }), [metrics, transactions, isSyncing, orgName, lastSynced, handleXeroSync]);
+
   return (
-    <FinancialContext.Provider
-      value={{
-        metrics,
-        transactions,
-        isSyncing,
-        orgName,
-        lastSynced,
-        handleXeroSync,
-      }}
-    >
+    <FinancialContext.Provider value={contextValue}>
       {children}
     </FinancialContext.Provider>
   );

@@ -1,6 +1,6 @@
 "use client";
 
-import { useMemo } from "react";
+import { useMemo, memo } from "react";
 import {
   Bar,
   BarChart,
@@ -11,12 +11,16 @@ import {
   Cell,
 } from "recharts";
 
+// Module-scope formatter — created once, never re-instantiated on re-render
+const _fmt = new Intl.NumberFormat("en-US", { style: "currency", currency: "USD", maximumFractionDigits: 0 });
+const fmtCurrency = (val: number) => _fmt.format(val);
+
 interface CashFlowChartProps {
   totalRevenue?: number;
   totalExpenses?: number;
 }
 
-export function CashFlowChart({
+function CashFlowChartBase({
   totalRevenue = 45231.89,
   totalExpenses = 23194.0,
 }: CashFlowChartProps) {
@@ -38,13 +42,6 @@ export function CashFlowChart({
       };
     });
   }, [totalRevenue, totalExpenses]);
-
-  const fmtCurrency = (val: number) =>
-    new Intl.NumberFormat("en-US", {
-      style: "currency",
-      currency: "USD",
-      maximumFractionDigits: 0,
-    }).format(val);
 
   return (
     <div className="h-[300px] w-full">
@@ -92,3 +89,6 @@ export function CashFlowChart({
     </div>
   );
 }
+
+// memo prevents re-render when parent re-renders with same props
+export const CashFlowChart = memo(CashFlowChartBase);

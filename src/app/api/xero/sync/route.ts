@@ -19,13 +19,14 @@ export async function POST(req: Request) {
 
     xero.setTokenSet({ access_token: accessToken });
 
-    // Fetch Organization details to verify connection
-    const orgResponse = await xero.accountingApi.getOrganisations(tenantId);
+    // Fetch org details AND invoices in parallel — eliminates sequential waterfall
+    const [orgResponse, invoicesResponse] = await Promise.all([
+      xero.accountingApi.getOrganisations(tenantId),
+      xero.accountingApi.getInvoices(tenantId),
+    ]);
     const orgName = orgResponse.body.organisations?.[0]?.name;
-
-    // Fetch recent invoices
-    const invoicesResponse = await xero.accountingApi.getInvoices(tenantId);
     let invoices = invoicesResponse.body.invoices || [];
+
 
     // If the Xero account is completely empty, generate some sample demo invoices
     if (invoices.length === 0) {

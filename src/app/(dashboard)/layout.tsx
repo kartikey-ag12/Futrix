@@ -1,11 +1,22 @@
 "use client";
 
 import { useState } from "react";
-import { Sidebar } from "@/components/layout/Sidebar";
-import { Header } from "@/components/layout/Header";
-import { Footer } from "@/components/layout/Footer";
-import { SupportModal } from "@/components/support/SupportModal";
+import dynamic from "next/dynamic";
 import { FinancialProvider } from "@/context/FinancialContext";
+import { Sidebar } from "@/components/layout/Sidebar";
+import { Footer } from "@/components/layout/Footer";
+
+// Defer the 555-line Header (21 KB) — not needed for initial paint
+const Header = dynamic(
+  () => import("@/components/layout/Header").then((m) => ({ default: m.Header })),
+  { ssr: false, loading: () => <div className="h-16 bg-card border-b border-border" /> }
+);
+
+// Defer SupportModal — only needed when user clicks the support button
+const SupportModal = dynamic(
+  () => import("@/components/support/SupportModal").then((m) => ({ default: m.SupportModal })),
+  { ssr: false }
+);
 
 export default function DashboardLayout({
   children,
@@ -33,11 +44,13 @@ export default function DashboardLayout({
           </main>
         </div>
 
-        {/* AI Support Assistant Chatbot Modal */}
-        <SupportModal
-          isOpen={isSupportOpen}
-          onClose={() => setIsSupportOpen(false)}
-        />
+        {/* Only mount the support modal DOM when actually opened */}
+        {isSupportOpen && (
+          <SupportModal
+            isOpen={isSupportOpen}
+            onClose={() => setIsSupportOpen(false)}
+          />
+        )}
       </div>
     </FinancialProvider>
   );
