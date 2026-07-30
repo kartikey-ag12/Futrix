@@ -506,24 +506,52 @@ export function Header({ onOpenMobileSidebar }: HeaderProps) {
             className="w-9 h-9 rounded-xl bg-primary/15 border border-primary/25 flex items-center justify-center text-primary transition-all hover:bg-primary/25 hover:scale-105"
             aria-label="Profile menu"
           >
-            <User className="w-4 h-4" />
+            {userProfile?.name ? (
+              <span className="text-sm font-bold text-primary">
+                {userProfile.name.charAt(0).toUpperCase()}
+              </span>
+            ) : (
+              <User className="w-4 h-4" />
+            )}
           </button>
 
           {showProfile && (
-            <div className="absolute right-0 top-[calc(100%+8px)] w-56 bg-card border border-border rounded-2xl shadow-premium overflow-hidden z-50 animate-in fade-in slide-in-from-top-1">
-              <div className="px-4 py-4 border-b border-border">
+            <div className="absolute right-0 top-[calc(100%+8px)] w-64 bg-card border border-border rounded-2xl shadow-premium overflow-hidden z-50 animate-in fade-in slide-in-from-top-1">
+              {/* ── User identity section ── */}
+              <div className="px-4 py-4 border-b border-border bg-foreground/[0.02]">
                 {isLoadingUser ? (
-                  <div className="animate-pulse flex flex-col gap-2">
-                    <div className="h-4 bg-foreground/10 rounded w-24"></div>
-                    <div className="h-3 bg-foreground/10 rounded w-32"></div>
+                  <div className="animate-pulse flex items-center gap-3">
+                    <div className="w-9 h-9 rounded-xl bg-foreground/10 flex-shrink-0" />
+                    <div className="flex flex-col gap-1.5 flex-1">
+                      <div className="h-3.5 bg-foreground/10 rounded w-24" />
+                      <div className="h-3 bg-foreground/10 rounded w-32" />
+                    </div>
                   </div>
                 ) : (
-                  <>
-                    <p className="text-sm font-semibold">{userProfile?.name}</p>
-                    <p className="text-xs text-foreground/50 mt-0.5 truncate">{userProfile?.email}</p>
-                  </>
+                  <div className="flex items-center gap-3">
+                    {/* Avatar with initial */}
+                    <div className="w-9 h-9 rounded-xl bg-gradient-to-br from-emerald-500 to-teal-600 flex items-center justify-center flex-shrink-0 shadow-sm">
+                      <span className="text-white font-bold text-sm">
+                        {userProfile?.name
+                          ? userProfile.name.charAt(0).toUpperCase()
+                          : userProfile?.email
+                            ? userProfile.email.charAt(0).toUpperCase()
+                            : "U"}
+                      </span>
+                    </div>
+                    <div className="flex-1 min-w-0">
+                      <p className="text-sm font-semibold text-foreground truncate">
+                        {userProfile?.name || userProfile?.email?.split("@")[0] || "Futrix User"}
+                      </p>
+                      <p className="text-xs text-foreground/50 mt-0.5 truncate">
+                        {userProfile?.email || "No email on record"}
+                      </p>
+                    </div>
+                  </div>
                 )}
               </div>
+
+              {/* ── Menu items ── */}
               {!isAdmin && (
                 <div className="p-1.5 border-b border-border">
                   <Link
