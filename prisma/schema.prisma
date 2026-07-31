@@ -22,6 +22,11 @@ model User {
   role          Role      @default(USER)
   createdAt     DateTime  @default(now())
 
+  // Schema default = false → all EXISTING rows in DB automatically become false
+  // when migration runs — existing users are NEVER forced into Xero onboarding.
+  // The signup route explicitly sets this to true for NEW user accounts going forward.
+  requiresXeroOnboarding Boolean @default(false)
+
   workspaces    WorkspaceMember[]
   accounts      Account[]
   sessions      Session[]

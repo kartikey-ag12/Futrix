@@ -16,8 +16,18 @@ export async function POST(req: Request) {
       return NextResponse.json({ error: "Please enter a valid email address." }, { status: 400 });
     }
 
-    // Find user
-    const user = await prisma.user.findUnique({ where: { email } });
+    // Find user — include requiresXeroOnboarding to set middleware-readable cookie
+    const user = await prisma.user.findUnique({
+      where: { email },
+      select: {
+        id: true,
+        name: true,
+        email: true,
+        role: true,
+        passwordHash: true,
+        requiresXeroOnboarding: true,
+      },
+    });
     if (!user || !user.passwordHash) {
       return NextResponse.json({ error: "Invalid email or password." }, { status: 401 });
     }
@@ -37,17 +47,14 @@ export async function POST(req: Request) {
     const refreshAgeDays = remember ? 30 : 7;
     const expiresAt = new Date(Date.now() + refreshAgeDays * 24 * 60 * 60 * 1000);
     const hashedRefreshToken = await bcrypt.hash(refreshToken, 10);
-    
+
     await prisma.refreshToken.create({
-      data: {
-        token: hashedRefreshToken,
-        userId: user.id,
-        expiresAt,
-      },
+      data: { token: hashedRefreshToken, userId: user.id, expiresAt },
     });
 
     const cookieStore = await cookies();
     const isProduction = process.env.NODE_ENV === "production";
+    const maxAge = refreshAgeDays * 24 * 60 * 60;
 
     cookieStore.set("futrix_access_token", accessToken, {
       httpOnly: true,
@@ -62,28 +69,38 @@ export async function POST(req: Request) {
       secure: isProduction,
       sameSite: "lax",
       path: "/",
-      maxAge: refreshAgeDays * 24 * 60 * 60,
+      maxAge,
     });
 
     cookieStore.set("futrix_user_email", email, {
       httpOnly: false,
       secure: isProduction,
       path: "/",
-      maxAge: refreshAgeDays * 24 * 60 * 60,
+      maxAge,
     });
 
     cookieStore.set("futrix_user_name", user.name || "", {
       httpOnly: false,
       secure: isProduction,
       path: "/",
-      maxAge: refreshAgeDays * 24 * 60 * 60,
+      maxAge,
     });
 
     cookieStore.set("futrix_user_role", user.role, {
       httpOnly: false,
       secure: isProduction,
       path: "/",
-      maxAge: refreshAgeDays * 24 * 60 * 60,
+      maxAge,
+    });
+
+    // Middleware-readable onboarding flag — NOT httpOnly so proxy.ts (Edge) can read it.
+    // Existing users have requiresXeroOnboarding=false from DB default, so they're unaffected.
+    cookieStore.set("futrix_requires_xero_onboarding", String(user.requiresXeroOnboarding), {
+      httpOnly: false,
+      secure: isProduction,
+      sameSite: "lax",
+      path: "/",
+      maxAge,
     });
 
     return NextResponse.json({
@@ -94,6 +111,7 @@ export async function POST(req: Request) {
         email: user.email,
         name: user.name,
         role: user.role,
+        requiresXeroOnboarding: user.requiresXeroOnboarding,
       },
     });
   } catch (error) {

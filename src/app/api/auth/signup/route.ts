@@ -40,7 +40,7 @@ export async function POST(req: Request) {
     // Determine role
     const assignedRole = isAdminSignup ? "ADMIN" : "USER";
 
-    // Create user and workspace within a transaction to maintain data integrity
+    // Create user within a transaction
     const user = await prisma.$transaction(async (tx) => {
       const newUser = await tx.user.create({
         data: {
@@ -48,10 +48,17 @@ export async function POST(req: Request) {
           email,
           passwordHash,
           role: assignedRole,
+          // IMPORTANT: Schema default is `false` — preserves all existing users.
+          // We explicitly set `true` only for new non-admin signups going forward,
+          // so middleware can enforce Xero connection before dashboard access.
+          requiresXeroOnboarding: !isAdminSignup,
         },
       });
 
-      if (company) {
+      // For admin signups: create a placeholder workspace immediately.
+      // For regular users: workspace is created in /api/xero/callback using the
+      // real Xero org name — no manual company name needed.
+      if (isAdminSignup && company) {
         const workspace = await tx.workspace.create({
           data: { name: company },
         });
@@ -59,8 +66,8 @@ export async function POST(req: Request) {
           data: {
             userId: newUser.id,
             workspaceId: workspace.id,
-            role: role === "Owner" ? "ADMIN" : "MEMBER",
-          }
+            role: "ADMIN",
+          },
         });
       }
       return newUser;
@@ -122,6 +129,17 @@ export async function POST(req: Request) {
       maxAge: 7 * 24 * 60 * 60,
     });
 
+    // Middleware-readable flag: true for new regular users, false for admins.
+    // NOT httpOnly so Edge middleware can check it without a DB round-trip.
+    const requiresXeroOnboarding = !isAdminSignup;
+    cookieStore.set("futrix_requires_xero_onboarding", String(requiresXeroOnboarding), {
+      httpOnly: false,
+      secure: isProduction,
+      sameSite: "lax",
+      path: "/",
+      maxAge: 7 * 24 * 60 * 60,
+    });
+
     return NextResponse.json({
       status: "success",
       message: "Account created successfully! Welcome to Futrix.",
@@ -130,7 +148,9 @@ export async function POST(req: Request) {
         name: user.name,
         email: user.email,
         role: user.role,
-        company: company || "My Enterprise",
+        requiresXeroOnboarding,
+        // Tell the client where to redirect after signup
+        redirectTo: isAdminSignup ? "/admin" : "/connect-xero",
       },
     });
   } catch (error) {
@@ -138,3 +158,4 @@ export async function POST(req: Request) {
     return NextResponse.json({ error: "Failed to create account. Please try again." }, { status: 500 });
   }
 }
+

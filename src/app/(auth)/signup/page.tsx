@@ -63,9 +63,11 @@ export default function SignupPage() {
         return;
       }
 
-      setSuccess(authMode === "admin" ? "Admin account created! Redirecting..." : "Account created successfully! Setting up your workspace...");
+      setSuccess(authMode === "admin" ? "Admin account created! Redirecting..." : "Account created! Connecting your Xero company...");
       setTimeout(() => {
-        router.push(authMode === "admin" ? "/admin" : "/dashboard");
+        // Server tells us where to redirect: /connect-xero for new users, /admin for admins
+        const dest = data.user?.redirectTo || (authMode === "admin" ? "/admin" : "/connect-xero");
+        router.push(dest);
         router.refresh();
       }, 1000);
     } catch (err) {

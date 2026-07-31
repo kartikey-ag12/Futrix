@@ -8,6 +8,10 @@ const protectedApiRoutes = ["/api/ai", "/api/excel", "/api/export", "/api/xero"]
 const protectedAdminRoutes = ['/admin', '/api/admin'];
 const authRoutes = ['/login', '/signup'];
 
+// Dashboard-group routes that require Xero connection for NEW users.
+// Enforced via `futrix_requires_xero_onboarding` cookie set by login/signup.
+const XERO_GATED_ROUTES = ['/dashboard', '/reports', '/transactions', '/forecasting', '/excel-tools'];
+
 export async function proxy(request: NextRequest) {
   const { pathname } = request.nextUrl;
   
@@ -70,6 +74,25 @@ export async function proxy(request: NextRequest) {
     const url = request.nextUrl.clone();
     url.pathname = '/dashboard';
     return NextResponse.redirect(url);
+  }
+
+  // ── Mandatory Xero onboarding gate for NEW users ─────────────────────────
+  // The `futrix_requires_xero_onboarding` cookie is set to "true" by the signup
+  // route and cleared to "false" by the Xero callback after successful connection.
+  // Existing users created before this change have the cookie as "false" (set on
+  // login from their DB field defaulting to false) and are NEVER affected.
+  //
+  // This check cannot be bypassed by direct URL navigation — it runs server-side
+  // in this proxy for every protected dashboard route.
+  const isXeroGatedRoute = XERO_GATED_ROUTES.some(route => pathname.startsWith(route));
+  if (isXeroGatedRoute && isValidToken && userRole !== 'ADMIN') {
+    const requiresXeroOnboarding =
+      request.cookies.get('futrix_requires_xero_onboarding')?.value === 'true';
+    if (requiresXeroOnboarding) {
+      const url = request.nextUrl.clone();
+      url.pathname = '/connect-xero';
+      return NextResponse.redirect(url);
+    }
   }
 
   // If authenticated user tries to access login/signup OR the landing page
