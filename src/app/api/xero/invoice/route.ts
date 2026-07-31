@@ -7,6 +7,8 @@ import { prisma } from "@/lib/prisma";
 const xero = new XeroClient({
   clientId: process.env.XERO_CLIENT_ID || '',
   clientSecret: process.env.XERO_CLIENT_SECRET || '',
+  redirectUris: [process.env.XERO_REDIRECT_URI || 'http://localhost:3000/api/xero/callback'],
+  scopes: 'openid profile email accounting.invoices accounting.settings.read offline_access'.split(' '),
 });
 
 export async function POST(req: Request) {
