@@ -60,6 +60,8 @@ export async function GET(req: Request) {
     const nowSeconds = Math.floor(Date.now() / 1000);
     const isExpired = integration.expiresAt ? integration.expiresAt <= nowSeconds : true;
 
+    await xero.initialize(); // REQUIRED for xero-node before calling refreshToken()
+
     if (isExpired && integration.refreshToken) {
       try {
         xero.setTokenSet({
