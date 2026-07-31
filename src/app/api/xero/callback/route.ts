@@ -15,6 +15,7 @@ const xero = new XeroClient({
 
 export async function GET(req: Request) {
   const url = new URL(req.url);
+  let wasOnboarding = false;
 
   try {
     // ── 1. Identify the authenticated user ─────────────────────────────────
@@ -30,16 +31,19 @@ export async function GET(req: Request) {
       return NextResponse.redirect(new URL('/login?error=session_expired', req.url));
     }
 
-    // ── 2. Decode state param (workspaceId encoded by /api/xero/connect) ───
+    // ── 2. Decode workspace context from our custom cookie ─────────────────
     let stateWorkspaceId: string | null = null;
-    const stateParam = url.searchParams.get('state');
-    if (stateParam) {
+    const contextCookie = cookieStore.get('futrix_xero_connect_context')?.value;
+    
+    if (contextCookie) {
       try {
-        const decoded = JSON.parse(Buffer.from(stateParam, 'base64url').toString('utf8'));
+        const decoded = JSON.parse(contextCookie);
         stateWorkspaceId = decoded.workspaceId ?? null;
+        wasOnboarding = !stateWorkspaceId; // No workspaceId means they were in onboarding flow
       } catch {
-        // state parse failure is non-fatal — we'll look up the workspace below
+        // parsing failed
       }
+      cookieStore.delete('futrix_xero_connect_context');
     }
 
     // ── 3. Exchange auth code for tokens ────────────────────────────────────
@@ -148,22 +152,19 @@ export async function GET(req: Request) {
     });
 
     // ── 9. Redirect: onboarding → /dashboard, reconnect → /settings ─────────
-    const wasOnboarding = url.searchParams.get('state')
-      ? (() => {
-          try {
-            const d = JSON.parse(Buffer.from(url.searchParams.get('state')!, 'base64url').toString());
-            return !d.workspaceId; // No workspaceId in state → was onboarding (no workspace existed yet)
-          } catch { return false; }
-        })()
-      : false;
-
     const redirectUrl = wasOnboarding
       ? new URL('/dashboard', req.url)
       : new URL('/settings?integration=xero_success', req.url);
 
     return NextResponse.redirect(redirectUrl);
-  } catch (error) {
+  } catch (error: any) {
     console.error('Xero callback error:', error);
-    return NextResponse.redirect(new URL('/settings?integration=xero_error', req.url));
+    
+    // Redirect onboarding users back to the connect page, existing users to settings
+    const errorUrl = wasOnboarding 
+      ? new URL(`/connect-xero?error=${encodeURIComponent(error.message || 'Unknown')}`, req.url)
+      : new URL(`/settings?integration=xero_error&message=${encodeURIComponent(error.message || 'Unknown')}`, req.url);
+      
+    return NextResponse.redirect(errorUrl);
   }
 }

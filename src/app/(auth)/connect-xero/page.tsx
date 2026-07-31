@@ -107,10 +107,20 @@ export default function ConnectXeroPage() {
             </button>
 
             <p className="text-center text-xs text-foreground/40 mt-4">
-              Already connected?{" "}
-              <Link href="/dashboard" className="text-primary hover:underline">
-                Go to dashboard
-              </Link>
+              Wrong account?{" "}
+              <button
+                onClick={async () => {
+                  try {
+                    await fetch("/api/auth/logout", { method: "POST" });
+                    window.location.href = "/login";
+                  } catch (e) {
+                    console.error("Logout failed", e);
+                  }
+                }}
+                className="text-primary hover:underline"
+              >
+                Log out
+              </button>
             </p>
           </div>
         </div>

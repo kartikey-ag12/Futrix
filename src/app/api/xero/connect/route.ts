@@ -15,8 +15,6 @@ const xero = new XeroClient({
 
 export async function GET() {
   try {
-    // Identify the calling user from their JWT so we can scope the Xero
-    // connection to the correct workspace in the callback.
     const cookieStore = await cookies();
     const token = cookieStore.get('futrix_access_token')?.value;
 
@@ -25,34 +23,33 @@ export async function GET() {
     if (token) {
       const payload = await verifyAccessToken(token);
       if (payload?.userId) {
-        // Look up the user's primary workspace (ADMIN role first)
         const membership = await prisma.workspaceMember.findFirst({
           where: { userId: payload.userId },
-          orderBy: { role: 'asc' }, // ADMIN < MEMBER alphabetically
+          orderBy: { role: 'asc' },
           select: { workspaceId: true },
         });
         workspaceId = membership?.workspaceId ?? null;
       }
     }
 
-    // Encode workspaceId + userId in Xero's state param (base64 JSON).
-    // Callback will decode this to know which workspace to save tokens to.
-    // Also include a csrf nonce using crypto.randomUUID().
+    // Instead of overriding the OAuth state parameter (which breaks xero-node's
+    // internal state verification in openid-client), we store the workspace context
+    // in a temporary cookie to be read by the callback.
     const statePayload = JSON.stringify({
       workspaceId,
-      // Include the JWT userId so callback can also clear requiresXeroOnboarding
       userId: token ? (await verifyAccessToken(token))?.userId : null,
-      nonce: crypto.randomUUID(),
     });
-    const stateB64 = Buffer.from(statePayload).toString('base64url');
+    
+    // Set this cookie so the callback knows which workspace to associate tokens with
+    cookieStore.set('futrix_xero_connect_context', statePayload, {
+      httpOnly: true,
+      secure: process.env.NODE_ENV === 'production',
+      path: '/',
+      maxAge: 15 * 60, // 15 mins
+    });
 
-    // xero-node's buildConsentUrl() passes through a state param via internal config.
-    // We'll append it manually to the redirect URL since xero-node handles it differently.
     const consentUrl = await xero.buildConsentUrl();
-    const consentWithState = new URL(consentUrl);
-    consentWithState.searchParams.set('state', stateB64);
-
-    return NextResponse.redirect(consentWithState.toString());
+    return NextResponse.redirect(consentUrl);
   } catch (error) {
     console.error("Error generating Xero consent URL:", error);
     return NextResponse.json({ error: 'Failed to generate consent URL' }, { status: 500 });

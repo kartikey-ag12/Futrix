@@ -95,8 +95,8 @@ export async function proxy(request: NextRequest) {
     }
   }
 
-  // If authenticated user tries to access login/signup OR the landing page
-  if (isValidToken && (isAuthRoute || isHomeRoute)) {
+  // If authenticated user tries to access login/signup
+  if (isValidToken && isAuthRoute) {
     const url = request.nextUrl.clone();
     url.pathname = userRole === 'ADMIN' ? '/admin' : '/dashboard';
     return NextResponse.redirect(url);

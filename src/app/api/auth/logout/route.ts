@@ -39,6 +39,7 @@ export async function POST() {
     cookieStore.delete("futrix_user_email");
     cookieStore.delete("futrix_user_name");
     cookieStore.delete("futrix_company_name");
+    cookieStore.delete("futrix_requires_xero_onboarding");
 
     return NextResponse.json({
       status: "success",

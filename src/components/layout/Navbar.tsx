@@ -76,12 +76,6 @@ const INTEGRATION_ITEMS = [
     logo: "https://upload.wikimedia.org/wikipedia/en/thumb/9/9f/Xero_software_logo.svg/200px-Xero_software_logo.svg.png",
     badge: "Connected",
   },
-  {
-    label: "Excel Import/Export",
-    description: "Import financial data and generate .xlsx reports",
-    href: "/excel-tools",
-    badge: "Supported",
-  },
 ];
 
 // ─── Sub-components ───────────────────────────────────────────────────────────
@@ -360,7 +354,25 @@ export function Navbar() {
 
           {/* ── Right: Auth buttons & Mobile menu ── */}
           <div className="flex items-center gap-3 flex-shrink-0">
-            {!userProfile && (
+            {userProfile ? (
+              <div className="hidden md:flex items-center gap-3">
+                <button
+                  onClick={async () => {
+                    await fetch("/api/auth/logout", { method: "POST" });
+                    window.location.href = "/login";
+                  }}
+                  className="px-4 py-2 text-sm font-medium text-foreground/70 hover:text-foreground transition-colors"
+                >
+                  Log out
+                </button>
+                <Link
+                  href={userProfile.role === "ADMIN" ? "/admin" : "/dashboard"}
+                  className="px-4 py-2 bg-foreground text-background text-sm font-semibold rounded-xl hover:bg-foreground/90 transition-all duration-200 shadow-sm hover:shadow-md"
+                >
+                  Dashboard <ArrowRight className="w-4 h-4 inline-block ml-1" />
+                </Link>
+              </div>
+            ) : (
               <div className="hidden md:flex items-center gap-3">
                 <Link
                   href="/login"
@@ -439,13 +451,6 @@ export function Navbar() {
               >
                 Xero Integration
               </Link>
-              <Link
-                href="/excel-tools"
-                onClick={() => setMobileOpen(false)}
-                className="block px-3 py-2 rounded-lg text-sm font-medium text-foreground/80 hover:bg-foreground/5 hover:text-foreground transition-colors"
-              >
-                Excel Import/Export
-              </Link>
             </div>
             <div className="pt-2">
               <Link
@@ -456,7 +461,19 @@ export function Navbar() {
                 Pricing
               </Link>
             </div>
-            {!userProfile && (
+            {userProfile ? (
+              <div className="pt-4 border-t border-border flex flex-col gap-2">
+                <button
+                  onClick={async () => {
+                    await fetch("/api/auth/logout", { method: "POST" });
+                    window.location.href = "/login";
+                  }}
+                  className="block w-full px-4 py-2.5 rounded-xl text-sm font-medium text-center text-foreground border border-border hover:border-foreground/20 hover:bg-foreground/5 transition-colors"
+                >
+                  Log out
+                </button>
+              </div>
+            ) : (
               <div className="pt-4 border-t border-border flex flex-col gap-2">
                 <Link
                   href="/login"
