@@ -136,6 +136,10 @@ export function CreateInvoiceModal({ isOpen, onClose, onSuccess }: CreateInvoice
         body: JSON.stringify({ invoiceId: createdInvoiceData.invoiceID }),
       });
 
+      if (!res.ok) {
+        throw new Error("Validation API returned an error");
+      }
+
       const result: ValidationResult = await res.json();
       setValidationResult(result);
 

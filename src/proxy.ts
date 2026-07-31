@@ -95,12 +95,8 @@ export async function proxy(request: NextRequest) {
     }
   }
 
-  // If authenticated user tries to access login/signup
-  if (isValidToken && isAuthRoute) {
-    const url = request.nextUrl.clone();
-    url.pathname = userRole === 'ADMIN' ? '/admin' : '/dashboard';
-    return NextResponse.redirect(url);
-  }
+  // We no longer redirect authenticated users away from the login/signup pages.
+  // If they want to visit /login while logged in, they can.
 
   return NextResponse.next();
 }
