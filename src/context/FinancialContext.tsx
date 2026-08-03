@@ -27,6 +27,7 @@ interface FinancialContextType {
   isSyncing: boolean;
   orgName: string | null;
   lastSynced: string | null;
+  syncError: string | null;
   handleXeroSync: () => Promise<FinancialMetrics | null>;
 }
 
@@ -66,9 +67,11 @@ export function FinancialProvider({ children }: { children: React.ReactNode }) {
   const [isSyncing, setIsSyncing] = useState(false);
   const [orgName, setOrgName] = useState<string | null>(null);
   const [lastSynced, setLastSynced] = useState<string | null>(null);
+  const [syncError, setSyncError] = useState<string | null>(null);
 
   const handleXeroSync = useCallback(async () => {
     setIsSyncing(true);
+    setSyncError(null);
     try {
       const response = await fetch('/api/xero/sync', { method: 'POST' });
       const data = await response.json();
@@ -81,9 +84,12 @@ export function FinancialProvider({ children }: { children: React.ReactNode }) {
           setOrgName(data.message.split("org: ")[1]);
         }
         return data.metrics;
+      } else {
+        setSyncError(data.error || "Failed to sync with Xero");
       }
-    } catch (e) {
+    } catch (e: any) {
       console.error(e);
+      setSyncError(e.message || "An error occurred during sync");
     } finally {
       setIsSyncing(false);
       setLastSynced(new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }));
@@ -99,8 +105,9 @@ export function FinancialProvider({ children }: { children: React.ReactNode }) {
     isSyncing,
     orgName,
     lastSynced,
+    syncError,
     handleXeroSync,
-  }), [metrics, transactions, isSyncing, orgName, lastSynced, handleXeroSync]);
+  }), [metrics, transactions, isSyncing, orgName, lastSynced, syncError, handleXeroSync]);
 
   return (
     <FinancialContext.Provider value={contextValue}>

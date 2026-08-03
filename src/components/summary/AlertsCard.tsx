@@ -17,6 +17,9 @@ export interface AlertsCardProps {
   hasForecasts?: boolean;
   lastSyncedMinsAgo?: number;
   unreconciledCount?: number;
+  isSyncing?: boolean;
+  syncError?: string | null;
+  onSync?: () => void;
 }
 
 // ── Helpers ───────────────────────────────────────────────────────────────────
@@ -46,6 +49,9 @@ export function AlertsCard({
   hasForecasts = false,
   lastSyncedMinsAgo = 12,
   unreconciledCount = 4,
+  isSyncing = false,
+  syncError = null,
+  onSync,
 }: AlertsCardProps) {
   const displayMembers = teamMembers.slice(0, 3);
 
@@ -104,11 +110,22 @@ export function AlertsCard({
               </span>
             </span>
           </div>
-          <button className="flex items-center gap-1 text-xs text-emerald-600 hover:text-emerald-500 font-medium transition-colors">
-            <RefreshCw className="w-3 h-3" />
-            Sync now
+          <button 
+            onClick={onSync}
+            disabled={isSyncing}
+            className="flex items-center gap-1 text-xs text-emerald-600 hover:text-emerald-500 font-medium transition-colors disabled:opacity-50"
+          >
+            <RefreshCw className={`w-3 h-3 ${isSyncing ? "animate-spin" : ""}`} />
+            {isSyncing ? "Syncing..." : "Sync now"}
           </button>
         </div>
+
+        {syncError && (
+          <div className="flex items-center justify-between text-xs text-red-500 mt-2">
+            <span>{syncError}</span>
+            <a href="/api/xero/connect" className="underline hover:text-red-400">Reconnect Xero</a>
+          </div>
+        )}
 
         {unreconciledCount > 0 && (
           <div className="flex items-center justify-between">
@@ -117,9 +134,7 @@ export function AlertsCard({
               {" "}unreconciled transactions
             </span>
             <a
-              href="https://go.xero.com"
-              target="_blank"
-              rel="noopener noreferrer"
+              href="/api/xero/connect"
               className="flex items-center gap-1 text-xs text-foreground/50 hover:text-foreground transition-colors"
             >
               Log into Xero

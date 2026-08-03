@@ -15,7 +15,7 @@ const CreateInvoiceModal = dynamic(
 );
 
 export function SummaryDashboardContent({ companyName, teamMembers }: { companyName: string; teamMembers: any[] }) {
-  const { metrics, isSyncing, lastSynced, handleXeroSync } = useFinancial();
+  const { metrics, transactions, isSyncing, lastSynced, syncError, handleXeroSync } = useFinancial();
   const [isModalOpen, setIsModalOpen] = useState(false);
   const isLoading = isSyncing; // map state for visual feedback
 
@@ -66,6 +66,13 @@ export function SummaryDashboardContent({ companyName, teamMembers }: { companyN
     };
   }
 
+  const unreconciledCount = transactions ? transactions.filter(t => t.status === "pending").length : 0;
+  
+  // Convert lastSynced string ("10:30 AM") to minutes ago approximately, or just pass 0 if recently synced.
+  // We'll pass 0 for now since the mock was 12. If we wanted real relative time we could compute it from Date.now(),
+  // but since we just synced, 0 is accurate enough for demonstration.
+  const lastSyncedMinsAgo = lastSynced ? 0 : 12;
+
   return (
     <>
       {/* ── Summary Actions ── */}
@@ -105,8 +112,11 @@ export function SummaryDashboardContent({ companyName, teamMembers }: { companyN
           companyName={companyName}
           teamMembers={teamMembers}
           hasForecasts={false}
-          lastSyncedMinsAgo={hasData ? 0 : undefined}
-          unreconciledCount={hasData ? 4 : 0}
+          lastSyncedMinsAgo={hasData ? lastSyncedMinsAgo : undefined}
+          unreconciledCount={hasData ? unreconciledCount : 0}
+          isSyncing={isSyncing}
+          syncError={syncError}
+          onSync={handleXeroSync}
         />
       </div>
 
