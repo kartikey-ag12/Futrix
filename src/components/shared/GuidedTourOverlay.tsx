@@ -101,7 +101,7 @@ export function GuidedTourOverlay({ step, isActionCompleted, onNext }: GuidedTou
   return createPortal(
     <div className="fixed inset-0 z-50 pointer-events-none">
       {/* Dimmed Background */}
-      <div className="absolute inset-0 bg-black/60 pointer-events-auto transition-opacity" />
+      <div className="absolute inset-0 bg-black/60 pointer-events-none transition-opacity" />
       
       <div 
         className="absolute w-[320px] bg-white dark:bg-[#111] border border-[#e5e5e5] dark:border-white/10 text-foreground rounded-2xl p-6 shadow-2xl pointer-events-auto transition-all duration-300 ease-in-out"

@@ -61,6 +61,7 @@ model Workspace {
   drivers      Driver[]
   forecasts    Forecast[]
   reports      Report[]
+  accountGroups AccountGroup[]
 }
 
 model WorkspaceMember {
@@ -146,6 +147,7 @@ model Forecast {
   workspaceId String
   name        String
   type        String
+  status      String   @default("draft")
   data        Json?
   createdAt   DateTime @default(now())
 
@@ -160,6 +162,16 @@ model Report {
   status      String   @default("draft") // "draft" or "published"
   pageCount   Int      @default(1)
   data        Json?
+  createdAt   DateTime @default(now())
+
+  workspace   Workspace @relation(fields: [workspaceId], references: [id], onDelete: Cascade)
+}
+
+model AccountGroup {
+  id          String   @id @default(cuid())
+  workspaceId String
+  name        String
+  accountIds  String[] // Array of Xero account IDs
   createdAt   DateTime @default(now())
 
   workspace   Workspace @relation(fields: [workspaceId], references: [id], onDelete: Cascade)

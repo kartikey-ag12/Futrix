@@ -22,7 +22,7 @@ const FORECAST_TYPES = [
     id: "3yr-cf-inv",
     title: "3 year cash flow with due invoices",
     icon: LineChart,
-    href: "/forecasting/new?type=3yr-cf-inv",
+    href: "/forecasting/new/due-invoices",
   },
 ];
 

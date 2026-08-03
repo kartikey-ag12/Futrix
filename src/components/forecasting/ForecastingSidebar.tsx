@@ -21,19 +21,19 @@ export function ForecastingSidebar() {
           <SidebarCollapsibleGroup
             title="1 year P&L only"
             count={oneYearPL.length}
-            items={oneYearPL.map(f => ({ id: f.id, name: f.name, href: `/forecasting/${f.id}` }))}
+            items={oneYearPL.map(f => ({ id: f.id, name: f.name, href: `/forecasting/${f.id}`, status: f.status }))}
             defaultExpanded={true}
           />
           <SidebarCollapsibleGroup
             title="3 year cash flow"
             count={threeYearCF.length}
-            items={threeYearCF.map(f => ({ id: f.id, name: f.name, href: `/forecasting/${f.id}` }))}
+            items={threeYearCF.map(f => ({ id: f.id, name: f.name, href: `/forecasting/${f.id}`, status: f.status }))}
             defaultExpanded={true}
           />
           <SidebarCollapsibleGroup
             title="3 year cash flow with due invoices"
             count={threeYearCFInv.length}
-            items={threeYearCFInv.map(f => ({ id: f.id, name: f.name, href: `/forecasting/${f.id}` }))}
+            items={threeYearCFInv.map(f => ({ id: f.id, name: f.name, href: `/forecasting/${f.id}`, status: f.status }))}
             defaultExpanded={true}
           />
         </SidebarCollapsibleSection>

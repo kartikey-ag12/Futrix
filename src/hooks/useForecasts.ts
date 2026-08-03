@@ -6,6 +6,7 @@ export interface ForecastItem {
   type: string;
   createdAt: string;
   data: any;
+  status?: string;
 }
 
 export function useForecasts() {

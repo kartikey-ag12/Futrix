@@ -413,4 +413,120 @@ export class ExcelService {
     const buffer = await workbook.xlsx.writeBuffer();
     return Buffer.from(buffer);
   }
+
+  /**
+   * Generates an Excel report of a forecast.
+   */
+  static async generateForecastExcel(forecast: any): Promise<Buffer> {
+    const workbook = new ExcelJS.Workbook();
+    
+    // We need to fetch the detailed real data for this forecast. 
+    // Since generateForecastExcel might not have the workspaceId readily available in the forecast object if not queried,
+    // we'll assume forecast.workspaceId is available or we use a passed data object.
+    // Wait, the API route passes the `forecast` object which has `workspaceId` and `id`.
+    
+    const { ForecastService } = await import("@/server/forecasting/forecast.service");
+    let forecastData: any;
+    try {
+      forecastData = await ForecastService.getForecastData(forecast.id, forecast.workspaceId);
+    } catch (e) {
+      console.error("Failed to fetch detailed data for excel export", e);
+      // fallback to empty if error
+      forecastData = { months: [], cashPosition: [], tabs: {} };
+    }
+
+    const tabs = [
+      { id: "invoices", label: "Invoices" },
+      { id: "sales", label: "Sales" },
+      { id: "costs", label: "Costs" },
+      { id: "expenses", label: "Expenses" },
+      { id: "other-pl", label: "Other P&L" },
+      { id: "assets", label: "Assets" },
+      { id: "liabilities", label: "Liabilities" },
+      { id: "profit-loss", label: "Profit & Loss" },
+      { id: "balance-sheet", label: "Balance Sheet" },
+      { id: "cash-flow-statement", label: "Cash Flow Statement" }
+    ];
+
+    tabs.forEach(tab => {
+      const sheet = workbook.addWorksheet(tab.label.substring(0, 31)); // Excel max length 31
+      const tabData = forecastData.tabs[tab.id];
+      if (!tabData) return;
+
+      // Title
+      sheet.mergeCells("A1:C2");
+      const titleCell = sheet.getCell("A1");
+      titleCell.value = `${forecast.name} - ${tab.label}`;
+      titleCell.font = { size: 16, bold: true };
+      titleCell.alignment = { vertical: "middle", horizontal: "left" };
+
+      // Meta
+      sheet.getCell("A4").value = "Exported On:";
+      sheet.getCell("B4").value = new Date().toLocaleDateString();
+
+      // Headers (Months)
+      let currentRow = 6;
+      const headerRow = sheet.getRow(currentRow);
+      headerRow.getCell(1).value = "Account";
+      forecastData.months.forEach((m: string, i: number) => {
+        headerRow.getCell(i + 2).value = m;
+      });
+      headerRow.font = { bold: true };
+      currentRow++;
+
+      // Cash Position
+      const cashRow = sheet.getRow(currentRow);
+      cashRow.getCell(1).value = "Cash Position";
+      cashRow.getCell(1).font = { bold: true };
+      forecastData.cashPosition.forEach((val: number, i: number) => {
+        cashRow.getCell(i + 2).value = val;
+        cashRow.getCell(i + 2).numFmt = '"$"#,##0.00';
+      });
+      currentRow += 2;
+
+      // Summary
+      const summaryRow = sheet.getRow(currentRow);
+      summaryRow.getCell(1).value = `Total ${tab.label}`;
+      summaryRow.getCell(1).font = { bold: true };
+      tabData.summary.forEach((val: number, i: number) => {
+        summaryRow.getCell(i + 2).value = val;
+        summaryRow.getCell(i + 2).numFmt = '"$"#,##0.00';
+      });
+      currentRow += 2;
+
+      // Groups and Children
+      tabData.groups.forEach((group: any) => {
+        const gRow = sheet.getRow(currentRow);
+        gRow.getCell(1).value = group.name;
+        gRow.getCell(1).font = { bold: true };
+        group.months.forEach((val: number, i: number) => {
+          gRow.getCell(i + 2).value = val;
+          gRow.getCell(i + 2).numFmt = '"$"#,##0.00';
+        });
+        currentRow++;
+
+        if (group.children) {
+          group.children.forEach((child: any) => {
+            const cRow = sheet.getRow(currentRow);
+            cRow.getCell(1).value = `   ${child.name}`;
+            child.months.forEach((val: number, i: number) => {
+              cRow.getCell(i + 2).value = val;
+              cRow.getCell(i + 2).numFmt = '"$"#,##0.00';
+            });
+            currentRow++;
+          });
+        }
+        currentRow++;
+      });
+
+      // Columns width
+      sheet.getColumn(1).width = 40;
+      for (let i = 0; i < forecastData.months.length; i++) {
+        sheet.getColumn(i + 2).width = 15;
+      }
+    });
+
+    const buffer = await workbook.xlsx.writeBuffer();
+    return Buffer.from(buffer);
+  }
 }

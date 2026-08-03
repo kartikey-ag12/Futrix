@@ -76,24 +76,79 @@ export async function GET(req: Request) {
 
     xero.setTokenSet({ access_token: integration.accessToken! });
     
-    // Fetch Chart of Accounts
-    const accountsResponse = await xero.accountingApi.getAccounts(integration.tenantId!);
+    // Fetch Chart of Accounts and Invoices
+    const [accountsResponse, invoicesResponse] = await Promise.all([
+      xero.accountingApi.getAccounts(integration.tenantId!),
+      xero.accountingApi.getInvoices(integration.tenantId!)
+    ]);
     const accounts = accountsResponse.body.accounts || [];
+    const invoices = invoicesResponse.body.invoices || [];
 
-    const formattedAccounts = accounts.map(acc => ({
-      id: acc.accountID,
-      code: acc.code,
-      name: acc.name,
-      type: acc.type,
-      class: acc._class,
-      status: acc.status,
-      // Some accounts don't have balances returned in getAccounts unless specifically requested,
-      // or we can fall back to 0. Xero API getAccounts doesn't always include current balance.
-      // We will provide a 0 fallback for UI purposes if it's not present.
-      balance: 0, 
-    }));
+    // Calculate YTD amounts and Days to Pay per account
+    const accountYtd: Record<string, number> = {};
+    const accountInvoiceCounts: Record<string, number> = {};
+    const accountDaysToPaySum: Record<string, number> = {};
 
-    return NextResponse.json({ accounts: formattedAccounts });
+    invoices.forEach((inv: any) => {
+      const type = inv.type || inv.Type;
+      const date = inv.date || inv.DateString ? new Date(inv.date || inv.DateString) : null;
+      const dueDate = inv.dueDate || inv.DueDateString ? new Date(inv.dueDate || inv.DueDateString) : null;
+      const fullyPaidOnDate = inv.fullyPaidOnDate ? new Date(inv.fullyPaidOnDate) : null;
+      
+      const lineItems = inv.lineItems || inv.LineItems || [];
+      
+      let daysToPay = 0;
+      let hasDaysToPay = false;
+      if (date && fullyPaidOnDate) {
+        daysToPay = Math.max(0, Math.floor((fullyPaidOnDate.getTime() - date.getTime()) / (1000 * 3600 * 24)));
+        hasDaysToPay = true;
+      } else if (date && dueDate) {
+        // Fallback to due date difference if not fully paid yet, just as a proxy metric
+        daysToPay = Math.max(0, Math.floor((dueDate.getTime() - date.getTime()) / (1000 * 3600 * 24)));
+        hasDaysToPay = true;
+      }
+
+      lineItems.forEach((item: any) => {
+        const code = item.accountCode;
+        if (!code) return;
+
+        const amount = item.lineAmount || 0;
+        accountYtd[code] = (accountYtd[code] || 0) + amount;
+
+        if (hasDaysToPay) {
+          accountDaysToPaySum[code] = (accountDaysToPaySum[code] || 0) + daysToPay;
+          accountInvoiceCounts[code] = (accountInvoiceCounts[code] || 0) + 1;
+        }
+      });
+    });
+
+    const formattedAccounts = accounts.map(acc => {
+      const ytd = accountYtd[acc.code || ''] || 0;
+      const invoiceCount = accountInvoiceCounts[acc.code || ''] || 0;
+      const daysToPay = invoiceCount > 0 ? Math.round(accountDaysToPaySum[acc.code || ''] / invoiceCount) : null;
+
+      return {
+        id: acc.accountID,
+        code: acc.code,
+        name: acc.name,
+        type: acc.type,
+        class: acc._class,
+        status: acc.status,
+        balance: ytd, // Using calculated YTD as balance
+        daysToPay
+      };
+    });
+
+    // Fetch AccountGroups for this workspace
+    const accountGroups = await prisma.accountGroup.findMany({
+      where: { workspaceId }
+    });
+
+    return NextResponse.json({ 
+      accounts: formattedAccounts, 
+      accountGroups,
+      lastSync: new Date().toISOString()
+    });
   } catch (error) {
     console.error("Failed to fetch Chart of Accounts:", error);
     return NextResponse.json({ error: "Internal Server Error" }, { status: 500 });
