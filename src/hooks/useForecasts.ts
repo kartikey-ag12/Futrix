@@ -1,18 +1,39 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 
-export interface Forecast {
+export interface ForecastItem {
   id: string;
   name: string;
-  type: "1yr-pl" | "3yr-cf" | "3yr-cf-inv";
-  updatedAt: string;
-  // Mock data payload for the chart
-  data: Array<{ month: string; actual: number; target: number }>;
+  type: string;
+  createdAt: string;
+  data: any;
 }
 
-export function useForecasts(initialData: Forecast[] = []) {
-  // Hardcoded to an empty array for now as per Phase 3 requirements.
-  // We can pass data in for testing the populated state.
-  const [forecasts] = useState<Forecast[]>(initialData);
+export function useForecasts() {
+  const [forecasts, setForecasts] = useState<ForecastItem[]>([]);
+  const [isLoading, setIsLoading] = useState(true);
 
-  return { forecasts };
+  const fetchForecasts = async () => {
+    setIsLoading(true);
+    try {
+      const res = await fetch("/api/forecasts");
+      if (res.ok) {
+        const data = await res.json();
+        setForecasts(data.forecasts || []);
+      }
+    } catch (e) {
+      console.error(e);
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  useEffect(() => {
+    fetchForecasts();
+  }, []);
+
+  const getForecastsByType = (type: string) => {
+    return forecasts.filter(f => f.type === type);
+  };
+
+  return { forecasts, isLoading, getForecastsByType, fetchForecasts };
 }

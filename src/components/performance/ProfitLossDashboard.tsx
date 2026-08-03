@@ -8,20 +8,7 @@ import {
   XAxis,
   Tooltip,
 } from "recharts";
-
-// ── Mock Data ─────────────────────────────────────────────────────────────────
-
-const TOP_SALES = [
-  { name: "Product Sales", amount: 145000, percentage: 65, fill: "#10b981" },
-  { name: "Consulting", amount: 55000, percentage: 25, fill: "#34d399" },
-  { name: "Support Plans", amount: 22300, percentage: 10, fill: "#6ee7b7" },
-];
-
-const TOP_COSTS = [
-  { name: "Server Infrastructure", amount: 35000, percentage: 40, fill: "#f43f5e" },
-  { name: "Software Subscriptions", amount: 28000, percentage: 32, fill: "#fb7185" },
-  { name: "Office Rent", amount: 24500, percentage: 28, fill: "#fda4af" },
-];
+import { useXeroData } from "@/hooks/useXeroData";
 
 function formatCurrency(val: number) {
   return new Intl.NumberFormat("en-US", { style: "currency", currency: "USD", maximumFractionDigits: 0 }).format(val);
@@ -30,6 +17,22 @@ function formatCurrency(val: number) {
 // ── Components ────────────────────────────────────────────────────────────────
 
 export function ProfitLossDashboard() {
+  const { data, isLoading } = useXeroData();
+
+  const topSales = (data?.metrics?.incomeItems || []).map((item: any) => ({
+    name: item.label,
+    amount: item.amount,
+    percentage: parseFloat(item.pct) || 0,
+    fill: "#10b981"
+  }));
+
+  const topCosts = (data?.metrics?.expenseCategories || []).map((item: any) => ({
+    name: item.label,
+    amount: item.amount,
+    percentage: parseFloat(item.pct) || 0,
+    fill: "#f43f5e"
+  }));
+
   return (
     <div className="w-full flex flex-col gap-5">
       {/* Header section */}
@@ -70,7 +73,10 @@ export function ProfitLossDashboard() {
                   </tr>
                 </thead>
                 <tbody>
-                  {TOP_SALES.map((item) => (
+                  {topSales.length === 0 && !isLoading && (
+                    <tr><td colSpan={3} className="py-4 text-center text-sm text-foreground/50">No sales data found</td></tr>
+                  )}
+                  {topSales.map((item: any) => (
                     <tr key={item.name} className="border-b border-[#e5e5e5] dark:border-white/4 last:border-0">
                       <td className="py-2.5 text-sm font-medium text-foreground">{item.name}</td>
                       <td className="py-2.5 px-3 text-sm tabular-nums text-right">{formatCurrency(item.amount)}</td>
@@ -83,7 +89,7 @@ export function ProfitLossDashboard() {
 
             <div className="w-full sm:w-[120px] h-[140px] flex-shrink-0">
               <ResponsiveContainer width="100%" height="100%">
-                <BarChart data={TOP_SALES} margin={{ top: 0, right: 0, left: 0, bottom: 0 }}>
+                <BarChart data={topSales} margin={{ top: 0, right: 0, left: 0, bottom: 0 }}>
                   <XAxis dataKey="name" hide />
                   <Tooltip cursor={{ fill: "rgba(0,0,0,0.04)" }} contentStyle={{ borderRadius: "8px", border: "none", boxShadow: "0 4px 6px -1px rgb(0 0 0 / 0.1)", fontSize: "12px" }} />
                   <Bar dataKey="amount" radius={[4, 4, 0, 0]} />
@@ -116,7 +122,10 @@ export function ProfitLossDashboard() {
                   </tr>
                 </thead>
                 <tbody>
-                  {TOP_COSTS.map((item) => (
+                  {topCosts.length === 0 && !isLoading && (
+                    <tr><td colSpan={3} className="py-4 text-center text-sm text-foreground/50">No cost data found</td></tr>
+                  )}
+                  {topCosts.map((item: any) => (
                     <tr key={item.name} className="border-b border-[#e5e5e5] dark:border-white/4 last:border-0">
                       <td className="py-2.5 text-sm font-medium text-foreground">{item.name}</td>
                       <td className="py-2.5 px-3 text-sm tabular-nums text-right">{formatCurrency(item.amount)}</td>
@@ -129,7 +138,7 @@ export function ProfitLossDashboard() {
 
             <div className="w-full sm:w-[120px] h-[140px] flex-shrink-0">
               <ResponsiveContainer width="100%" height="100%">
-                <BarChart data={TOP_COSTS} margin={{ top: 0, right: 0, left: 0, bottom: 0 }}>
+                <BarChart data={topCosts} margin={{ top: 0, right: 0, left: 0, bottom: 0 }}>
                   <XAxis dataKey="name" hide />
                   <Tooltip cursor={{ fill: "rgba(0,0,0,0.04)" }} contentStyle={{ borderRadius: "8px", border: "none", boxShadow: "0 4px 6px -1px rgb(0 0 0 / 0.1)", fontSize: "12px" }} />
                   <Bar dataKey="amount" radius={[4, 4, 0, 0]} />

@@ -103,9 +103,8 @@ export function GuidedTourOverlay({ step, isActionCompleted, onNext }: GuidedTou
       {/* Dimmed Background */}
       <div className="absolute inset-0 bg-black/60 pointer-events-auto transition-opacity" />
       
-      {/* Callout Box */}
       <div 
-        className="absolute w-[320px] bg-white text-foreground rounded-2xl p-6 shadow-2xl pointer-events-auto transition-all duration-300 ease-in-out"
+        className="absolute w-[320px] bg-white dark:bg-[#111] border border-[#e5e5e5] dark:border-white/10 text-foreground rounded-2xl p-6 shadow-2xl pointer-events-auto transition-all duration-300 ease-in-out"
         style={calloutStyle}
       >
         <CurvedArrow position={step.arrowPosition} />

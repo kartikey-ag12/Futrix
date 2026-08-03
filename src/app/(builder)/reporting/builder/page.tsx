@@ -70,6 +70,28 @@ function BuilderCanvasContent() {
     }
   };
 
+  const handleSave = async () => {
+    if (!hasContent) return;
+    try {
+      const res = await fetch("/api/reports", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          name: `New ${reportType} Report`,
+          type: reportType,
+          status: "draft",
+          pageCount: droppedTemplates.length,
+          data: { templates: droppedTemplates.map(t => t.id) }
+        }),
+      });
+      if (res.ok) {
+        window.location.href = "/reporting";
+      }
+    } catch (e) {
+      console.error("Save failed", e);
+    }
+  };
+
   const hasContent = droppedTemplates.length > 0;
 
   return (
@@ -91,18 +113,32 @@ function BuilderCanvasContent() {
               <h1 className="text-xl font-semibold text-foreground mb-1">Drag and drop the template onto your page...</h1>
               <p className="text-sm text-foreground/60">We'll show you how quickly a report can be made and customised.</p>
             </div>
-            <button 
-              id="builder-next-btn"
-              disabled={!hasContent}
-              className={clsx(
-                "px-8 py-2.5 rounded-lg font-medium transition-all shadow-sm",
-                hasContent 
-                  ? "bg-emerald-500 hover:bg-emerald-600 text-white" 
-                  : "bg-foreground/10 text-foreground/40 cursor-not-allowed"
-              )}
-            >
-              Next
-            </button>
+            <div className="flex gap-3">
+              <button 
+                id="builder-next-btn"
+                disabled={!hasContent}
+                className={clsx(
+                  "px-8 py-2.5 rounded-lg font-medium transition-all shadow-sm",
+                  hasContent 
+                    ? "bg-emerald-500 hover:bg-emerald-600 text-white" 
+                    : "bg-foreground/10 text-foreground/40 cursor-not-allowed"
+                )}
+              >
+                Next
+              </button>
+              <button 
+                onClick={handleSave}
+                disabled={!hasContent}
+                className={clsx(
+                  "px-8 py-2.5 rounded-lg font-medium transition-all shadow-sm border",
+                  hasContent 
+                    ? "bg-white dark:bg-[#111] hover:bg-foreground/5 text-foreground border-foreground/20" 
+                    : "bg-transparent text-foreground/40 border-foreground/10 cursor-not-allowed"
+                )}
+              >
+                Save
+              </button>
+            </div>
           </div>
 
           {/* The Canvas Drop Zone */}

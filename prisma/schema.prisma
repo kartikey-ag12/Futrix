@@ -58,6 +58,9 @@ model Workspace {
 
   members      WorkspaceMember[]
   integrations Integration[]
+  drivers      Driver[]
+  forecasts    Forecast[]
+  reports      Report[]
 }
 
 model WorkspaceMember {
@@ -124,4 +127,40 @@ model AdminAuditLog {
   createdAt   DateTime @default(now())
 
   admin       User     @relation(fields: [adminUserId], references: [id], onDelete: Cascade)
+}
+
+model Driver {
+  id          String   @id @default(cuid())
+  workspaceId String
+  name        String
+  type        String   // "freestyle" or "formula"
+  value       String?  // Formula expression or raw value
+  unit        String?
+  createdAt   DateTime @default(now())
+
+  workspace   Workspace @relation(fields: [workspaceId], references: [id], onDelete: Cascade)
+}
+
+model Forecast {
+  id          String   @id @default(cuid())
+  workspaceId String
+  name        String
+  type        String
+  data        Json?
+  createdAt   DateTime @default(now())
+
+  workspace   Workspace @relation(fields: [workspaceId], references: [id], onDelete: Cascade)
+}
+
+model Report {
+  id          String   @id @default(cuid())
+  workspaceId String
+  name        String
+  type        String
+  status      String   @default("draft") // "draft" or "published"
+  pageCount   Int      @default(1)
+  data        Json?
+  createdAt   DateTime @default(now())
+
+  workspace   Workspace @relation(fields: [workspaceId], references: [id], onDelete: Cascade)
 }

@@ -12,7 +12,9 @@ import {
 import { Play, ChevronDown, Filter, ArrowUpDown } from "lucide-react";
 import clsx from "clsx";
 
-// ── Types & Mock Data ────────────────────────────────────────────────────────
+import { useXeroData } from "@/hooks/useXeroData";
+
+// ── Types & Data ────────────────────────────────────────────────────────
 
 type ContactType = "Customer" | "Supplier";
 
@@ -29,14 +31,6 @@ interface ContactRow {
   dependence: number;
   lastActivity: string;
 }
-
-const MOCK_DATA: ContactRow[] = [
-  { id: "1", type: "Customer", contact: "Acme Corp", totalDue: 12500, totalOverdue: 2500, totalInvoiced: 45000, invoicesDue: 3, averageSale: 4500, daysToPay: 22, dependence: 15, lastActivity: "2024-08-01" },
-  { id: "2", type: "Supplier", contact: "Tech Solutions", totalDue: 8200, totalOverdue: 0, totalInvoiced: 24000, invoicesDue: 2, averageSale: 3000, daysToPay: 14, dependence: 8, lastActivity: "2024-08-02" },
-  { id: "3", type: "Customer", contact: "Global Industries", totalDue: 34000, totalOverdue: 12000, totalInvoiced: 120000, invoicesDue: 5, averageSale: 12000, daysToPay: 45, dependence: 35, lastActivity: "2024-07-28" },
-  { id: "4", type: "Supplier", contact: "Office Supplies Co", totalDue: 450, totalOverdue: 0, totalInvoiced: 3200, invoicesDue: 1, averageSale: 400, daysToPay: 7, dependence: 1, lastActivity: "2024-08-03" },
-  { id: "5", type: "Customer", contact: "Stark Enterprises", totalDue: 0, totalOverdue: 0, totalInvoiced: 85000, invoicesDue: 0, averageSale: 8500, daysToPay: 30, dependence: 22, lastActivity: "2024-07-15" },
-];
 
 function formatDollar(val: number) {
   return new Intl.NumberFormat("en-US", { style: "currency", currency: "USD", maximumFractionDigits: 0 }).format(val);
@@ -109,9 +103,12 @@ const columns = [
 
 export function CustomersSuppliersTable() {
   const [sorting, setSorting] = useState<SortingState>([]);
+  const { data, isLoading } = useXeroData();
+
+  const tableData = data?.contacts || [];
 
   const table = useReactTable({
-    data: MOCK_DATA,
+    data: tableData,
     columns,
     state: { sorting },
     onSortingChange: setSorting,
@@ -171,21 +168,30 @@ export function CustomersSuppliersTable() {
               ))}
             </thead>
             <tbody>
-              {table.getRowModel().rows.map((row) => (
-                <tr key={row.id} className="border-b border-[#e5e5e5] dark:border-white/4 hover:bg-foreground/[0.015] transition-colors last:border-0">
-                  {row.getVisibleCells().map((cell) => (
-                    <td key={cell.id} className="px-4 py-3">
-                      {flexRender(cell.column.columnDef.cell, cell.getContext())}
-                    </td>
-                  ))}
+              {isLoading ? (
+                <tr>
+                  <td colSpan={columns.length} className="px-4 py-12 text-center">
+                    <div className="flex items-center justify-center">
+                      <div className="w-6 h-6 border-2 border-emerald-500/30 border-t-emerald-500 rounded-full animate-spin" />
+                    </div>
+                  </td>
                 </tr>
-              ))}
-              {table.getRowModel().rows.length === 0 && (
+              ) : table.getRowModel().rows.length === 0 ? (
                 <tr>
                   <td colSpan={columns.length} className="px-4 py-8 text-center text-sm text-foreground/50">
                     No customers or suppliers found.
                   </td>
                 </tr>
+              ) : (
+                table.getRowModel().rows.map((row) => (
+                  <tr key={row.id} className="border-b border-[#e5e5e5] dark:border-white/4 hover:bg-foreground/[0.015] transition-colors last:border-0">
+                    {row.getVisibleCells().map((cell) => (
+                      <td key={cell.id} className="px-4 py-3">
+                        {flexRender(cell.column.columnDef.cell, cell.getContext())}
+                      </td>
+                    ))}
+                  </tr>
+                ))
               )}
             </tbody>
           </table>

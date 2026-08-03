@@ -129,12 +129,43 @@ function buildSyncResponse(invoices: any[], orgName: string | undefined) {
   let totalExpenses = 0;
   const incomeItemsMap: Record<string, number> = {};
   const expenseCategoriesMap: Record<string, number> = {};
+  const contactsMap: Record<string, any> = {};
 
   invoices.forEach((inv: any) => {
     const type = inv.type || inv.Type;
     const total = inv.total || inv.Total || 0;
+    const amountDue = inv.amountDue || inv.AmountDue || 0;
     const lineItem = inv.lineItems?.[0] || inv.LineItems?.[0];
     const category = lineItem?.accountCode || lineItem?.description || "General";
+    
+    const contactName = inv.Contact?.Name || inv.contact?.name || "Unknown";
+    const contactType = type === 'ACCREC' ? 'Customer' : 'Supplier';
+
+    if (!contactsMap[contactName]) {
+      contactsMap[contactName] = {
+        id: contactName,
+        type: contactType,
+        contact: contactName,
+        totalDue: 0,
+        totalOverdue: 0,
+        totalInvoiced: 0,
+        invoicesDue: 0,
+        averageSale: 0,
+        daysToPay: contactType === 'Customer' ? 30 : 14,
+        dependence: 0,
+        lastActivity: inv.DateString ? inv.DateString.split('T')[0] : new Date().toISOString().split('T')[0],
+      };
+    }
+
+    contactsMap[contactName].totalInvoiced += total;
+    if (amountDue > 0) {
+      contactsMap[contactName].totalDue += amountDue;
+      contactsMap[contactName].invoicesDue += 1;
+      // Mock overdue logic for now
+      if (Math.random() > 0.5) {
+        contactsMap[contactName].totalOverdue += (amountDue * 0.5);
+      }
+    }
 
     if (type === 'ACCREC') {
       totalRevenue += total;
@@ -143,6 +174,13 @@ function buildSyncResponse(invoices: any[], orgName: string | undefined) {
       totalExpenses += total;
       expenseCategoriesMap[category] = (expenseCategoriesMap[category] || 0) + total;
     }
+  });
+
+  const contacts = Object.values(contactsMap).map((c: any) => {
+    c.averageSale = c.invoicesDue > 0 ? (c.totalInvoiced / c.invoicesDue) : c.totalInvoiced;
+    c.dependence = totalRevenue > 0 && c.type === 'Customer' ? Math.round((c.totalInvoiced / totalRevenue) * 100) : 
+                   (totalExpenses > 0 && c.type === 'Supplier' ? Math.round((c.totalInvoiced / totalExpenses) * 100) : 0);
+    return c;
   });
 
   const netProfit = totalRevenue - totalExpenses;
@@ -187,5 +225,6 @@ function buildSyncResponse(invoices: any[], orgName: string | undefined) {
     records_synced: invoices.length,
     metrics: { totalRevenue, totalExpenses, netProfit, healthScore: 92, incomeItems, expenseCategories },
     transactions,
+    contacts,
   });
 }

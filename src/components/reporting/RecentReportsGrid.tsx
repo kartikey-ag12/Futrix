@@ -27,7 +27,7 @@ export function RecentReportsGrid() {
             
             <div className="absolute bottom-4">
               <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-foreground/5 text-foreground/60 border border-foreground/10 group-hover:bg-emerald-50 group-hover:text-emerald-700 group-hover:border-emerald-200 transition-colors">
-                {report.pages} page{report.pages !== 1 ? 's' : ''}
+                {report.pageCount} page{report.pageCount !== 1 ? 's' : ''}
               </span>
             </div>
           </Link>

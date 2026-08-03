@@ -1,10 +1,7 @@
 import { getServerContext } from "@/lib/auth/serverUser";
 import { HeroBanner } from "@/components/summary/HeroBanner";
-import { PerformanceChartCard, MOCK_PERFORMANCE_DATA } from "@/components/summary/PerformanceChartCard";
-import { BusinessInsightsCard, MOCK_INSIGHTS } from "@/components/summary/BusinessInsightsCard";
-import { QuickLinksCard } from "@/components/summary/QuickLinksCard";
-import { AlertsCard } from "@/components/summary/AlertsCard";
 import { HelpSection } from "@/components/summary/HelpSection";
+import { SummaryDashboardContent } from "@/components/summary/SummaryDashboardContent";
 
 export const metadata = {
   title: "Summary — Futrix",
@@ -26,30 +23,8 @@ export default async function SummaryPage() {
 
       {/* Inner content */}
       <div className="flex-1 px-4 sm:px-6 lg:px-8 py-6 space-y-5 max-w-[1600px] mx-auto w-full">
-        {/* 2. Performance chart */}
-        <PerformanceChartCard data={MOCK_PERFORMANCE_DATA} />
-
-        {/* 3. Three-column insights row */}
-        <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-4 items-start">
-          {/* Column 1 — Business insights */}
-          <BusinessInsightsCard
-            companyName={companyName}
-            metrics={MOCK_INSIGHTS}
-            hasForecasts={false}
-          />
-
-          {/* Column 2 — Quick links */}
-          <QuickLinksCard />
-
-          {/* Column 3 — Alerts */}
-          <AlertsCard
-            companyName={companyName}
-            teamMembers={teamMembers}
-            hasForecasts={false}
-            lastSyncedMinsAgo={12}
-            unreconciledCount={4}
-          />
-        </div>
+        {/* 2 & 3. Real data wrapper */}
+        <SummaryDashboardContent companyName={companyName} teamMembers={teamMembers} />
 
         {/* 4. Need more help? */}
         <HelpSection />
