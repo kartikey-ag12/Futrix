@@ -3,14 +3,14 @@ import type { NextRequest } from 'next/server';
 import { jwtVerify } from "jose";
 
 // Add protected and public routes
-const protectedRoutes = ['/dashboard', '/reports', '/transactions', '/forecasting', '/excel-tools', '/settings'];
+const protectedRoutes = ['/summary', '/performance', '/forecasting', '/reporting', '/chart-of-accounts', '/drivers', '/settings', '/dashboard', '/reports', '/transactions', '/excel-tools'];
 const protectedApiRoutes = ["/api/ai", "/api/excel", "/api/export", "/api/xero"];
 const protectedAdminRoutes = ['/admin', '/api/admin'];
 const authRoutes = ['/login', '/signup'];
 
 // Dashboard-group routes that require Xero connection for NEW users.
 // Enforced via `futrix_requires_xero_onboarding` cookie set by login/signup.
-const XERO_GATED_ROUTES = ['/dashboard', '/reports', '/transactions', '/forecasting', '/excel-tools'];
+const XERO_GATED_ROUTES = ['/summary', '/performance', '/forecasting', '/reporting', '/chart-of-accounts', '/drivers', '/dashboard', '/reports', '/transactions', '/excel-tools'];
 
 export async function proxy(request: NextRequest) {
   const { pathname } = request.nextUrl;
@@ -72,7 +72,7 @@ export async function proxy(request: NextRequest) {
       return NextResponse.json({ error: "Forbidden" }, { status: 403 });
     }
     const url = request.nextUrl.clone();
-    url.pathname = '/dashboard';
+    url.pathname = '/summary';
     return NextResponse.redirect(url);
   }
 

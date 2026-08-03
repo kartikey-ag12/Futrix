@@ -1,13 +1,23 @@
 "use client";
 
-import { useXeroData } from "@/hooks/useXeroData";
+import { useFinancial } from "@/context/FinancialContext";
 import { PerformanceChartCard, MOCK_PERFORMANCE_DATA } from "@/components/summary/PerformanceChartCard";
 import { BusinessInsightsCard, MOCK_INSIGHTS } from "@/components/summary/BusinessInsightsCard";
 import { QuickLinksCard } from "@/components/summary/QuickLinksCard";
 import { AlertsCard } from "@/components/summary/AlertsCard";
+import { RefreshCcw, Plus } from "lucide-react";
+import { useState } from "react";
+import dynamic from "next/dynamic";
+
+const CreateInvoiceModal = dynamic(
+  () => import("./CreateInvoiceModal").then((m) => ({ default: m.CreateInvoiceModal })),
+  { ssr: false }
+);
 
 export function SummaryDashboardContent({ companyName, teamMembers }: { companyName: string; teamMembers: any[] }) {
-  const { data: xeroData, isLoading } = useXeroData();
+  const { metrics, isSyncing, lastSynced, handleXeroSync } = useFinancial();
+  const [isModalOpen, setIsModalOpen] = useState(false);
+  const isLoading = isSyncing; // map state for visual feedback
 
   if (isLoading) {
     return (
@@ -19,7 +29,7 @@ export function SummaryDashboardContent({ companyName, teamMembers }: { companyN
 
   // Map real Xero data into chart formats
   // Fallback to MOCK if no connection
-  const hasData = xeroData?.metrics && xeroData?.transactions;
+  const hasData = metrics && metrics.totalRevenue > 0;
   
   let chartData = MOCK_PERFORMANCE_DATA;
   let insightsData = MOCK_INSIGHTS;
@@ -31,22 +41,23 @@ export function SummaryDashboardContent({ companyName, teamMembers }: { companyN
       return {
         month: monthStr,
         bank: Math.floor(Math.random() * 50000) + 10000,
-        sales: i === new Date().getMonth() ? xeroData.metrics.totalRevenue : Math.floor(Math.random() * 20000),
-        costOfSales: i === new Date().getMonth() ? (xeroData.metrics.totalExpenses * 0.4) : Math.floor(Math.random() * 8000),
-        expenses: i === new Date().getMonth() ? (xeroData.metrics.totalExpenses * 0.6) : Math.floor(Math.random() * 5000),
+        sales: i === new Date().getMonth() ? metrics.totalRevenue : Math.floor(Math.random() * 20000),
+        costOfSales: i === new Date().getMonth() ? (metrics.totalExpenses * 0.4) : Math.floor(Math.random() * 8000),
+        expenses: i === new Date().getMonth() ? (metrics.totalExpenses * 0.6) : Math.floor(Math.random() * 5000),
       };
     });
     
     insightsData = {
-      sales: xeroData.metrics.totalRevenue,
+      sales: metrics.totalRevenue,
       salesDelta: 8.4, // placeholder
-      costs: xeroData.metrics.totalExpenses * 0.4,
+      costs: metrics.totalExpenses * 0.4,
       costsDelta: -3.2, // placeholder
-      expenses: xeroData.metrics.totalExpenses * 0.6,
+      expenses: metrics.totalExpenses * 0.6,
       expensesDelta: 2.1, // placeholder
-      netProfit: xeroData.metrics.netProfit,
+      netProfit: metrics.netProfit,
       netProfitDelta: 12.6, // placeholder
-      availableCash: xeroData.metrics.netProfit + 25000,
+      availableCash: metrics.netProfit + 25000,
+      healthScore: metrics.healthScore,
       cashImpact: 18200, // placeholder
       avgDaysCustomerPay: 32,
       avgDaysSupplierPay: 14,
@@ -57,6 +68,30 @@ export function SummaryDashboardContent({ companyName, teamMembers }: { companyN
 
   return (
     <>
+      {/* ── Summary Actions ── */}
+      <div className="flex items-center justify-end gap-3 mb-4">
+        {lastSynced && (
+          <span className="text-xs text-foreground/40 hidden sm:block">
+            Synced at {lastSynced}
+          </span>
+        )}
+        <button
+          onClick={handleXeroSync}
+          disabled={isSyncing}
+          className="flex items-center gap-2 px-4 py-2 bg-foreground/5 border border-border rounded-xl text-sm font-semibold hover:bg-foreground/10 transition-all disabled:opacity-50 text-foreground"
+        >
+          <RefreshCcw className={`w-4 h-4 ${isSyncing ? "animate-spin" : "text-foreground/60"}`} />
+          {isSyncing ? "Syncing…" : "Sync Data"}
+        </button>
+        <button
+          onClick={() => setIsModalOpen(true)}
+          className="flex items-center gap-2 px-4 py-2 bg-foreground text-background rounded-xl text-sm font-semibold hover:bg-foreground/90 transition-all shadow-sm"
+        >
+          <Plus className="w-4 h-4" />
+          New Invoice
+        </button>
+      </div>
+
       <PerformanceChartCard data={chartData} />
 
       <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-4 items-start mt-5">
@@ -74,6 +109,14 @@ export function SummaryDashboardContent({ companyName, teamMembers }: { companyN
           unreconciledCount={hasData ? 4 : 0}
         />
       </div>
+
+      {isModalOpen && (
+        <CreateInvoiceModal
+          isOpen={isModalOpen}
+          onClose={() => setIsModalOpen(false)}
+          onSuccess={handleXeroSync}
+        />
+      )}
     </>
   );
 }

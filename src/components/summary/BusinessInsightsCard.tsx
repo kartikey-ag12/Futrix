@@ -12,6 +12,7 @@ export interface InsightsMetrics {
   expenses: number;     expensesDelta: number;
   netProfit: number;    netProfitDelta: number;
   availableCash: number;
+  healthScore?: number;
   // Customers & Suppliers
   cashImpact: number;
   avgDaysCustomerPay: number;
@@ -134,6 +135,14 @@ export function BusinessInsightsCard({
           ${metrics.availableCash.toLocaleString()}
         </span>
       </div>
+      {metrics.healthScore !== undefined && (
+        <div className="flex items-center justify-between py-1.5 border-t border-[#e5e5e5] dark:border-white/8 mt-1.5 pt-2">
+          <span className="text-xs text-foreground/60 font-medium">Futrix Health Score</span>
+          <span className="text-xs font-bold tabular-nums text-foreground bg-emerald-500/10 text-emerald-600 px-2 py-0.5 rounded-full">
+            {metrics.healthScore}/100
+          </span>
+        </div>
+      )}
 
       {/* ── Performance to targets ── */}
       <SectionHeader>Performance to targets</SectionHeader>

@@ -15,6 +15,31 @@ const nextConfig: NextConfig = {
   experimental: {
     optimizePackageImports: ["lucide-react", "recharts", "framer-motion"],
   },
+
+  async redirects() {
+    return [
+      {
+        source: '/dashboard',
+        destination: '/summary',
+        permanent: true, // or false if this is temporary, but true is better for SEO/UX long term
+      },
+      {
+        source: '/reports',
+        destination: '/reporting',
+        permanent: true,
+      },
+      {
+        source: '/excel-tools',
+        destination: '/summary',
+        permanent: true,
+      },
+      {
+        source: '/transactions',
+        destination: '/summary',
+        permanent: true,
+      },
+    ];
+  },
 };
 
 export default nextConfig;

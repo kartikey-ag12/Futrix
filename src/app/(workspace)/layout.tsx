@@ -1,6 +1,7 @@
 import { AppNavbar } from "@/components/app-shell/AppNavbar";
 import { TrialBanner } from "@/components/app-shell/TrialBanner";
 import { ChatWidget } from "@/components/app-shell/ChatWidget";
+import { FinancialProvider } from "@/context/FinancialContext";
 
 // Phase 0: trial props are static.
 // Phase 6 will wire daysLeft to real subscription data from the DB.
@@ -21,7 +22,9 @@ export default function WorkspaceLayout({
 
       {/* Page content area */}
       <main className="flex-1 flex flex-col min-h-0">
-        {children}
+        <FinancialProvider>
+          {children}
+        </FinancialProvider>
       </main>
 
       {/* Floating chat / help widget */}
@@ -29,3 +32,4 @@ export default function WorkspaceLayout({
     </div>
   );
 }
+

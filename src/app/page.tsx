@@ -1,8 +1,8 @@
 import Link from "next/link";
 import { ArrowRight, BarChart3, TrendingUp, Shield, Zap, DollarSign, Activity, CheckCircle2, ChevronRight, Lock, Layers } from "lucide-react";
 import { KPICard } from "@/components/dashboard/KPICard";
-import { RevenueChart } from "@/components/dashboard/RevenueChart";
-import { CashFlowChart } from "@/components/dashboard/CashFlowChart";
+import { RevenueChart } from "@/components/summary/RevenueChart";
+import { CashFlowChart } from "@/components/performance/CashFlowChart";
 import { Navbar } from "@/components/layout/Navbar";
 
 export default function LandingPage() {

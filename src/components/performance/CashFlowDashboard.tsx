@@ -12,6 +12,8 @@ import {
   BarChart,
   Bar,
 } from "recharts";
+import { useFinancial } from "@/context/FinancialContext";
+import { CashFlowChart } from "./CashFlowChart";
 
 // ── Mock Data ─────────────────────────────────────────────────────────────────
 
@@ -71,6 +73,8 @@ function CustomTooltip({ active, payload, label }: TooltipInternalProps) {
 // ── Components ────────────────────────────────────────────────────────────────
 
 export function CashFlowDashboard() {
+  const { metrics } = useFinancial();
+
   return (
     <div className="w-full flex flex-col gap-5">
       {/* Header section */}
@@ -226,6 +230,13 @@ export function CashFlowDashboard() {
           </div>
         </div>
 
+      </div>
+      
+      {/* ── Cash Flow Projection ── */}
+      <div className="bg-white dark:bg-[#111] border border-[#e5e5e5] dark:border-white/8 rounded-xl p-5 shadow-sm flex flex-col mt-2">
+        <h2 className="text-base font-semibold text-foreground mb-1">9-Month Cash Flow Projection</h2>
+        <p className="text-xs text-foreground/50 mb-6">Based on current revenue and expense trajectory</p>
+        <CashFlowChart totalRevenue={metrics.totalRevenue} totalExpenses={metrics.totalExpenses} />
       </div>
     </div>
   );
