@@ -4,6 +4,7 @@ import { useState } from "react";
 import Link from "next/link";
 import { CheckCircle2, LayoutTemplate } from "lucide-react";
 import clsx from "clsx";
+import { FutrixTemplateGallery } from "./FutrixTemplateGallery";
 
 const TABS = [
   { id: "workspace", label: "A workspace template" },
@@ -86,10 +87,7 @@ export function CreateFromTabs() {
 
         {/* Futrix Template Content */}
         {activeTab === "futrix" && (
-          <div className="flex flex-col items-center justify-center h-48 bg-white dark:bg-[#111] border border-dashed border-[#e5e5e5] dark:border-white/10 rounded-xl text-center">
-            <LayoutTemplate className="w-8 h-8 text-foreground/30 mb-3" />
-            <h3 className="text-sm font-medium text-foreground/60">Browse Futrix's built-in templates — coming soon</h3>
-          </div>
+          <FutrixTemplateGallery />
         )}
 
         {/* Scratch Content */}

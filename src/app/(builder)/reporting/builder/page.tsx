@@ -30,11 +30,18 @@ const TOUR_STEPS: TourStep[] = [
 function BuilderCanvasContent() {
   const searchParams = useSearchParams();
   const reportType = searchParams.get("type") || "dashboard"; // e.g., 'dashboard', 'landscape', 'portrait'
+  const templateIdParam = searchParams.get("templateId");
   const { templates } = useTemplates();
   
   const tour = useGuidedTour(TOUR_STEPS);
   
-  const [droppedTemplates, setDroppedTemplates] = useState<BuilderTemplate[]>([]);
+  const [droppedTemplates, setDroppedTemplates] = useState<BuilderTemplate[]>(() => {
+    if (templateIdParam) {
+      const template = templates.find(t => t.id === templateIdParam);
+      if (template) return [template];
+    }
+    return [];
+  });
   const [isDragOver, setIsDragOver] = useState(false);
 
   // DnD Handlers

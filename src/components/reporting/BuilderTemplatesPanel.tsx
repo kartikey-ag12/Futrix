@@ -48,18 +48,30 @@ export function BuilderTemplatesPanel({ onDragStart }: BuilderTemplatesPanelProp
               key={t.id}
               draggable
               onDragStart={(e) => onDragStart(e, t.id)}
-              className="group relative flex flex-col items-center justify-center h-40 bg-white dark:bg-[#0a0a0a] border-2 border-dashed border-[#e5e5e5] dark:border-white/20 rounded-xl cursor-grab active:cursor-grabbing hover:border-emerald-500/50 hover:bg-emerald-50 dark:hover:bg-emerald-900/10 transition-all"
+              className="group relative flex flex-col bg-white dark:bg-[#0a0a0a] border border-[#e5e5e5] dark:border-white/20 rounded-xl cursor-grab active:cursor-grabbing hover:border-emerald-500 hover:shadow-md transition-all overflow-hidden"
             >
-              <div className="p-4 text-center pointer-events-none">
-                <h3 className="font-medium text-foreground text-sm group-hover:text-emerald-600 transition-colors">
+              {/* Thumbnail Placeholder */}
+              <div className="flex-1 bg-foreground/5 flex items-center justify-center border-b border-[#e5e5e5] dark:border-white/10 relative p-4 pointer-events-none">
+                <div className={clsx(
+                  "bg-white dark:bg-[#222] shadow-sm rounded border border-[#e5e5e5] dark:border-white/10 flex items-center justify-center",
+                  t.orientation === "portrait" ? "w-16 h-24" : "w-24 h-16"
+                )}>
+                  <LayoutTemplate className="w-6 h-6 text-foreground/20" />
+                </div>
+              </div>
+
+              {/* Details */}
+              <div className="p-3 flex flex-col h-24 relative pointer-events-none bg-white dark:bg-[#0a0a0a]">
+                <h3 className="font-medium text-foreground text-xs line-clamp-2 mb-1 group-hover:text-emerald-600 transition-colors">
                   {t.name}
                 </h3>
-              </div>
-              
-              <div className="absolute bottom-3 pointer-events-none">
-                <span className="inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium bg-foreground/5 text-foreground/60 group-hover:bg-emerald-100 group-hover:text-emerald-700 transition-colors">
-                  {t.pages} page{t.pages !== 1 ? 's' : ''}
-                </span>
+                <p className="text-[10px] text-foreground/50 truncate mb-4">{t.category}</p>
+                
+                <div className="absolute bottom-2 right-2">
+                  <span className="inline-flex items-center px-1.5 py-0.5 rounded text-[9px] font-bold uppercase tracking-wider bg-foreground/5 text-foreground/50 group-hover:bg-emerald-100 group-hover:text-emerald-700 transition-colors">
+                    1 of {t.pages}
+                  </span>
+                </div>
               </div>
             </div>
           ))}
