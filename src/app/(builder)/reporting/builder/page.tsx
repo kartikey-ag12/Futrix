@@ -5,13 +5,34 @@ import Link from "next/link";
 import { useSearchParams } from "next/navigation";
 import { BuilderTemplatesPanel } from "@/components/reporting/BuilderTemplatesPanel";
 import { useTemplates, BuilderTemplate } from "@/hooks/useTemplates";
+import { useGuidedTour, TourStep } from "@/hooks/useGuidedTour";
+import { GuidedTourOverlay } from "@/components/shared/GuidedTourOverlay";
 import { LayoutTemplate } from "lucide-react";
 import clsx from "clsx";
+
+const TOUR_STEPS: TourStep[] = [
+  {
+    targetId: "templates-panel",
+    title: "Drag and drop the template onto your page...",
+    body: "We'll show you how quickly a report can be made and customised.",
+    actionRequired: true,
+    arrowPosition: "right",
+  },
+  {
+    targetId: "builder-next-btn",
+    title: "Great! Now proceed.",
+    body: "Click Next to continue configuring your report settings.",
+    actionRequired: false,
+    arrowPosition: "top",
+  }
+];
 
 function BuilderCanvasContent() {
   const searchParams = useSearchParams();
   const reportType = searchParams.get("type") || "dashboard"; // e.g., 'dashboard', 'landscape', 'portrait'
   const { templates } = useTemplates();
+  
+  const tour = useGuidedTour(TOUR_STEPS);
   
   const [droppedTemplates, setDroppedTemplates] = useState<BuilderTemplate[]>([]);
   const [isDragOver, setIsDragOver] = useState(false);
@@ -42,6 +63,9 @@ function BuilderCanvasContent() {
       const template = templates.find(t => t.id === templateId);
       if (template) {
         setDroppedTemplates(prev => [...prev, template]);
+        if (tour.isActive && tour.currentStepIndex === 0) {
+          tour.completeAction();
+        }
       }
     }
   };
@@ -68,6 +92,7 @@ function BuilderCanvasContent() {
               <p className="text-sm text-foreground/60">We'll show you how quickly a report can be made and customised.</p>
             </div>
             <button 
+              id="builder-next-btn"
               disabled={!hasContent}
               className={clsx(
                 "px-8 py-2.5 rounded-lg font-medium transition-all shadow-sm",
@@ -120,6 +145,13 @@ function BuilderCanvasContent() {
         <div className="absolute bottom-8 left-8 z-20">
           <Link
             href="/reporting"
+            onClick={(e) => {
+              if (tour.isActive) {
+                // If it was just a regular click while tour is active, 
+                // let the Link natural behavior happen but also mark tour ended
+                tour.endTour();
+              }
+            }}
             className="px-6 py-2.5 bg-emerald-500 hover:bg-emerald-600 text-white rounded-lg font-medium shadow-sm transition-colors"
           >
             End guided flow
@@ -128,7 +160,18 @@ function BuilderCanvasContent() {
       </div>
 
       {/* Right Side Templates Panel */}
-      <BuilderTemplatesPanel onDragStart={handleDragStart} />
+      <div id="templates-panel" className="h-full relative">
+        <BuilderTemplatesPanel onDragStart={handleDragStart} />
+      </div>
+
+      {/* Guided Tour Overlay */}
+      {tour.isActive && tour.currentStep && (
+        <GuidedTourOverlay 
+          step={tour.currentStep} 
+          isActionCompleted={tour.isActionCompleted} 
+          onNext={tour.nextStep} 
+        />
+      )}
       
     </div>
   );
