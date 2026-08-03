@@ -123,7 +123,7 @@ export function QuickLinksCard({ recentReports = MOCK_RECENT }: QuickLinksCardPr
         <div className="space-y-2">
           <GuidedCard
             label="Create a report or dashboard"
-            href="/reporting"
+            href="/reporting/new"
           />
           <GuidedCard
             label="Create a 1 year P&L only"
