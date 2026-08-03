@@ -59,8 +59,8 @@ export async function POST(req: Request) {
     if (isExpired && integration.refreshToken) {
       try {
         xero.setTokenSet({
-          access_token: integration.accessToken,
-          refresh_token: integration.refreshToken,
+          access_token: integration.accessToken!,
+          refresh_token: integration.refreshToken ?? undefined,
         });
         const newTokenSet = await xero.refreshToken();
         
@@ -78,7 +78,7 @@ export async function POST(req: Request) {
       }
     }
 
-    xero.setTokenSet({ access_token: integration.accessToken });
+    xero.setTokenSet({ access_token: integration.accessToken! });
 
     const formData = await req.formData();
     const file = formData.get("file") as File | null;
@@ -117,7 +117,7 @@ export async function POST(req: Request) {
     }));
 
     // Send to Xero
-    const response = await xero.accountingApi.createInvoices(integration.tenantId, { invoices: xeroInvoices });
+    const response = await xero.accountingApi.createInvoices(integration.tenantId!, { invoices: xeroInvoices });
 
     return NextResponse.json({
       status: "success",

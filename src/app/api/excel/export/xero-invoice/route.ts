@@ -65,8 +65,8 @@ export async function GET(req: Request) {
     if (isExpired && integration.refreshToken) {
       try {
         xero.setTokenSet({
-          access_token: integration.accessToken,
-          refresh_token: integration.refreshToken,
+          access_token: integration.accessToken!,
+          refresh_token: integration.refreshToken ?? undefined,
         });
         const newTokenSet = await xero.refreshToken();
         
@@ -84,10 +84,10 @@ export async function GET(req: Request) {
       }
     }
 
-    xero.setTokenSet({ access_token: integration.accessToken });
+    xero.setTokenSet({ access_token: integration.accessToken! });
 
     // Fetch the full invoice details from Xero
-    const response = await xero.accountingApi.getInvoice(integration.tenantId, invoiceId);
+    const response = await xero.accountingApi.getInvoice(integration.tenantId!, invoiceId);
     const invoice = response.body.invoices?.[0];
 
     if (!invoice) {

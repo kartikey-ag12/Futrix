@@ -60,8 +60,8 @@ export async function POST(req: Request) {
     if (isExpired && integration.refreshToken) {
       try {
         xero.setTokenSet({
-          access_token: integration.accessToken,
-          refresh_token: integration.refreshToken,
+          access_token: integration.accessToken!,
+          refresh_token: integration.refreshToken ?? undefined,
         });
         const newTokenSet = await xero.refreshToken();
         
@@ -80,7 +80,7 @@ export async function POST(req: Request) {
       }
     }
 
-    xero.setTokenSet({ access_token: integration.accessToken });
+    xero.setTokenSet({ access_token: integration.accessToken! });
 
     // Step 5: Create Invoice
     const newInvoice: Invoice = {
@@ -100,7 +100,7 @@ export async function POST(req: Request) {
     };
 
     const invoices = { invoices: [newInvoice] };
-    const response = await xero.accountingApi.createInvoices(integration.tenantId, invoices);
+    const response = await xero.accountingApi.createInvoices(integration.tenantId!, invoices);
     
     return NextResponse.json({
       status: "success",

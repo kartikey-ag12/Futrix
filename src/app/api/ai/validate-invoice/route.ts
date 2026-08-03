@@ -270,6 +270,10 @@ export async function POST(req: Request) {
       return NextResponse.json({ error: "Not authenticated with Xero" }, { status: 401 });
     }
 
+    // Narrow Prisma nullable fields to string after the guard above
+    let accessToken: string = integration.accessToken;
+    const tenantId: string = integration.tenantId;
+
     // 4. Refresh token if expired
     const nowSeconds = Math.floor(Date.now() / 1000);
     const isExpired = integration.expiresAt ? integration.expiresAt <= nowSeconds : true;
@@ -279,11 +283,11 @@ export async function POST(req: Request) {
     if (isExpired && integration.refreshToken) {
       try {
         xero.setTokenSet({
-          access_token: integration.accessToken,
-          refresh_token: integration.refreshToken,
+          access_token: accessToken,
+          refresh_token: integration.refreshToken ?? undefined,
         });
         const newTokenSet = await xero.refreshToken();
-        
+
         integration = await prisma.integration.update({
           where: { id: integration.id },
           data: {
@@ -292,15 +296,16 @@ export async function POST(req: Request) {
             expiresAt: newTokenSet.expires_in ? nowSeconds + newTokenSet.expires_in : null,
           },
         });
+        accessToken = integration.accessToken ?? accessToken;
       } catch (err) {
         console.error("Failed to refresh Xero token for AI validation:", err);
         return NextResponse.json({ error: "Xero session expired. Please reconnect." }, { status: 401 });
       }
     }
 
-    xero.setTokenSet({ access_token: integration.accessToken });
+    xero.setTokenSet({ access_token: accessToken });
 
-    const response = await xero.accountingApi.getInvoice(integration.tenantId, invoiceId);
+    const response = await xero.accountingApi.getInvoice(tenantId, invoiceId);
     const invoice = response.body.invoices?.[0];
 
     if (!invoice) {
