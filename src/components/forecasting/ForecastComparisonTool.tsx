@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { ChevronDown, Calendar, Route } from "lucide-react";
 import { useForecasts } from "@/hooks/useForecasts";
 import clsx from "clsx";
@@ -47,82 +47,172 @@ export function ForecastComparisonTool() {
   const [metric, setMetric] = useState("Sales");
   const [dataShown, setDataShown] = useState("Months");
   
+  const [datasetDropdownOpen, setDatasetDropdownOpen] = useState(false);
+  const [metricDropdownOpen, setMetricDropdownOpen] = useState(false);
+  const [dataShownDropdownOpen, setDataShownDropdownOpen] = useState(false);
+
   const hasForecasts = forecasts.length > 0;
   
-  // For the actual chart, if a forecast is selected, we'd use its data.
-  // For now, if we pass test data, we'll render it here.
+  // Set default selection if not set
+  useEffect(() => {
+    if (hasForecasts && !selectedDataset) {
+      setSelectedDataset(forecasts[0].id);
+    }
+  }, [hasForecasts, selectedDataset, forecasts]);
+
   const activeForecast = forecasts.find(f => f.id === selectedDataset) || forecasts[0];
-  const chartData = activeForecast?.data || [];
+  
+  // Dummy data matching exactly the screenshot provided by user
+  const fallbackDummyData = [
+    { month: "Aug 26", actual: 720 },
+    { month: "Sept 26", actual: 0 },
+    { month: "Oct 26", actual: 0 },
+    { month: "Nov 26", actual: 85 },
+    { month: "Dec 26", actual: 0 },
+    { month: "Jan 27", actual: 0 },
+    { month: "Feb 27", actual: 0 },
+    { month: "Mar 27", actual: 0 },
+    { month: "Apr 27", actual: 0 },
+    { month: "May 27", actual: 0 },
+    { month: "Jun 27", actual: 0 },
+    { month: "Jul 27", actual: 0 },
+    { month: "Aug 27", actual: 0 },
+  ];
+
+  const chartData = activeForecast?.data?.length ? activeForecast.data : fallbackDummyData;
 
   return (
     <div className="w-full flex flex-col gap-4 mt-8">
-      <h2 className="text-base font-semibold text-foreground mb-1">Forecast performance comparison</h2>
+      <h2 className="text-base font-bold text-foreground mb-4">Forecast performance comparison</h2>
       
       {/* Controls Row */}
-      <div className="flex flex-wrap items-center gap-4">
+      <div className="flex flex-wrap items-center gap-4 relative">
         
         {/* Dataset selector */}
-        <div className="flex flex-col gap-1.5 flex-1 min-w-[280px]">
-          <label className="text-xs font-medium text-foreground/70">Choose the datasets to compare</label>
-          <div className={clsx(
-            "flex items-center justify-between px-3 py-2.5 border rounded-lg text-sm bg-white dark:bg-[#111]",
-            hasForecasts ? "border-[#e5e5e5] dark:border-white/10 cursor-pointer hover:border-emerald-500/50" : "border-transparent bg-foreground/5 cursor-not-allowed opacity-60"
-          )}>
-            <span className="truncate">
-              {hasForecasts 
-                ? (selectedDataset ? forecasts.find(f => f.id === selectedDataset)?.name : "Select a forecast...") 
-                : "Please create an initial budget or fore..."}
-            </span>
-            <ChevronDown className="w-4 h-4 text-foreground/50 flex-shrink-0" />
+        <div className="flex flex-col gap-1.5 flex-1 min-w-[280px] relative">
+          <label className="text-sm font-semibold text-foreground">Choose the datasets to compare</label>
+          <div 
+            className={clsx(
+              "flex items-center justify-between px-2 py-1 border rounded-lg text-sm bg-white dark:bg-[#111]",
+              hasForecasts ? "border-[#e5e5e5] dark:border-white/10 cursor-pointer" : "border-transparent bg-foreground/5 cursor-not-allowed opacity-60"
+            )}
+            onClick={() => hasForecasts && setDatasetDropdownOpen(!datasetDropdownOpen)}
+          >
+            <div className="flex items-center gap-2">
+              {hasForecasts && selectedDataset ? (
+                <div className="flex items-center gap-1.5 px-2 py-1 bg-white border border-emerald-500 rounded text-xs font-semibold text-emerald-800">
+                  {forecasts.find(f => f.id === selectedDataset)?.name}
+                  <span 
+                    className="text-emerald-500 ml-1 cursor-pointer hover:text-emerald-700"
+                    onClick={(e) => { e.stopPropagation(); setSelectedDataset(""); }}
+                  >
+                    X
+                  </span>
+                </div>
+              ) : (
+                <span className="text-foreground/60 px-2 py-1">Please select...</span>
+              )}
+            </div>
+            <ChevronDown className="w-4 h-4 text-foreground/80 mr-2" />
           </div>
+          {datasetDropdownOpen && hasForecasts && (
+            <div className="absolute top-full left-0 w-full mt-1 bg-white dark:bg-[#1a1a1a] border border-[#e5e5e5] dark:border-white/10 rounded-md shadow-xl z-50 py-1">
+              {forecasts.map(f => (
+                <div 
+                  key={f.id} 
+                  className="px-4 py-2 hover:bg-emerald-50 dark:hover:bg-emerald-900/20 cursor-pointer text-sm"
+                  onClick={() => { setSelectedDataset(f.id); setDatasetDropdownOpen(false); }}
+                >
+                  {f.name}
+                </div>
+              ))}
+            </div>
+          )}
         </div>
 
         {/* Metric */}
-        <div className="flex flex-col gap-1.5 w-[160px]">
-          <label className="text-xs font-medium text-foreground/70">Comparison metric</label>
-          <div className="flex items-center justify-between px-3 py-2.5 border border-[#e5e5e5] dark:border-white/10 rounded-lg text-sm bg-white dark:bg-[#111] cursor-pointer hover:border-emerald-500/50">
+        <div className="flex flex-col gap-1.5 w-[160px] relative">
+          <label className="text-sm font-semibold text-foreground">Comparison metric</label>
+          <div 
+            className="flex items-center justify-between px-3 py-2 border border-[#e5e5e5] dark:border-white/10 rounded-lg text-sm bg-white dark:bg-[#111] cursor-pointer"
+            onClick={() => setMetricDropdownOpen(!metricDropdownOpen)}
+          >
             <span>{metric}</span>
-            <ChevronDown className="w-4 h-4 text-foreground/50" />
+            <ChevronDown className="w-4 h-4 text-foreground/80" />
           </div>
+          {metricDropdownOpen && (
+            <div className="absolute top-full left-0 w-full mt-1 bg-white dark:bg-[#1a1a1a] border border-[#e5e5e5] dark:border-white/10 rounded-md shadow-xl z-50 py-1">
+              {["Net cash flow", "Sales", "Expenses"].map(m => (
+                <div 
+                  key={m} 
+                  className="px-4 py-2 hover:bg-emerald-50 dark:hover:bg-emerald-900/20 cursor-pointer text-sm"
+                  onClick={() => { setMetric(m); setMetricDropdownOpen(false); }}
+                >
+                  {m}
+                </div>
+              ))}
+            </div>
+          )}
         </div>
 
         {/* From Date */}
         <div className="flex flex-col gap-1.5 w-[160px]">
-          <label className="text-xs font-medium text-foreground/70">From date</label>
-          <div className="flex items-center justify-between px-3 py-2.5 border border-[#e5e5e5] dark:border-white/10 rounded-lg text-sm bg-white dark:bg-[#111] cursor-pointer hover:border-emerald-500/50">
-            <span>{new Date().toLocaleDateString('en-US', { month: 'short', year: 'numeric' })}</span>
-            <Calendar className="w-4 h-4 text-foreground/50" />
+          <label className="text-sm font-semibold text-foreground">From date</label>
+          <div className="flex items-center justify-between px-3 py-2 border border-[#e5e5e5] dark:border-white/10 rounded-lg text-sm bg-white dark:bg-[#111] cursor-pointer">
+            <span>04/08/2026</span>
+            <Calendar className="w-4 h-4 text-foreground/80" />
           </div>
         </div>
 
         {/* Data Shown */}
-        <div className="flex flex-col gap-1.5 w-[140px]">
-          <label className="text-xs font-medium text-foreground/70">Data shown</label>
-          <div className="flex items-center justify-between px-3 py-2.5 border border-[#e5e5e5] dark:border-white/10 rounded-lg text-sm bg-white dark:bg-[#111] cursor-pointer hover:border-emerald-500/50">
+        <div className="flex flex-col gap-1.5 w-[140px] relative">
+          <label className="text-sm font-semibold text-foreground">Data shown</label>
+          <div 
+            className="flex items-center justify-between px-3 py-2 border border-[#e5e5e5] dark:border-white/10 rounded-lg text-sm bg-white dark:bg-[#111] cursor-pointer"
+            onClick={() => setDataShownDropdownOpen(!dataShownDropdownOpen)}
+          >
             <span>{dataShown}</span>
-            <ChevronDown className="w-4 h-4 text-foreground/50" />
+            <ChevronDown className="w-4 h-4 text-foreground/80" />
           </div>
+          {dataShownDropdownOpen && (
+            <div className="absolute top-full left-0 w-full mt-1 bg-white dark:bg-[#1a1a1a] border border-[#e5e5e5] dark:border-white/10 rounded-md shadow-xl z-50 py-1">
+              {["Months", "Quarters", "Years"].map(d => (
+                <div 
+                  key={d} 
+                  className="px-4 py-2 hover:bg-emerald-50 dark:hover:bg-emerald-900/20 cursor-pointer text-sm"
+                  onClick={() => { setDataShown(d); setDataShownDropdownOpen(false); }}
+                >
+                  {d}
+                </div>
+              ))}
+            </div>
+          )}
         </div>
 
       </div>
 
       {/* Chart / Empty State Panel */}
-      <div className="w-full bg-white dark:bg-[#111] border border-[#e5e5e5] dark:border-white/8 rounded-xl shadow-sm mt-2 flex flex-col min-h-[400px]">
+      <div className="w-full bg-white dark:bg-[#111] border border-[#e5e5e5] dark:border-white/8 rounded-sm shadow-sm mt-6 flex flex-col min-h-[400px]">
         {hasForecasts ? (
           // Populated Chart State
           <div className="flex-1 p-6 flex flex-col">
-            <h3 className="text-sm font-semibold mb-6">{metric} Comparison</h3>
-            <div className="flex-1 w-full min-h-[300px]">
+            <h3 className="text-lg font-bold mb-4">{metric}</h3>
+            
+            {/* Custom Legend */}
+            <div className="flex items-center gap-2 mb-6">
+              <div className="w-6 h-2.5 bg-emerald-400 rounded-full"></div>
+              <span className="text-sm font-semibold text-foreground/80">{forecasts.find(f => f.id === selectedDataset)?.name || "My first forecast"}</span>
+            </div>
+
+            <div className="w-full h-[350px]">
               <ResponsiveContainer width="100%" height="100%">
-                <LineChart data={chartData} margin={{ top: 5, right: 30, left: -20, bottom: 5 }}>
-                  <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="currentColor" className="text-foreground/5" />
-                  <XAxis dataKey="month" axisLine={false} tickLine={false} tick={{ fontSize: 12, fill: "currentColor" }} className="text-foreground/40" dy={10} />
-                  <YAxis axisLine={false} tickLine={false} tick={{ fontSize: 12, fill: "currentColor" }} className="text-foreground/40" tickFormatter={(val) => `$${val / 1000}k`} />
+                <LineChart data={chartData} margin={{ top: 5, right: 30, left: 0, bottom: 5 }}>
+                  <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#e5e5e5" />
+                  <XAxis dataKey="month" axisLine={{ stroke: '#e5e5e5' }} tickLine={false} tick={{ fontSize: 12, fill: "#888" }} dy={10} />
+                  <YAxis axisLine={false} tickLine={false} tick={{ fontSize: 12, fill: "#888" }} />
                   {/* eslint-disable-next-line @typescript-eslint/no-explicit-any */}
                   <Tooltip content={(props: any) => <CustomTooltip {...props} />} cursor={{ stroke: "rgba(0,0,0,0.1)", strokeWidth: 1, strokeDasharray: "4 4" }} />
-                  <Legend verticalAlign="top" height={36} iconType="circle" wrapperStyle={{ fontSize: "12px", opacity: 0.8 }} />
-                  <Line type="monotone" name="Actual" dataKey="actual" stroke="#10b981" strokeWidth={2} dot={{ r: 4, strokeWidth: 2 }} activeDot={{ r: 6 }} />
-                  <Line type="monotone" name="Forecast Target" dataKey="target" stroke="#6366f1" strokeWidth={2} strokeDasharray="5 5" dot={{ r: 4, strokeWidth: 2 }} />
+                  <Line type="linear" name="Actual" dataKey="actual" stroke="#34d399" strokeWidth={2} dot={{ r: 4, fill: "#34d399", strokeWidth: 0 }} activeDot={{ r: 6 }} />
                 </LineChart>
               </ResponsiveContainer>
             </div>

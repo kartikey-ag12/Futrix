@@ -1,6 +1,6 @@
 "use client";
 
-import React, { createContext, useContext, useState, useCallback, useMemo } from "react";
+import React, { createContext, useContext, useState, useCallback, useMemo, useEffect } from "react";
 
 export interface Transaction {
   id: string;
@@ -31,32 +31,15 @@ interface FinancialContextType {
   handleXeroSync: () => Promise<FinancialMetrics | null>;
 }
 
-export const INITIAL_TRANSACTIONS: Transaction[] = [
-  { id: "1",  date: "2024-07-20", description: "Software Subscription",         account: "Operating Expenses", amount: -150.00,   type: "expense", status: "cleared"  },
-  { id: "2",  date: "2024-07-19", description: "Client Retainer — Acme Corp",   account: "Sales Revenue",      amount:  5000.00,  type: "revenue", status: "cleared"  },
-  { id: "3",  date: "2024-07-18", description: "Office Supplies",               account: "Operating Expenses", amount: -45.20,    type: "expense", status: "cleared"  },
-  { id: "4",  date: "2024-07-15", description: "Consulting Fee",                account: "Services Revenue",   amount:  2500.00,  type: "revenue", status: "cleared"  },
-  { id: "5",  date: "2024-07-12", description: "Cloud Hosting — AWS",           account: "IT Expenses",        amount: -850.00,   type: "expense", status: "cleared"  },
-  { id: "6",  date: "2024-07-10", description: "Invoice #INV-0042 — Delta Ltd", account: "Sales Revenue",      amount:  8200.00,  type: "revenue", status: "pending"  },
-  { id: "7",  date: "2024-07-08", description: "Contractor Payment — Design",   account: "Freelance Costs",    amount: -1200.00,  type: "expense", status: "cleared"  },
-  { id: "8",  date: "2024-07-05", description: "Ad Spend — Google",             account: "Marketing",          amount: -640.00,   type: "expense", status: "cleared"  },
-  { id: "9",  date: "2024-07-03", description: "Monthly Retainer — Beta Inc",   account: "Sales Revenue",      amount:  3750.00,  type: "revenue", status: "cleared"  },
-  { id: "10", date: "2024-07-01", description: "Payroll — July",                account: "Salaries",           amount: -12500.00, type: "expense", status: "cleared"  },
-  { id: "11", date: "2024-07-01", description: "Enterprise License — Globex",   account: "Enterprise Sales",   amount:  25781.89, type: "revenue", status: "cleared"  },
-  { id: "12", date: "2024-07-01", description: "Office Lease — Q3",             account: "Office Rent",        amount: -7808.80,  type: "expense", status: "cleared"  },
-];
+export const INITIAL_TRANSACTIONS: Transaction[] = [];
 
 const defaultMetrics: FinancialMetrics = {
-  totalRevenue: 45231.89,
-  totalExpenses: 23194.00,
-  netProfit: 22037.89,
-  healthScore: 92,
-  incomeItems: [
-    { code: "REV-1", label: "General Sales", category: "Operating Revenue", amount: 45231.89, pct: "100%" }
-  ],
-  expenseCategories: [
-    { id: "exp-1", label: "General Expenses", chartLabel: "General", dept: "Operations", amount: 23194.00, color: "#10b981", pct: 100, desc: "General operations" }
-  ]
+  totalRevenue: 0,
+  totalExpenses: 0,
+  netProfit: 0,
+  healthScore: 0,
+  incomeItems: [],
+  expenseCategories: []
 };
 
 const FinancialContext = createContext<FinancialContextType | undefined>(undefined);
@@ -96,6 +79,11 @@ export function FinancialProvider({ children }: { children: React.ReactNode }) {
     }
     return null;
   }, []);
+
+  useEffect(() => {
+    // Attempt auto-sync once on mount
+    handleXeroSync();
+  }, [handleXeroSync]);
 
 
 

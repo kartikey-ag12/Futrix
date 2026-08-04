@@ -3,6 +3,7 @@
 import { useState, useEffect, useMemo } from "react";
 import { PlayCircle, Download, Search, Info, ChevronDown, ChevronRight, RefreshCw, Plus, ArrowUpDown } from "lucide-react";
 import clsx from "clsx";
+import { ReclassifyPanel } from "@/components/chart-of-accounts/ReclassifyPanel";
 
 export interface Account {
   id: string;
@@ -41,6 +42,7 @@ export default function ChartOfAccountsPage() {
 
   // Modal states
   const [isCreateGroupModalOpen, setIsCreateGroupModalOpen] = useState(false);
+  const [isReclassifyModalOpen, setIsReclassifyModalOpen] = useState(false);
   const [newGroupName, setNewGroupName] = useState("");
   const [selectedAccountIds, setSelectedAccountIds] = useState<Set<string>>(new Set());
 
@@ -98,9 +100,6 @@ export default function ChartOfAccountsPage() {
 
   // Build groups
   const groupedData = useMemo(() => {
-    const currentYear = new Date().getFullYear();
-    const currentMonthDate = new Intl.DateTimeFormat('en-GB', { day: 'numeric', month: 'short' }).format(new Date());
-
     const groupsDef = activeTab === "pnl" 
       ? [
           { label: "Income", classes: ["REVENUE", "SALES"] },
@@ -122,7 +121,7 @@ export default function ChartOfAccountsPage() {
       return {
         label: g.label,
         accounts: groupAccounts,
-        col2Label: `Yr to ${currentMonthDate}`
+        col2Label: "YTD"
       };
     });
   }, [filteredAccounts, activeTab]);
@@ -200,7 +199,10 @@ export default function ChartOfAccountsPage() {
               <button className="px-4 py-2 rounded-full border border-foreground/10 text-sm font-medium text-foreground hover:bg-foreground/5 transition-colors">
                 Reorder
               </button>
-              <button className="px-4 py-2 rounded-full border border-foreground/10 text-sm font-medium text-foreground hover:bg-foreground/5 transition-colors">
+              <button 
+                onClick={() => setIsReclassifyModalOpen(true)}
+                className="px-4 py-2 rounded-full border border-foreground/10 text-sm font-medium text-foreground hover:bg-foreground/5 transition-colors"
+              >
                 Reclassify
               </button>
               <button 
@@ -315,6 +317,13 @@ export default function ChartOfAccountsPage() {
         </div>
 
       </div>
+
+      {/* Reclassify Modal */}
+      <ReclassifyPanel 
+        isOpen={isReclassifyModalOpen} 
+        onClose={() => setIsReclassifyModalOpen(false)} 
+        accounts={accounts} 
+      />
 
       {/* Create Group Modal */}
       {isCreateGroupModalOpen && (

@@ -36,42 +36,32 @@ export function ForecastCreationCards() {
     <div className="w-full">
       <h2 className="text-base font-semibold text-foreground mb-4">Create a budget, forecast or scenario</h2>
       
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-5">
+      <div className="flex flex-wrap items-center gap-4">
         {FORECAST_TYPES.map((type) => {
           const isSelected = selectedId === type.id;
           const Icon = type.icon;
           
           return (
-            <div
+            <button
               key={type.id}
               onClick={() => handleCardClick(type.id)}
               className={clsx(
-                "relative flex flex-col items-center justify-center p-8 bg-white dark:bg-[#111] border rounded-2xl transition-all text-center group cursor-pointer",
+                "flex items-center gap-3 px-4 py-2.5 bg-white dark:bg-[#111] border rounded-xl transition-all cursor-pointer",
                 isSelected 
-                  ? "border-emerald-500 shadow-md ring-1 ring-emerald-500" 
-                  : "border-[#e5e5e5] dark:border-white/8 hover:border-emerald-500/50 hover:shadow-sm"
+                  ? "border-emerald-500 shadow-sm ring-1 ring-emerald-500" 
+                  : "border-[#e5e5e5] dark:border-white/10 hover:border-emerald-500/50 hover:shadow-sm"
               )}
             >
-              {isSelected && (
-                <div className="absolute top-4 right-4 text-emerald-500">
-                  <CheckCircle2 className="w-5 h-5 fill-emerald-100" />
-                </div>
-              )}
-              
-              <div className={clsx(
-                "w-14 h-14 rounded-full flex items-center justify-center mb-4 transition-colors",
-                isSelected ? "bg-emerald-500/10 text-emerald-600" : "bg-foreground/5 text-foreground/60 group-hover:bg-emerald-500/5 group-hover:text-emerald-500"
-              )}>
-                <Icon className="w-7 h-7" />
+              <div className="text-emerald-500">
+                <Icon className="w-5 h-5" strokeWidth={2.5} />
               </div>
-              
-              <h3 className={clsx(
-                "font-semibold text-lg max-w-[200px] leading-tight transition-colors",
+              <span className={clsx(
+                "text-sm font-semibold whitespace-nowrap",
                 isSelected ? "text-emerald-700 dark:text-emerald-500" : "text-foreground"
               )}>
                 {type.title}
-              </h3>
-            </div>
+              </span>
+            </button>
           );
         })}
       </div>

@@ -215,7 +215,7 @@ export class ForecastService {
 
     const salesChildren = [
       ...buildChildren(salesAccs),
-      { id: "unpaid-inv", code: "unpaid-inv", name: "Unpaid invoices", daysToPay: 0, months: generateMonths("unpaid-inv", true, totalUnpaidInvoices), highlight: true }
+      { id: "unpaid-inv", code: "unpaid-inv", name: "Unpaid invoices", daysToPay: 0, months: generateMonths("unpaid-inv", true, totalUnpaidInvoices), highlightType: 'invoice' }
     ];
     const salesTotals = sumMonthlyArrays(salesChildren.map(c => c.months));
 
@@ -224,7 +224,7 @@ export class ForecastService {
 
     const costsChildren = [
       ...buildChildren(costAccs),
-      { id: "unpaid-bills", code: "unpaid-bills", name: "Unpaid bills", daysToPay: 0, months: generateMonths("unpaid-bills", true, totalUnpaidBills), highlight: true }
+      { id: "unpaid-bills", code: "unpaid-bills", name: "Unpaid bills", daysToPay: 0, months: generateMonths("unpaid-bills", true, totalUnpaidBills), highlightType: 'bill' }
     ];
     const costsTotals = sumMonthlyArrays(costsChildren.map(c => c.months));
 
@@ -236,6 +236,12 @@ export class ForecastService {
 
     const liabilityChildren = buildChildren(liabilityAccs);
     const liabilityTotals = sumMonthlyArrays(liabilityChildren.map(c => c.months));
+
+    const invoicesChildren = [
+      { id: "unpaid-inv", code: "unpaid-inv", name: "Unpaid invoices", daysToPay: 0, months: generateMonths("unpaid-inv", true, totalUnpaidInvoices), highlightType: 'invoice' },
+      { id: "unpaid-bills", code: "unpaid-bills", name: "Unpaid bills", daysToPay: 0, months: generateMonths("unpaid-bills", true, totalUnpaidBills), highlightType: 'bill' }
+    ];
+    const invoicesTotals = sumMonthlyArrays(invoicesChildren.map(c => c.months));
 
     // Summary Rows
     const plTotals = months.map((_, i) => salesTotals[i] + otherRevTotals[i] - costsTotals[i] - expenseTotals[i]);
@@ -266,9 +272,9 @@ export class ForecastService {
       cashPosition,
       tabs: {
         "invoices": {
-          summary: salesTotals,
+          summary: invoicesTotals,
           groups: [
-            { id: "sales-grp", name: "Sales", months: salesTotals, children: salesChildren }
+            { id: "invoices-grp", name: "Invoices & Bills", months: invoicesTotals, children: invoicesChildren }
           ]
         },
         "sales": {
@@ -310,19 +316,35 @@ export class ForecastService {
         "profit-loss": {
           summary: plTotals,
           groups: [
-            { id: "pl-grp", name: "Profit & Loss", months: plTotals, children: [] }
+            { id: "income-grp", name: "Income", months: sumMonthlyArrays([salesTotals, otherRevTotals]), children: [...salesChildren.filter(c => c.id !== 'unpaid-inv'), ...otherRevChildren] },
+            { id: "cogs-grp", name: "Cost of Sales", months: costsTotals, children: costsChildren.filter(c => c.id !== 'unpaid-bills') },
+            { 
+              id: "gp-summary", 
+              name: "Gross Profit", 
+              months: months.map((_, i) => salesTotals[i] + otherRevTotals[i] - costsTotals[i]), 
+              children: [],
+              isSummary: true,
+              summarySubLabel: "As a % of income"
+            },
+            { id: "exp-grp", name: "Expenses", months: expenseTotals, children: expenseChildren }
           ]
         },
         "balance-sheet": {
           summary: bsTotals,
           groups: [
-            { id: "bs-grp", name: "Balance Sheet", months: bsTotals, children: [] }
+            { id: "asset-grp", name: "Current Assets", months: assetsTotals, children: assetsChildren },
+            { id: "liab-grp", name: "Current Liabilities", months: liabilityTotals, children: liabilityChildren }
           ]
         },
         "cash-flow-statement": {
           summary: cashFlowNet,
           groups: [
-            { id: "cf-grp", name: "Cash Flow Statement", months: cashFlowNet, children: [] }
+            { id: "sales-grp", name: "Sales", months: salesTotals, children: salesChildren },
+            { id: "other-grp", name: "Other Income", months: otherRevTotals, children: otherRevChildren },
+            { id: "costs-grp", name: "Costs", months: costsTotals, children: costsChildren },
+            { id: "exp-grp", name: "Expenses", months: expenseTotals, children: expenseChildren },
+            { id: "asset-grp", name: "Current Assets", months: assetsTotals, children: assetsChildren },
+            { id: "liab-grp", name: "Current Liabilities", months: liabilityTotals, children: liabilityChildren }
           ]
         }
       }
@@ -341,7 +363,7 @@ export class ForecastService {
     if (!months) {
       months = [
         "AUG 26", "SEP 26", "OCT 26", "NOV 26", "DEC 26", 
-        "JAN 27", "FEB 27", "MAR 27", "APR 27", "MAY 27", "JUN 27", "JUL 27"
+        "FY 2026", "JAN 27", "FEB 27", "MAR 27", "APR 27", "MAY 27", "JUN 27", "JUL 27"
       ];
     }
 

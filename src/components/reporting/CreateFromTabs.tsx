@@ -2,7 +2,7 @@
 
 import { useState } from "react";
 import Link from "next/link";
-import { CheckCircle2, LayoutTemplate } from "lucide-react";
+import { CheckCircle2, LayoutTemplate, PlayCircle, Plus } from "lucide-react";
 import clsx from "clsx";
 import { FutrixTemplateGallery } from "./FutrixTemplateGallery";
 
@@ -92,14 +92,49 @@ export function CreateFromTabs() {
 
         {/* Scratch Content */}
         {activeTab === "scratch" && (
-          <div className="flex flex-col items-center justify-center h-48 bg-white dark:bg-[#111] border border-[#e5e5e5] dark:border-white/10 rounded-xl text-center">
-            <h3 className="text-base font-medium text-foreground mb-4">Start from a blank canvas</h3>
-            <Link 
-              href="/reporting/new"
-              className="px-6 py-2 bg-foreground text-background rounded-lg text-sm font-medium hover:bg-foreground/90 transition-colors"
-            >
-              Create blank report
-            </Link>
+          <div className="bg-white dark:bg-[#111] p-8 pt-6 border-t-0 -mt-6 pt-10">
+            <div className="flex items-center gap-3 mb-8">
+              <h3 className="text-xl font-bold text-foreground">Click to create a report</h3>
+              <button className="flex items-center gap-1.5 text-[11px] font-bold text-foreground/50 hover:text-foreground/80 transition-colors uppercase tracking-wider">
+                <PlayCircle className="w-4 h-4" />
+                Virtual demo
+              </button>
+            </div>
+            
+            <div className="flex items-end gap-6">
+              {/* Portrait */}
+              <Link 
+                href="/reporting/builder?layout=portrait" 
+                className="flex flex-col items-center justify-center w-[160px] h-[220px] border border-[#e5e5e5] dark:border-white/10 hover:border-emerald-500 transition-colors bg-white dark:bg-[#1a1a1a]"
+              >
+                <div className="w-10 h-10 border-2 border-emerald-500 rounded-lg flex items-center justify-center mb-3 text-emerald-500">
+                  <Plus className="w-6 h-6" strokeWidth={2.5} />
+                </div>
+                <span className="text-[13px] font-medium text-foreground">Portrait</span>
+              </Link>
+
+              {/* Landscape */}
+              <Link 
+                href="/reporting/builder?layout=landscape" 
+                className="flex flex-col items-center justify-center w-[220px] h-[160px] border border-[#e5e5e5] dark:border-white/10 hover:border-emerald-500 transition-colors bg-white dark:bg-[#1a1a1a]"
+              >
+                <div className="w-10 h-10 border-2 border-emerald-500 rounded-lg flex items-center justify-center mb-3 text-emerald-500">
+                  <Plus className="w-6 h-6" strokeWidth={2.5} />
+                </div>
+                <span className="text-[13px] font-medium text-foreground">Landscape</span>
+              </Link>
+
+              {/* Dashboard */}
+              <Link 
+                href="/reporting/builder?layout=dashboard" 
+                className="flex flex-col items-center justify-center w-[220px] h-[220px] border border-[#e5e5e5] dark:border-white/10 hover:border-emerald-500 transition-colors bg-white dark:bg-[#1a1a1a]"
+              >
+                <div className="w-10 h-10 border-2 border-emerald-500 rounded-lg flex items-center justify-center mb-3 text-emerald-500">
+                  <Plus className="w-6 h-6" strokeWidth={2.5} />
+                </div>
+                <span className="text-[13px] font-medium text-foreground">Dashboard</span>
+              </Link>
+            </div>
           </div>
         )}
 

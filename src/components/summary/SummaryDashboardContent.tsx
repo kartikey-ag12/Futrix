@@ -28,11 +28,11 @@ export function SummaryDashboardContent({ companyName, teamMembers }: { companyN
   }
 
   // Map real Xero data into chart formats
-  // Fallback to MOCK if no connection
+  // Fallback to 0s if no connection
   const hasData = metrics && metrics.totalRevenue > 0;
   
-  let chartData = MOCK_PERFORMANCE_DATA;
-  let insightsData = MOCK_INSIGHTS;
+  let chartData;
+  let insightsData;
   
   if (hasData) {
     // Generate some chart data based on transactions
@@ -63,6 +63,19 @@ export function SummaryDashboardContent({ companyName, teamMembers }: { companyN
       avgDaysSupplierPay: 14,
       dueInvoices: 9400, // placeholder
       dueBills: 5200, // placeholder
+    };
+  } else {
+    // Zeroed out for new users without data
+    chartData = Array.from({ length: 12 }).map((_, i) => ({
+      month: new Date(0, i).toLocaleString('default', { month: 'short' }),
+      bank: 0, sales: 0, costOfSales: 0, expenses: 0
+    }));
+
+    insightsData = {
+      sales: 0, salesDelta: 0, costs: 0, costsDelta: 0,
+      expenses: 0, expensesDelta: 0, netProfit: 0, netProfitDelta: 0,
+      availableCash: 0, healthScore: 0, cashImpact: 0,
+      avgDaysCustomerPay: 0, avgDaysSupplierPay: 0, dueInvoices: 0, dueBills: 0
     };
   }
 

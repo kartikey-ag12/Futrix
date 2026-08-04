@@ -1,5 +1,6 @@
 "use client";
 
+import Link from "next/link";
 import { ArrowUpRight } from "lucide-react";
 import {
   AreaChart,
@@ -72,7 +73,7 @@ function CustomTooltip({ active, payload, label }: TooltipInternalProps) {
 
 // ── Components ────────────────────────────────────────────────────────────────
 
-export function CashFlowDashboard() {
+export function CashFlowDashboard({ isBuilderMode }: { isBuilderMode?: boolean }) {
   const { metrics } = useFinancial();
 
   return (
@@ -81,10 +82,12 @@ export function CashFlowDashboard() {
       <div className="flex items-center justify-between">
         <h1 className="text-lg font-semibold text-foreground">Cash Flow Dashboard</h1>
         
-        <button className="flex items-center gap-1.5 px-3 py-1.5 bg-emerald-500 text-white rounded-lg text-sm font-semibold hover:bg-emerald-600 transition-colors">
-          Edit in reporting
-          <ArrowUpRight className="w-4 h-4" />
-        </button>
+        {!isBuilderMode && (
+          <Link href="/reporting/builder?templateId=futrix-cf-dash" className="flex items-center gap-1.5 px-3 py-1.5 bg-emerald-500 text-white rounded-lg text-sm font-semibold hover:bg-emerald-600 transition-colors">
+            Edit in reporting
+            <ArrowUpRight className="w-4 h-4" />
+          </Link>
+        )}
       </div>
 
       {/* Cash in the bank */}

@@ -19,9 +19,9 @@ export interface QuickLinksCardProps {
 // ── Mock data ─────────────────────────────────────────────────────────────────
 
 const MOCK_RECENT: RecentReport[] = [
-  { id: "1", label: "Profit & Loss Dashboard",    href: "/reporting", icon: "pl" },
-  { id: "2", label: "Cash Flow Statement",         href: "/reporting", icon: "cashflow" },
-  { id: "3", label: "Balance Sheet Summary",       href: "/reporting", icon: "balance" },
+  { id: "1", label: "Profit & Loss Dashboard",    href: "/performance/profit-loss", icon: "pl" },
+  { id: "2", label: "Cash Flow Statement",         href: "/performance/cash-flow", icon: "cashflow" },
+  { id: "3", label: "Balance Sheet Summary",       href: "/performance/balance-sheet", icon: "balance" },
 ];
 
 const ICON_MAP: Record<RecentReport["icon"], React.ElementType> = {

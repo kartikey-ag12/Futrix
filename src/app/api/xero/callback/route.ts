@@ -21,12 +21,33 @@ export async function GET(req: Request) {
     // ── 1. Identify the authenticated user ─────────────────────────────────
     const cookieStore = await cookies();
     const jwtToken = cookieStore.get('futrix_access_token')?.value;
+    let jwtPayload = null;
 
-    if (!jwtToken) {
-      return NextResponse.redirect(new URL('/login?error=session_expired', req.url));
+    if (jwtToken) {
+      try {
+        jwtPayload = await verifyAccessToken(jwtToken);
+      } catch (e) {
+        // Token might be expired
+      }
     }
 
-    const jwtPayload = await verifyAccessToken(jwtToken);
+    if (!jwtPayload?.userId) {
+      // Fallback to refresh token if access token is missing (expired after 15m)
+      const refreshToken = cookieStore.get('futrix_refresh_token')?.value;
+      if (refreshToken) {
+        try {
+          const { jwtVerify } = await import('jose');
+          const refreshSecret = new TextEncoder().encode(process.env.JWT_REFRESH_SECRET || "fallback_refresh_secret_for_dev_only");
+          const { payload } = await jwtVerify(refreshToken, refreshSecret);
+          if (payload?.userId) {
+            jwtPayload = payload as any;
+          }
+        } catch (e) {
+          // Refresh token invalid
+        }
+      }
+    }
+
     if (!jwtPayload?.userId) {
       return NextResponse.redirect(new URL('/login?error=session_expired', req.url));
     }

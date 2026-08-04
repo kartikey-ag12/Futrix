@@ -10,6 +10,7 @@ import { ChevronDown, User, Building2, HelpCircle, Settings, LogOut, RefreshCw, 
 interface UserProfile {
   name: string;
   email: string;
+  completedTours?: string[];
 }
 
 // ── Nav items ─────────────────────────────────────────────────────────────────
@@ -198,8 +199,35 @@ function CompanyDropdown({ orgName }: { orgName: string | null }) {
 
 // ── Help dropdown ─────────────────────────────────────────────────────────────
 
-function HelpDropdown() {
+import { CheckSquare, Square, PlayCircle, ExternalLink } from "lucide-react";
+import { useVirtualDemo } from "./VirtualDemoProvider";
+import { TourStep } from "@/hooks/useGuidedTour";
+
+const VIRTUAL_DEMOS = [
+  { id: "performance", label: "Performance area", steps: [
+    { targetId: "navbar-performance", title: "Performance Area", body: "View your Customers & Suppliers, Cash Flow, Balance Sheet, and P&L.", actionRequired: false, arrowPosition: "top" }
+  ]},
+  { id: "forecasting-main", label: "Forecasting", steps: [
+    { targetId: "navbar-forecasting", title: "Forecasting", body: "Create and manage your 1-year P&L and 3-year cash flows.", actionRequired: false, arrowPosition: "top" }
+  ]},
+  { id: "drivers", label: "Drivers", steps: [
+    { targetId: "navbar-drivers", title: "Drivers", body: "Create custom drivers (metrics or formulas) to base your predictions on.", actionRequired: false, arrowPosition: "top" }
+  ]},
+  { id: "coa", label: "Chart of accounts", steps: [
+    { targetId: "navbar-coa", title: "Chart of Accounts", body: "Manage your account groupings and reclassify imported codes.", actionRequired: false, arrowPosition: "top" }
+  ]},
+  { id: "consolidation", label: "Consolidation", disabled: true, steps: [] }
+] as const;
+
+function HelpDropdown({ completedTours = [] }: { completedTours?: string[] }) {
   const { open, toggle, close, ref } = useDropdown();
+  const { startTour } = useVirtualDemo();
+
+  const handleStartDemo = (demo: any) => {
+    if (demo.disabled) return;
+    close();
+    startTour(demo.id, demo.steps as TourStep[]);
+  };
 
   return (
     <div className="relative" ref={ref}>
@@ -219,16 +247,46 @@ function HelpDropdown() {
 
       {open && (
         <DropdownPanel>
-          <DropdownItem icon={BookOpen} onClick={close}>
-            Documentation
-          </DropdownItem>
-          <DropdownItem icon={MessageCircle} onClick={close}>
-            Contact Support
-          </DropdownItem>
-          <DropdownDivider />
-          <DropdownItem icon={Sparkles} onClick={close}>
-            {"What's New"}
-          </DropdownItem>
+          <div className="max-h-[80vh] overflow-y-auto">
+            <DropdownItem href="/help" icon={BookOpen} onClick={close}>
+              Help centre
+            </DropdownItem>
+            <DropdownItem icon={MessageCircle} onClick={() => { close(); document.getElementById("chat-widget-trigger")?.click(); }}>
+              Ask us a question
+            </DropdownItem>
+            <DropdownItem href="https://ideas.futrix.example.com" icon={ExternalLink} onClick={close}>
+              Customer Ideas Portal
+            </DropdownItem>
+            
+            <DropdownDivider />
+            
+            <div className="px-4 py-2">
+              <p className="text-[11px] font-bold uppercase tracking-widest text-white/40 mb-2">
+                Virtual Demos
+              </p>
+              <div className="space-y-1">
+                {VIRTUAL_DEMOS.map(demo => {
+                  const isCompleted = completedTours.includes(demo.id);
+                  const isDisabled = "disabled" in demo ? demo.disabled : false;
+                  return (
+                    <button 
+                      key={demo.id} 
+                      onClick={() => handleStartDemo(demo)}
+                      disabled={isDisabled}
+                      className={`w-full flex items-center justify-between px-2 py-1.5 rounded-md text-sm transition-colors text-left ${isDisabled ? "opacity-50 cursor-not-allowed text-white/40" : "text-white/80 hover:bg-white/10 hover:text-white"}`}
+                    >
+                      <span className="flex items-center gap-2">
+                        {isCompleted ? <CheckSquare className="w-4 h-4 text-emerald-400" /> : <Square className="w-4 h-4 text-white/30" />}
+                        {demo.label}
+                        {isDisabled && <span className="text-[10px] bg-white/10 px-1.5 py-0.5 rounded ml-2">Coming soon</span>}
+                      </span>
+                      {!isDisabled && !isCompleted && <PlayCircle className="w-4 h-4 text-emerald-400 opacity-0 group-hover:opacity-100" />}
+                    </button>
+                  );
+                })}
+              </div>
+            </div>
+          </div>
         </DropdownPanel>
       )}
     </div>
@@ -318,7 +376,7 @@ export function AppNavbar() {
           {/* Divider */}
           <div className="h-5 w-px bg-white/10 mx-1" />
 
-          <HelpDropdown />
+          <HelpDropdown completedTours={user?.completedTours} />
         </div>
       </div>
     </header>

@@ -3,10 +3,12 @@
 import { useState } from "react";
 import { PlayCircle, Plus, FileSpreadsheet, X, LayoutTemplate } from "lucide-react";
 import { useDrivers } from "@/hooks/useDrivers";
+import { DriversExcelUploadPanel } from "@/components/drivers/DriversExcelUploadPanel";
 
 export default function DriversPage() {
   const { drivers, isLoading, createDriver } = useDrivers();
   const [isModalOpen, setIsModalOpen] = useState(false);
+  const [isExcelModalOpen, setIsExcelModalOpen] = useState(false);
   
   const [name, setName] = useState("");
   const [type, setType] = useState("freestyle");
@@ -43,7 +45,10 @@ export default function DriversPage() {
           <p className="text-foreground/60 text-lg">Use in formulas when budgeting or forecasting and in reports as data rows and in report row formulas.</p>
         </div>
         <div className="flex items-center gap-4">
-          <button className="flex items-center gap-2 px-5 py-2.5 rounded-lg font-medium border border-foreground/10 hover:border-foreground/20 hover:bg-foreground/5 transition-all text-foreground">
+          <button 
+            onClick={() => setIsExcelModalOpen(true)}
+            className="flex items-center gap-2 px-5 py-2.5 rounded-lg font-medium border border-foreground/10 hover:border-foreground/20 hover:bg-foreground/5 transition-all text-foreground"
+          >
             <FileSpreadsheet className="w-5 h-5 text-emerald-600" />
             Excel upload
           </button>
@@ -96,6 +101,11 @@ export default function DriversPage() {
           </div>
         )}
       </div>
+
+      <DriversExcelUploadPanel 
+        isOpen={isExcelModalOpen} 
+        onClose={() => setIsExcelModalOpen(false)} 
+      />
 
       {/* Modal */}
       {isModalOpen && (

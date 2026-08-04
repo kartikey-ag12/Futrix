@@ -26,6 +26,7 @@ model User {
   // when migration runs — existing users are NEVER forced into Xero onboarding.
   // The signup route explicitly sets this to true for NEW user accounts going forward.
   requiresXeroOnboarding Boolean @default(false)
+  completedTours         String[] @default([])
 
   workspaces    WorkspaceMember[]
   accounts      Account[]

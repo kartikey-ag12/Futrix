@@ -2,6 +2,7 @@
 
 import { useEffect, useState } from "react";
 import { ForecastMonthTable } from "@/components/forecasting/ForecastMonthTable";
+import { DetailedInvoicesView } from "@/components/forecasting/DetailedInvoicesView";
 import { Loader2 } from "lucide-react";
 
 interface ForecastTabClientProps {
@@ -66,14 +67,36 @@ export function ForecastTabClient({ forecastId, tabId, title }: ForecastTabClien
     return <div className="p-6 text-foreground/50">Tab data not found</div>;
   }
 
+  const hideDaysToPay = ["assets", "liabilities", "other-pl"].includes(tabId);
+  const hideCollapseAccounts = tabId === "other-pl";
+
   return (
-    <ForecastMonthTable 
-      title={title}
-      months={data.months}
-      cashPosition={data.cashPosition}
-      summary={tabData.summary}
-      groups={tabData.groups}
-      onDaysToPayChange={handleDaysToPayChange}
-    />
+    <div className="flex flex-col h-full flex-1">
+      {tabId === "invoices" ? (
+        <>
+          <ForecastMonthTable 
+            title={title}
+            months={data.months}
+            cashPosition={data.cashPosition}
+            summary={tabData.summary}
+            groups={tabData.groups}
+            onDaysToPayChange={handleDaysToPayChange}
+            isHeaderOnly={true}
+          />
+          <DetailedInvoicesView />
+        </>
+      ) : (
+        <ForecastMonthTable 
+          title={title}
+          months={data.months}
+          cashPosition={data.cashPosition}
+          summary={tabData.summary}
+          groups={tabData.groups}
+          onDaysToPayChange={handleDaysToPayChange}
+          hideDaysToPay={hideDaysToPay}
+          hideCollapseAccounts={hideCollapseAccounts}
+        />
+      )}
+    </div>
   );
 }

@@ -8,9 +8,13 @@ export interface BuilderTemplate {
   category: string;
   orientation: TemplateOrientation;
   pages: number;
+  componentType?: string;
 }
 
 const SEED_TEMPLATES: BuilderTemplate[] = [
+  { id: "futrix-pl-dash", name: "Profit & Loss Dashboard", category: "Performance", orientation: "landscape", pages: 1, componentType: "ProfitLossDashboard" },
+  { id: "futrix-bs-dash", name: "Balance Sheet Dashboard", category: "Performance", orientation: "landscape", pages: 1, componentType: "BalanceSheetDashboard" },
+  { id: "futrix-cf-dash", name: "Cash Flow Dashboard", category: "Performance", orientation: "landscape", pages: 1, componentType: "CashFlowDashboard" },
   { id: "futrix-exec-1", name: "Annual Health Check Template - Cloud Clients", category: "Executive summaries", orientation: "portrait", pages: 3 },
   { id: "futrix-bs-1", name: "Balance Sheet - Actual vs Forecast", category: "Balance Sheet", orientation: "landscape", pages: 1 },
   { id: "futrix-bs-2", name: "Balance Sheet Ratios - Historical - Monthly", category: "Balance Sheet", orientation: "landscape", pages: 1 },

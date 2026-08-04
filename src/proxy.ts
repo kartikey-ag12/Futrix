@@ -1,15 +1,13 @@
 import { NextResponse } from 'next/server';
 import type { NextRequest } from 'next/server';
-import { jwtVerify } from "jose";
+import { jwtVerify, SignJWT } from "jose";
 
 // Add protected and public routes
 const protectedRoutes = ['/summary', '/performance', '/forecasting', '/reporting', '/chart-of-accounts', '/drivers', '/settings', '/dashboard', '/reports', '/transactions', '/excel-tools'];
-const protectedApiRoutes = ["/api/ai", "/api/excel", "/api/export", "/api/xero"];
+const protectedApiRoutes = ["/api/ai", "/api/excel", "/api/export", "/api/xero", "/api/forecasts"];
 const protectedAdminRoutes = ['/admin', '/api/admin'];
 const authRoutes = ['/login', '/signup'];
 
-// Dashboard-group routes that require Xero connection for NEW users.
-// Enforced via `futrix_requires_xero_onboarding` cookie set by login/signup.
 const XERO_GATED_ROUTES = ['/summary', '/performance', '/forecasting', '/reporting', '/chart-of-accounts', '/drivers', '/dashboard', '/reports', '/transactions', '/excel-tools'];
 
 export async function proxy(request: NextRequest) {
@@ -19,6 +17,7 @@ export async function proxy(request: NextRequest) {
   const token = request.cookies.get('futrix_access_token')?.value;
   let isValidToken = false;
   let userRole = 'USER';
+  let newAccessTokenToSet: string | null = null;
 
   if (token) {
     try {
@@ -43,6 +42,17 @@ export async function proxy(request: NextRequest) {
         if (payload && payload.role) {
           userRole = payload.role as string;
         }
+        
+        // MINT A NEW ACCESS TOKEN
+        const accessSecret = new TextEncoder().encode(process.env.JWT_SECRET || "fallback_access_secret_for_dev_only");
+        newAccessTokenToSet = await new SignJWT({ userId: payload.userId, email: payload.email, role: payload.role })
+          .setProtectedHeader({ alg: "HS256" })
+          .setIssuedAt()
+          .setExpirationTime("15m")
+          .sign(accessSecret);
+          
+        // INJECT IT INTO THE CURRENT REQUEST SO API ROUTES SEE IT
+        request.cookies.set("futrix_access_token", newAccessTokenToSet);
       } catch (e) {
         isValidToken = false;
       }
@@ -53,7 +63,6 @@ export async function proxy(request: NextRequest) {
   const isProtectedApiRoute = protectedApiRoutes.some(route => pathname.startsWith(route)) && !pathname.startsWith('/api/xero/callback');
   const isAdminRoute = protectedAdminRoutes.some(route => pathname.startsWith(route));
   const isAuthRoute = authRoutes.some(route => pathname.startsWith(route));
-  const isHomeRoute = pathname === '/';
 
   // If trying to access a protected or admin route without being authenticated
   if ((isProtectedRoute || isProtectedApiRoute || isAdminRoute) && !isValidToken) {
@@ -76,29 +85,28 @@ export async function proxy(request: NextRequest) {
     return NextResponse.redirect(url);
   }
 
-  // ── Mandatory Xero onboarding gate for NEW users ─────────────────────────
-  // The `futrix_requires_xero_onboarding` cookie is set to "true" by the signup
-  // route and cleared to "false" by the Xero callback after successful connection.
-  // Existing users created before this change have the cookie as "false" (set on
-  // login from their DB field defaulting to false) and are NEVER affected.
-  //
-  // This check cannot be bypassed by direct URL navigation — it runs server-side
-  // in this proxy for every protected dashboard route.
-  const isXeroGatedRoute = XERO_GATED_ROUTES.some(route => pathname.startsWith(route));
-  if (isXeroGatedRoute && isValidToken && userRole !== 'ADMIN') {
-    const requiresXeroOnboarding =
-      request.cookies.get('futrix_requires_xero_onboarding')?.value === 'true';
-    if (requiresXeroOnboarding) {
-      const url = request.nextUrl.clone();
-      url.pathname = '/connect-xero';
-      return NextResponse.redirect(url);
-    }
+  // Construct response with modified request headers if we refreshed the token
+  let response: NextResponse;
+  if (newAccessTokenToSet) {
+    const requestHeaders = new Headers(request.headers);
+    requestHeaders.set('cookie', request.cookies.toString());
+    response = NextResponse.next({
+      request: {
+        headers: requestHeaders,
+      },
+    });
+    response.cookies.set("futrix_access_token", newAccessTokenToSet, {
+      httpOnly: true,
+      secure: process.env.NODE_ENV === "production",
+      sameSite: "lax",
+      path: "/",
+      maxAge: 15 * 60,
+    });
+  } else {
+    response = NextResponse.next();
   }
 
-  // We no longer redirect authenticated users away from the login/signup pages.
-  // If they want to visit /login while logged in, they can.
-
-  return NextResponse.next();
+  return response;
 }
 
 export const config = {

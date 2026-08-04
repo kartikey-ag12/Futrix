@@ -26,6 +26,7 @@ export async function GET() {
         email: true,
         role: true,
         requiresXeroOnboarding: true,
+        completedTours: true,
         // Fetch the user's primary workspace (first ADMIN membership)
         workspaces: {
           select: { workspaceId: true, role: true },
@@ -49,6 +50,7 @@ export async function GET() {
         email: user.email,
         role: user.role,
         requiresXeroOnboarding: user.requiresXeroOnboarding,
+        completedTours: user.completedTours,
         workspaceId: primaryWorkspaceId,
       },
     });

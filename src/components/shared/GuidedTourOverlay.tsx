@@ -9,7 +9,10 @@ interface GuidedTourOverlayProps {
   step: TourStep;
   isActionCompleted: boolean;
   onNext: () => void;
+  onCancel?: () => void;
 }
+
+import { X } from "lucide-react";
 
 // Hand-drawn style curved arrow SVG
 function CurvedArrow({ position }: { position: string }) {
@@ -44,7 +47,7 @@ function CurvedArrow({ position }: { position: string }) {
   );
 }
 
-export function GuidedTourOverlay({ step, isActionCompleted, onNext }: GuidedTourOverlayProps) {
+export function GuidedTourOverlay({ step, isActionCompleted, onNext, onCancel }: GuidedTourOverlayProps) {
   const [mounted, setMounted] = useState(false);
   const [targetRect, setTargetRect] = useState<DOMRect | null>(null);
 
@@ -107,9 +110,17 @@ export function GuidedTourOverlay({ step, isActionCompleted, onNext }: GuidedTou
         className="absolute w-[320px] bg-white dark:bg-[#111] border border-[#e5e5e5] dark:border-white/10 text-foreground rounded-2xl p-6 shadow-2xl pointer-events-auto transition-all duration-300 ease-in-out"
         style={calloutStyle}
       >
+        {onCancel && (
+          <button 
+            onClick={onCancel}
+            className="absolute top-4 right-4 text-foreground/40 hover:text-foreground transition-colors"
+          >
+            <X className="w-4 h-4" />
+          </button>
+        )}
         <CurvedArrow position={step.arrowPosition} />
         
-        <h3 className="text-lg font-bold mb-2">{step.title}</h3>
+        <h3 className="text-lg font-bold mb-2 pr-6">{step.title}</h3>
         <p className="text-sm text-foreground/70 mb-6 leading-relaxed">{step.body}</p>
         
         <button

@@ -16,14 +16,21 @@ export async function POST(req: Request) {
     // ── 1. Authenticate the calling user ─────────────────────────────────────
     const cookieStore = await cookies();
     const jwtToken = cookieStore.get('futrix_access_token')?.value;
+    const refreshToken = cookieStore.get('futrix_refresh_token')?.value;
 
-    if (!jwtToken) {
-      return NextResponse.json({ error: "Not authenticated" }, { status: 401 });
+    let jwtPayload = null;
+
+    if (jwtToken) {
+      jwtPayload = await verifyAccessToken(jwtToken);
+    }
+    
+    if (!jwtPayload && refreshToken) {
+      const { verifyRefreshToken } = await import("@/lib/auth/jwt");
+      jwtPayload = await verifyRefreshToken(refreshToken);
     }
 
-    const jwtPayload = await verifyAccessToken(jwtToken);
     if (!jwtPayload?.userId) {
-      return NextResponse.json({ error: "Invalid session" }, { status: 401 });
+      return NextResponse.json({ error: "Not authenticated" }, { status: 401 });
     }
 
     // ── 2. Find the user's workspace ─────────────────────────────────────────
