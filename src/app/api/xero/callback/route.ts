@@ -153,7 +153,7 @@ export async function GET(req: Request) {
 
     // ── 9. Redirect: onboarding → /dashboard, reconnect → /settings ─────────
     const redirectUrl = wasOnboarding
-      ? new URL('/dashboard', req.url)
+      ? new URL('/summary', req.url)
       : new URL('/settings?integration=xero_success', req.url);
 
     return NextResponse.redirect(redirectUrl);

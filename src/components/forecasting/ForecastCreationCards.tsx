@@ -1,33 +1,36 @@
 "use client";
 
 import { useState } from "react";
-import Link from "next/link";
 import { CheckCircle2, TrendingUp, BarChart3, LineChart } from "lucide-react";
 import clsx from "clsx";
+import { ForecastCreationWizard } from "./ForecastCreationWizard";
 
 const FORECAST_TYPES = [
   {
     id: "1yr-pl",
     title: "1 year P&L only",
     icon: BarChart3,
-    href: "/forecasting/new?type=1yr-pl",
   },
   {
     id: "3yr-cf",
     title: "3 year cash flow",
     icon: TrendingUp,
-    href: "/forecasting/new?type=3yr-cf",
   },
   {
     id: "3yr-cf-inv",
     title: "3 year cash flow with due invoices",
     icon: LineChart,
-    href: "/forecasting/new/due-invoices",
   },
 ];
 
 export function ForecastCreationCards() {
   const [selectedId, setSelectedId] = useState<string | null>(null);
+  const [wizardOpen, setWizardOpen] = useState(false);
+
+  const handleCardClick = (id: string) => {
+    setSelectedId(id);
+    setWizardOpen(true);
+  };
 
   return (
     <div className="w-full">
@@ -39,10 +42,9 @@ export function ForecastCreationCards() {
           const Icon = type.icon;
           
           return (
-            <Link
+            <div
               key={type.id}
-              href={type.href}
-              onClick={() => setSelectedId(type.id)}
+              onClick={() => handleCardClick(type.id)}
               className={clsx(
                 "relative flex flex-col items-center justify-center p-8 bg-white dark:bg-[#111] border rounded-2xl transition-all text-center group cursor-pointer",
                 isSelected 
@@ -69,10 +71,16 @@ export function ForecastCreationCards() {
               )}>
                 {type.title}
               </h3>
-            </Link>
+            </div>
           );
         })}
       </div>
+
+      <ForecastCreationWizard 
+        open={wizardOpen} 
+        onOpenChange={setWizardOpen}
+        type={selectedId || "1yr-pl"} 
+      />
     </div>
   );
 }

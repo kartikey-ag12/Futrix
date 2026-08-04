@@ -529,4 +529,69 @@ export class ExcelService {
     const buffer = await workbook.xlsx.writeBuffer();
     return Buffer.from(buffer);
   }
+
+  static async generateForecastTemplateExcel(workspaceId: string, months: string[]): Promise<Buffer> {
+    const workbook = new ExcelJS.Workbook();
+    
+    const { ForecastService } = await import("@/server/forecasting/forecast.service");
+    let forecastData: any;
+    try {
+      forecastData = await ForecastService.generateForecastData(workspaceId, months, {}, "scratch");
+    } catch (e) {
+      console.error("Failed to fetch detailed data for excel export", e);
+      forecastData = { months: months, cashPosition: [], tabs: {} };
+    }
+
+    const sheet = workbook.addWorksheet("P&L Template");
+    const tabData = forecastData.tabs["profit-loss"] || forecastData.tabs["sales"]; // Just use Sales/Cost/Expense sections. Since we want P&L, let's use the groups from the data.
+
+    // Let's create a flat list of accounts for the user to fill in
+    sheet.mergeCells("A1:C2");
+    const titleCell = sheet.getCell("A1");
+    titleCell.value = `Forecast Template - P&L`;
+    titleCell.font = { size: 16, bold: true };
+    titleCell.alignment = { vertical: "middle", horizontal: "left" };
+
+    sheet.getCell("A4").value = "Instructions: Fill in the monthly values for each account. Do not change account names or codes.";
+    
+    // Headers (Months)
+    let currentRow = 6;
+    const headerRow = sheet.getRow(currentRow);
+    headerRow.getCell(1).value = "Account Code";
+    headerRow.getCell(2).value = "Account Name";
+    forecastData.months.forEach((m: string, i: number) => {
+      headerRow.getCell(i + 3).value = m;
+    });
+    headerRow.font = { bold: true };
+    currentRow++;
+
+    // Add rows for Sales, Costs, Expenses, Other P&L
+    const sectionTabs = ["sales", "costs", "expenses", "other-pl"];
+    
+    sectionTabs.forEach(tabId => {
+      const tab = forecastData.tabs[tabId];
+      if (!tab) return;
+      
+      tab.groups.forEach((group: any) => {
+        if (group.children) {
+          group.children.forEach((child: any) => {
+            const row = sheet.getRow(currentRow);
+            row.getCell(1).value = child.code;
+            row.getCell(2).value = child.name;
+            // Leave months blank for user to fill
+            currentRow++;
+          });
+        }
+      });
+    });
+
+    sheet.getColumn(1).width = 15;
+    sheet.getColumn(2).width = 40;
+    for (let i = 0; i < forecastData.months.length; i++) {
+      sheet.getColumn(i + 3).width = 15;
+    }
+
+    const buffer = await workbook.xlsx.writeBuffer();
+    return Buffer.from(buffer);
+  }
 }

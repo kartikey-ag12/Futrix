@@ -48,7 +48,7 @@ export default function LoginPage() {
 
       setSuccess(data.user?.role === "ADMIN" ? "Admin login successful! Redirecting..." : "Login successful! Redirecting to dashboard...");
       setTimeout(() => {
-        router.push(data.user?.role === "ADMIN" ? "/admin" : "/dashboard");
+        router.push(data.user?.role === "ADMIN" ? "/admin" : "/summary");
         router.refresh();
       }, 800);
     } catch (err) {

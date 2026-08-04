@@ -58,27 +58,13 @@ export class ForecastService {
     return integration.tenantId;
   }
 
-  /**
-   * Gets real data, builds trailing averages, applies overrides, and structures it for the UI/Excel.
-   */
-  static async getForecastData(forecastId: string, workspaceId: string) {
-    const forecast = await prisma.forecast.findUnique({
-      where: { id: forecastId }
-    });
-
-    if (!forecast) throw new Error("Forecast not found");
-
+  static async generateForecastData(
+    workspaceId: string, 
+    months: string[], 
+    overrides: any = {}, 
+    method: "scratch" | "last-year" | "auto" = "auto"
+  ) {
     const tenantId = await this.initXero(workspaceId);
-    
-    // We'll generate 12 months. E.g., starting August 2026 for the UI, but let's just make it dynamic from current month.
-    // For simplicity, let's use the explicit months from the prompt so the UI matches exactly:
-    const months = [
-      "AUG 26", "SEP 26", "OCT 26", "NOV 26", "DEC 26", 
-      "JAN 27", "FEB 27", "MAR 27", "APR 27", "MAY 27", "JUN 27", "JUL 27"
-    ];
-
-    // Read stored overrides
-    const overrides = (forecast.data as any)?.overrides || {};
 
     let accounts: any[] = [];
     let invoices: any[] = [];
@@ -96,7 +82,7 @@ export class ForecastService {
       }
     }
 
-    // Historical monthly aggregations (we need this for trailing 3 month average)
+    // Historical monthly aggregations
     // Keyed by account code, then month string like 'YYYY-MM'
     const histData: Record<string, Record<string, number>> = {};
     
@@ -127,7 +113,6 @@ export class ForecastService {
       });
     });
 
-    // Determine latest 3 months from current real date to get the baseline
     const now = new Date();
     const trailingMonths: string[] = [];
     for (let i = 1; i <= 3; i++) {
@@ -135,7 +120,7 @@ export class ForecastService {
       trailingMonths.push(`${d.getFullYear()}-${(d.getMonth() + 1).toString().padStart(2, '0')}`);
     }
 
-    const calculateBaseline = (code: string) => {
+    const calculateAutoBaseline = (code: string) => {
       if (!histData[code]) return 0;
       let sum = 0;
       let count = 0;
@@ -146,6 +131,22 @@ export class ForecastService {
         }
       }
       return count > 0 ? sum / count : 0;
+    };
+
+    const parseMonthString = (mStr: string) => {
+      // mStr like "AUG 26"
+      const parts = mStr.split(" ");
+      const monthNames = ["JAN", "FEB", "MAR", "APR", "MAY", "JUN", "JUL", "AUG", "SEP", "OCT", "NOV", "DEC"];
+      const m = monthNames.indexOf(parts[0].toUpperCase());
+      const y = parseInt(parts[1]) + 2000;
+      return new Date(y, m, 1);
+    };
+
+    const getHistoricalValueForMonth = (code: string, monthDate: Date) => {
+      if (!histData[code]) return 0;
+      // Get same month from exactly 1 year ago
+      const lastYearKey = `${monthDate.getFullYear() - 1}-${(monthDate.getMonth() + 1).toString().padStart(2, '0')}`;
+      return histData[code][lastYearKey] || 0;
     };
 
     // Account Grouping logic (reusing same patterns as chart of accounts)
@@ -160,13 +161,26 @@ export class ForecastService {
 
     // Helper to generate the 12 month array based on baseline and overrides
     const generateMonths = (code: string, isUnpaid: boolean = false, unpaidVal: number = 0) => {
-      const baseline = isUnpaid ? 0 : calculateBaseline(code);
-      return months.map((m, idx) => {
-        // First month absorbs unpaid amount if flagged
-        let val = isUnpaid && idx === 0 ? unpaidVal : baseline;
+      const autoBaseline = isUnpaid ? 0 : calculateAutoBaseline(code);
+
+      return months.map((mStr, idx) => {
+        let val = 0;
+        if (isUnpaid) {
+          val = idx === 0 ? unpaidVal : 0;
+        } else {
+          if (method === "auto") {
+            val = autoBaseline;
+          } else if (method === "last-year") {
+            const mDate = parseMonthString(mStr);
+            val = getHistoricalValueForMonth(code, mDate);
+          } else {
+            val = 0;
+          }
+        }
+
         // Check for manual overrides in Forecast JSON
-        if (overrides[code] && overrides[code][m] !== undefined) {
-          val = overrides[code][m];
+        if (overrides[code] && overrides[code][mStr] !== undefined) {
+          val = overrides[code][mStr];
         }
         return val;
       });
@@ -174,7 +188,7 @@ export class ForecastService {
 
     // Aggregate monthly arrays
     const sumMonthlyArrays = (arrays: number[][]) => {
-      const result = new Array(12).fill(0);
+      const result = new Array(months.length).fill(0);
       arrays.forEach(arr => {
         arr.forEach((v, i) => result[i] += v);
       });
@@ -234,7 +248,6 @@ export class ForecastService {
     const bankAccounts = accounts.filter(a => a.type === 'BANK');
     let openingBankBalance = 0;
     bankAccounts.forEach(ba => {
-      // Very basic approximation: assume historical YTD is the opening balance
       const code = ba.code || '';
       if (histData[code]) {
         openingBankBalance += Object.values(histData[code]).reduce((a, b) => a + b, 0);
@@ -243,7 +256,7 @@ export class ForecastService {
 
     const cashPosition = [];
     let currentBalance = openingBankBalance;
-    for (let i = 0; i < 12; i++) {
+    for (let i = 0; i < months.length; i++) {
       currentBalance += cashFlowNet[i];
       cashPosition.push(currentBalance);
     }
@@ -314,5 +327,30 @@ export class ForecastService {
         }
       }
     };
+  }
+
+  static async getForecastData(forecastId: string, workspaceId: string) {
+    const forecast = await prisma.forecast.findUnique({
+      where: { id: forecastId }
+    });
+
+    if (!forecast) throw new Error("Forecast not found");
+
+    const dataObj = forecast.data as any;
+    let months = dataObj?.months;
+    if (!months) {
+      months = [
+        "AUG 26", "SEP 26", "OCT 26", "NOV 26", "DEC 26", 
+        "JAN 27", "FEB 27", "MAR 27", "APR 27", "MAY 27", "JUN 27", "JUL 27"
+      ];
+    }
+
+    const overrides = dataObj?.overrides || {};
+    // For an existing forecast we default to 'auto' or 'scratch' depending on if we have base data
+    // But realistically it just builds from overrides + base method logic.
+    // Let's assume 'auto' is fallback. The overrides will override any auto baseline anyway if they saved it.
+    const method = dataObj?.method || "auto";
+
+    return this.generateForecastData(workspaceId, months, overrides, method);
   }
 }

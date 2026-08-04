@@ -335,7 +335,7 @@ export function Navbar() {
           <div className="hidden md:flex flex-1 justify-center">
             <nav className="flex items-center gap-1">
               <Link
-                href={userProfile ? (userProfile.role === "ADMIN" ? "/admin" : "/dashboard") : "/"}
+                href={userProfile ? (userProfile.role === "ADMIN" ? "/admin" : "/summary") : "/"}
                 className="px-3 py-2 rounded-lg text-sm font-medium text-foreground/80 hover:text-foreground hover:bg-foreground/5 transition-all duration-200"
               >
                 Home
@@ -366,7 +366,7 @@ export function Navbar() {
                   Log out
                 </button>
                 <Link
-                  href={userProfile.role === "ADMIN" ? "/admin" : "/dashboard"}
+                  href={userProfile.role === "ADMIN" ? "/admin" : "/summary"}
                   className="px-4 py-2 bg-foreground text-background text-sm font-semibold rounded-xl hover:bg-foreground/90 transition-all duration-200 shadow-sm hover:shadow-md"
                 >
                   Dashboard <ArrowRight className="w-4 h-4 inline-block ml-1" />
@@ -406,7 +406,7 @@ export function Navbar() {
         <div className="md:hidden border-t border-border bg-card">
           <div className="max-w-7xl mx-auto px-4 py-4 space-y-1">
             <Link
-              href={userProfile ? (userProfile.role === "ADMIN" ? "/admin" : "/dashboard") : "/"}
+              href={userProfile ? (userProfile.role === "ADMIN" ? "/admin" : "/summary") : "/"}
               onClick={() => setMobileOpen(false)}
               className="block px-3 py-2 rounded-lg text-sm font-medium text-foreground/80 hover:bg-foreground/5 hover:text-foreground transition-colors"
             >

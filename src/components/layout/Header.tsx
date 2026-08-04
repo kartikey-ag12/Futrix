@@ -417,7 +417,7 @@ export function Header({ onOpenMobileSidebar }: HeaderProps) {
       <div className="hidden xl:flex flex-1 justify-center">
         <nav className="flex items-center gap-1">
           <Link
-            href={isAdmin ? "/admin" : (userProfile ? "/dashboard" : "/")}
+            href={isAdmin ? "/admin" : (userProfile ? "/summary" : "/")}
             className="px-4 py-2 rounded-lg text-sm font-medium text-foreground/70 hover:text-foreground hover:bg-foreground/5 transition-all duration-150"
           >
             Home
