@@ -7,32 +7,22 @@ datasource db {
   url      = env("DATABASE_URL")
 }
 
-enum Role {
-  USER
-  ADMIN
-}
-
 model User {
-  id            String    @id @default(cuid())
-  name          String?
-  email         String?   @unique
-  emailVerified DateTime?
-  image         String?
-  passwordHash  String?
-  role          Role      @default(USER)
-  createdAt     DateTime  @default(now())
-
-  // Schema default = false → all EXISTING rows in DB automatically become false
-  // when migration runs — existing users are NEVER forced into Xero onboarding.
-  // The signup route explicitly sets this to true for NEW user accounts going forward.
-  requiresXeroOnboarding Boolean @default(false)
-  completedTours         String[] @default([])
-
-  workspaces    WorkspaceMember[]
-  accounts      Account[]
-  sessions      Session[]
-  refreshTokens RefreshToken[]
-  adminAuditLogs AdminAuditLog[]
+  id                     String            @id @default(cuid())
+  name                   String?
+  email                  String?           @unique
+  emailVerified          DateTime?
+  image                  String?
+  passwordHash           String?
+  createdAt              DateTime          @default(now())
+  requiresXeroOnboarding Boolean           @default(false)
+  role                   Role              @default(USER)
+  completedTours         String[]          @default([])
+  accounts               Account[]
+  adminAuditLogs         AdminAuditLog[]
+  refreshTokens          RefreshToken[]
+  sessions               Session[]
+  workspaces             WorkspaceMember[]
 }
 
 model RefreshToken {
@@ -42,71 +32,66 @@ model RefreshToken {
   expiresAt DateTime
   createdAt DateTime @default(now())
   revoked   Boolean  @default(false)
-
-  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
 
   @@index([userId])
 }
 
 model Workspace {
-  id          String   @id @default(cuid())
-  name        String
-  industry    String?
-  email       String?
-  country     String?
-  description String?  @db.Text
-  createdAt   DateTime @default(now())
-
-  members      WorkspaceMember[]
-  integrations Integration[]
-  drivers      Driver[]
-  forecasts    Forecast[]
-  reports      Report[]
+  id            String            @id @default(cuid())
+  name          String
+  createdAt     DateTime          @default(now())
+  country       String?
+  description   String?
+  email         String?
+  industry      String?
   accountGroups AccountGroup[]
+  driverGroups  DriverGroup[]
+  drivers       Driver[]
+  forecasts     Forecast[]
+  integrations  Integration[]
+  reports       Report[]
+  members       WorkspaceMember[]
 }
 
 model WorkspaceMember {
-  id          String @id @default(cuid())
+  id          String    @id @default(cuid())
   userId      String
   workspaceId String
-  role        String @default("MEMBER") // ADMIN, MEMBER
-
-  user      User      @relation(fields: [userId], references: [id], onDelete: Cascade)
-  workspace Workspace @relation(fields: [workspaceId], references: [id], onDelete: Cascade)
+  role        String    @default("MEMBER")
+  user        User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+  workspace   Workspace @relation(fields: [workspaceId], references: [id], onDelete: Cascade)
 
   @@unique([userId, workspaceId])
 }
 
 model Integration {
-  id           String  @id @default(cuid())
+  id           String    @id @default(cuid())
   workspaceId  String
-  provider     String // "xero", "tally"
-  accessToken  String? @db.Text
-  refreshToken String? @db.Text
+  provider     String
+  accessToken  String?
+  refreshToken String?
   expiresAt    Int?
-  tenantId     String? // Xero specific tenant ID
-
-  workspace Workspace @relation(fields: [workspaceId], references: [id], onDelete: Cascade)
+  tenantId     String?
+  workspace    Workspace @relation(fields: [workspaceId], references: [id], onDelete: Cascade)
 
   @@unique([workspaceId, provider])
 }
 
-// NextAuth specific tables for sessions and OAuth...
 model Account {
   id                String  @id @default(cuid())
   userId            String
   type              String
   provider          String
   providerAccountId String
-  refresh_token     String? @db.Text
-  access_token      String? @db.Text
+  refresh_token     String?
+  access_token      String?
   expires_at        Int?
   token_type        String?
   scope             String?
-  id_token          String? @db.Text
+  id_token          String?
   session_state     String?
-
-  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+  user              User    @relation(fields: [userId], references: [id], onDelete: Cascade)
 
   @@unique([provider, providerAccountId])
 }
@@ -125,55 +110,66 @@ model AdminAuditLog {
   action      String
   targetType  String
   targetId    String
-  metadata    Json?
   createdAt   DateTime @default(now())
-
+  metadata    Json?
   admin       User     @relation(fields: [adminUserId], references: [id], onDelete: Cascade)
 }
 
 model Driver {
-  id          String   @id @default(cuid())
+  id            String       @id @default(cuid())
+  workspaceId   String
+  name          String
+  type          String
+  value         String?
+  unit          String?
+  driverGroupId String?
+  createdAt     DateTime     @default(now())
+  workspace     Workspace    @relation(fields: [workspaceId], references: [id], onDelete: Cascade)
+  group         DriverGroup? @relation(fields: [driverGroupId], references: [id], onDelete: SetNull)
+}
+
+model DriverGroup {
+  id          String    @id @default(cuid())
   workspaceId String
   name        String
-  type        String   // "freestyle" or "formula"
-  value       String?  // Formula expression or raw value
-  unit        String?
-  createdAt   DateTime @default(now())
-
+  createdAt   DateTime  @default(now())
   workspace   Workspace @relation(fields: [workspaceId], references: [id], onDelete: Cascade)
+  drivers     Driver[]
 }
 
 model Forecast {
-  id          String   @id @default(cuid())
+  id          String    @id @default(cuid())
   workspaceId String
   name        String
   type        String
-  status      String   @default("draft")
   data        Json?
-  createdAt   DateTime @default(now())
-
+  createdAt   DateTime  @default(now())
+  status      String    @default("draft")
   workspace   Workspace @relation(fields: [workspaceId], references: [id], onDelete: Cascade)
 }
 
 model Report {
-  id          String   @id @default(cuid())
+  id          String    @id @default(cuid())
   workspaceId String
   name        String
   type        String
-  status      String   @default("draft") // "draft" or "published"
-  pageCount   Int      @default(1)
+  status      String    @default("draft")
+  pageCount   Int       @default(1)
   data        Json?
-  createdAt   DateTime @default(now())
-
+  createdAt   DateTime  @default(now())
   workspace   Workspace @relation(fields: [workspaceId], references: [id], onDelete: Cascade)
 }
 
 model AccountGroup {
-  id          String   @id @default(cuid())
+  id          String    @id @default(cuid())
   workspaceId String
   name        String
-  accountIds  String[] // Array of Xero account IDs
-  createdAt   DateTime @default(now())
-
+  accountIds  String[]
+  createdAt   DateTime  @default(now())
   workspace   Workspace @relation(fields: [workspaceId], references: [id], onDelete: Cascade)
+}
+
+enum Role {
+  USER
+  ADMIN
 }

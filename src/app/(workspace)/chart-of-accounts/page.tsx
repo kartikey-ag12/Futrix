@@ -3,6 +3,7 @@
 import { useState, useEffect, useMemo } from "react";
 import { PlayCircle, Download, Search, Info, ChevronDown, ChevronRight, RefreshCw, Plus, ArrowUpDown } from "lucide-react";
 import clsx from "clsx";
+import { format } from "date-fns";
 import { ReclassifyPanel } from "@/components/chart-of-accounts/ReclassifyPanel";
 
 export interface Account {
@@ -45,6 +46,13 @@ export default function ChartOfAccountsPage() {
   const [isReclassifyModalOpen, setIsReclassifyModalOpen] = useState(false);
   const [newGroupName, setNewGroupName] = useState("");
   const [selectedAccountIds, setSelectedAccountIds] = useState<Set<string>>(new Set());
+
+  const [switchRules, setSwitchRules] = useState<Record<string, boolean>>({});
+
+  const toggleSwitchRule = (accountId: string, e: React.MouseEvent) => {
+    e.stopPropagation();
+    setSwitchRules(prev => ({ ...prev, [accountId]: !prev[accountId] }));
+  };
 
   const fetchAccounts = async () => {
     try {
@@ -102,26 +110,26 @@ export default function ChartOfAccountsPage() {
   const groupedData = useMemo(() => {
     const groupsDef = activeTab === "pnl" 
       ? [
-          { label: "Income", classes: ["REVENUE", "SALES"] },
-          { label: "Cost of Sales", classes: ["DIRECTCOSTS"] },
-          { label: "Expenses", classes: ["EXPENSE"] }
+          { label: "Income", condition: (a: Account) => ["REVENUE", "SALES"].includes(a.class) },
+          { label: "Cost of Sales", condition: (a: Account) => ["DIRECTCOSTS"].includes(a.type) || ["DIRECTCOSTS"].includes(a.class) },
+          { label: "Expenses", condition: (a: Account) => ["EXPENSE"].includes(a.class) }
         ]
       : [
-          { label: "Assets", classes: ["ASSET"] },
-          { label: "Liabilities", classes: ["LIABILITY"] },
-          { label: "Equity", classes: ["EQUITY"] }
+          { label: "Bank Accounts", condition: (a: Account) => a.type === "BANK" },
+          { label: "Fixed Assets", condition: (a: Account) => ["FIXED", "DEPRECIATION"].includes(a.type) },
+          { label: "Current Assets", condition: (a: Account) => ["CURRENT", "PREPAYMENT"].includes(a.type) },
+          { label: "Non Current Assets", condition: (a: Account) => ["NONCURRENT"].includes(a.type) },
+          { label: "Current Liabilities", condition: (a: Account) => ["CURRLIAB", "PAYG", "PAYGLIABILITY", "SUPERANNUATION"].includes(a.type) },
+          { label: "Non Current Liabilities", condition: (a: Account) => ["TERMLIAB"].includes(a.type) },
+          { label: "Equity", condition: (a: Account) => a.class === "EQUITY" || ["EQUITY"].includes(a.type) }
         ];
 
-    // Map custom groups inside main categories if we want, or as their own.
-    // Xero accounts belong to main classes. If they are in a custom group, we could group them under the custom group.
-    // For simplicity, let's inject custom groups into the main list if their accounts match the active tab's classes.
-    
     return groupsDef.map(g => {
-      const groupAccounts = filteredAccounts.filter(a => g.classes.includes(a.class));
+      const groupAccounts = filteredAccounts.filter(g.condition);
       return {
         label: g.label,
         accounts: groupAccounts,
-        col2Label: "YTD"
+        col2Label: activeTab === "pnl" ? "YTD" : `Yr to ${format(new Date(), "d MMM")}`
       };
     });
   }, [filteredAccounts, activeTab]);
@@ -172,13 +180,13 @@ export default function ChartOfAccountsPage() {
       <div className="max-w-6xl mx-auto w-full flex flex-col gap-6">
         
         {/* Sub-tabs & Actions */}
-        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
-          <div className="flex items-center gap-1 p-1 bg-foreground/5 rounded-lg w-fit">
+        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 border-b border-[#e5e5e5] dark:border-white/10 pb-4">
+          <div className="flex items-center gap-6 text-sm font-semibold">
             <button
               onClick={() => setActiveTab("pnl")}
               className={clsx(
-                "px-4 py-1.5 text-sm font-medium rounded-md transition-all",
-                activeTab === "pnl" ? "bg-white dark:bg-[#111] shadow-sm text-foreground" : "text-foreground/60 hover:text-foreground"
+                "pb-4 border-b-2 transition-all relative top-[17px]",
+                activeTab === "pnl" ? "border-emerald-500 text-foreground" : "border-transparent text-foreground/60 hover:text-foreground"
               )}
             >
               Profit & Loss
@@ -186,8 +194,8 @@ export default function ChartOfAccountsPage() {
             <button
               onClick={() => setActiveTab("bs")}
               className={clsx(
-                "px-4 py-1.5 text-sm font-medium rounded-md transition-all",
-                activeTab === "bs" ? "bg-white dark:bg-[#111] shadow-sm text-foreground" : "text-foreground/60 hover:text-foreground"
+                "pb-4 border-b-2 transition-all relative top-[17px]",
+                activeTab === "bs" ? "border-emerald-500 text-foreground" : "border-transparent text-foreground/60 hover:text-foreground"
               )}
             >
               Balance Sheet
@@ -195,64 +203,63 @@ export default function ChartOfAccountsPage() {
           </div>
 
           <div className="flex items-center gap-3">
-            <div className="flex items-center gap-2">
-              <button className="px-4 py-2 rounded-full border border-foreground/10 text-sm font-medium text-foreground hover:bg-foreground/5 transition-colors">
-                Reorder
-              </button>
-              <button 
-                onClick={() => setIsReclassifyModalOpen(true)}
-                className="px-4 py-2 rounded-full border border-foreground/10 text-sm font-medium text-foreground hover:bg-foreground/5 transition-colors"
-              >
-                Reclassify
-              </button>
-              <button 
-                onClick={() => setIsCreateGroupModalOpen(true)}
-                className="px-4 py-2 rounded-full border border-emerald-500/30 text-emerald-600 text-sm font-medium hover:bg-emerald-500/10 transition-colors flex items-center gap-1.5"
-              >
-                <Plus className="w-4 h-4" />
-                Create group
-              </button>
-            </div>
-            
             <div className="relative">
               <Search className="w-4 h-4 absolute left-3 top-1/2 -translate-y-1/2 text-foreground/40" />
               <input 
                 type="text" 
-                placeholder="Search accounts..." 
+                placeholder="Search..." 
                 value={search}
                 onChange={e => setSearch(e.target.value)}
-                className="pl-9 pr-4 py-2 rounded-full border border-foreground/10 bg-white dark:bg-[#111] text-sm focus:outline-none focus:ring-2 focus:ring-emerald-500/50 w-64 text-foreground placeholder:text-foreground/40 transition-shadow"
+                className="pl-9 pr-4 py-1.5 border-b border-[#e5e5e5] dark:border-white/10 bg-transparent text-sm focus:outline-none focus:border-emerald-500 w-64 text-foreground placeholder:text-foreground/40 transition-colors"
               />
             </div>
           </div>
         </div>
 
+        <div className="flex items-center gap-3">
+          <button className="px-4 py-1.5 rounded-full border border-emerald-500/80 text-emerald-600 text-sm font-medium hover:bg-emerald-500/10 transition-colors bg-white dark:bg-[#111]">
+            Reorder
+          </button>
+          <button 
+            onClick={() => setIsReclassifyModalOpen(true)}
+            className="px-4 py-1.5 rounded-full border border-emerald-500/80 text-emerald-600 text-sm font-medium hover:bg-emerald-500/10 transition-colors bg-white dark:bg-[#111]"
+          >
+            Reclassify
+          </button>
+          <button 
+            onClick={() => setIsCreateGroupModalOpen(true)}
+            className="px-4 py-1.5 rounded-full border border-emerald-500/80 text-emerald-600 text-sm font-medium hover:bg-emerald-500/10 transition-colors bg-white dark:bg-[#111]"
+          >
+            Create group
+          </button>
+        </div>
+
         {/* Content */}
-        <div className="flex-1 flex flex-col">
+        <div className="flex-1 flex flex-col mt-4">
           {isLoading ? (
             <div className="flex-1 flex items-center justify-center py-20">
               <div className="w-8 h-8 border-4 border-emerald-500/30 border-t-emerald-500 rounded-full animate-spin" />
             </div>
           ) : accounts.length > 0 ? (
-            <div className="bg-white dark:bg-[#111] border border-[#e5e5e5] dark:border-white/10 rounded-xl overflow-hidden shadow-sm flex flex-col">
+            <div className="flex flex-col">
               
               {/* Header row */}
-              <div className="flex items-center px-6 py-3 bg-[#fcfcfc] dark:bg-[#1a1a1a] border-b border-[#e5e5e5] dark:border-white/10 text-xs font-semibold text-foreground/60 uppercase tracking-wider">
-                <div className="flex-1">Account</div>
-                <div className="w-32 text-right flex items-center justify-end gap-1">
-                  Days to Pay
+              <div className="flex items-center px-6 py-2 text-xs text-foreground font-medium border-b border-[#e5e5e5] dark:border-white/10">
+                <div className="flex-1"></div>
+                <div className="w-28 text-right flex items-center justify-end gap-1">
+                  {activeTab === "bs" ? "Switch rule" : "Days to Pay"}
                   <div className="group relative cursor-help">
                     <Info className="w-3.5 h-3.5 text-foreground/40 hover:text-foreground/80 transition-colors" />
-                    <div className="absolute bottom-full right-0 mb-2 w-48 p-2 bg-black/90 dark:bg-white/90 text-white dark:text-black text-xs rounded shadow-lg opacity-0 group-hover:opacity-100 transition-opacity pointer-events-none z-10">
-                      Average days taken to pay invoices mapped to this account.
+                    <div className="absolute bottom-full right-0 mb-2 w-48 p-2 bg-black/90 dark:bg-white/90 text-white dark:text-black text-xs rounded shadow-lg opacity-0 group-hover:opacity-100 transition-opacity pointer-events-none z-10 font-normal">
+                      {activeTab === "bs" ? "Turn rules on or off." : "Average days taken to pay invoices mapped to this account."}
                     </div>
                   </div>
                 </div>
-                <div className="w-40 text-right flex items-center justify-end gap-1">
+                <div className="w-32 text-right flex items-center justify-end gap-1">
                   {groupedData[0]?.col2Label}
                   <div className="group relative cursor-help">
                     <Info className="w-3.5 h-3.5 text-foreground/40 hover:text-foreground/80 transition-colors" />
-                    <div className="absolute bottom-full right-0 mb-2 w-48 p-2 bg-black/90 dark:bg-white/90 text-white dark:text-black text-xs rounded shadow-lg opacity-0 group-hover:opacity-100 transition-opacity pointer-events-none z-10">
+                    <div className="absolute bottom-full right-0 mb-2 w-48 p-2 bg-black/90 dark:bg-white/90 text-white dark:text-black text-xs rounded shadow-lg opacity-0 group-hover:opacity-100 transition-opacity pointer-events-none z-10 font-normal">
                       Year to date net total from synced transactions.
                     </div>
                   </div>
@@ -260,43 +267,58 @@ export default function ChartOfAccountsPage() {
               </div>
 
               {/* Grouped Lists */}
-              <div className="divide-y divide-[#e5e5e5] dark:divide-white/10 max-h-[600px] overflow-y-auto">
+              <div className="flex flex-col mt-2">
                 {groupedData.map((group) => {
                   if (group.accounts.length === 0 && search) return null;
-                  const isExpanded = expandedGroups[group.label];
+                  const isExpanded = expandedGroups[group.label] ?? true; // Default expand all
 
                   return (
-                    <div key={group.label} className="flex flex-col">
+                    <div key={group.label} className="flex flex-col mb-6">
                       <button 
                         onClick={() => toggleGroup(group.label)}
-                        className="flex items-center justify-between px-6 py-4 bg-foreground/[0.015] hover:bg-foreground/[0.03] transition-colors w-full text-left"
+                        className="flex items-center gap-2 px-2 py-2 text-left hover:bg-foreground/[0.02] transition-colors rounded"
                       >
-                        <div className="flex items-center gap-2">
-                          {isExpanded ? <ChevronDown className="w-4 h-4 text-foreground/50" /> : <ChevronRight className="w-4 h-4 text-foreground/50" />}
-                          <span className="font-semibold text-foreground">{group.label}</span>
-                          <span className="text-xs text-foreground/40 bg-foreground/5 px-2 py-0.5 rounded-full">{group.accounts.length}</span>
-                        </div>
+                        {isExpanded ? <ChevronDown className="w-4 h-4 text-foreground/80" /> : <ChevronRight className="w-4 h-4 text-foreground/80" />}
+                        <span className="font-semibold text-foreground text-sm">{group.label}</span>
                       </button>
 
                       {isExpanded && (
-                        <div className="flex flex-col">
+                        <div className="flex flex-col border border-[#e5e5e5] dark:border-white/10 rounded-md bg-white dark:bg-[#111] overflow-hidden mt-2">
                           {group.accounts.length > 0 ? (
-                            group.accounts.map(acc => (
-                              <div key={acc.id} className="flex items-center px-6 py-3 hover:bg-foreground/[0.01] transition-colors group/row border-b border-[#e5e5e5]/50 dark:border-white/5 last:border-0 ml-4">
-                                <div className="flex-1 flex items-center gap-3">
-                                  <span className="text-sm font-medium text-foreground/50 w-16 tabular-nums">{acc.code || "—"}</span>
-                                  <span className="text-sm text-foreground">{acc.name}</span>
+                            group.accounts.map(acc => {
+                              const isSwitchOn = switchRules[acc.id] || false;
+                              return (
+                                <div key={acc.id} className="flex items-center px-6 py-3 hover:bg-foreground/[0.02] transition-colors group/row border-b border-[#e5e5e5]/50 dark:border-white/5 last:border-0">
+                                  <div className="flex-1 flex items-center gap-3">
+                                    {activeTab === "pnl" && <span className="text-sm font-medium text-foreground/50 w-16 tabular-nums">{acc.code || "—"}</span>}
+                                    <span className="text-sm text-foreground">{acc.name}</span>
+                                  </div>
+                                  <div className="w-28 text-right flex items-center justify-end">
+                                    {activeTab === "bs" ? (
+                                      <button 
+                                        onClick={(e) => toggleSwitchRule(acc.id, e)}
+                                        className={clsx(
+                                          "flex items-center gap-1.5 px-2 py-0.5 rounded-full border text-xs font-semibold transition-colors",
+                                          isSwitchOn 
+                                            ? "border-emerald-500 text-emerald-600 bg-emerald-500/10 flex-row-reverse" 
+                                            : "border-foreground/20 text-foreground/50 bg-foreground/5"
+                                        )}
+                                      >
+                                        <div className={clsx("w-2 h-2 rounded-full", isSwitchOn ? "bg-emerald-500" : "bg-foreground/40")} />
+                                        {isSwitchOn ? "ON" : "OFF"}
+                                      </button>
+                                    ) : (
+                                      <span className="text-sm tabular-nums text-foreground/70">{acc.daysToPay !== null ? acc.daysToPay : "—"}</span>
+                                    )}
+                                  </div>
+                                  <div className="w-32 text-right text-sm tabular-nums text-foreground/90">
+                                    {acc.balance ? new Intl.NumberFormat('en-US', { style: 'currency', currency: 'USD', maximumFractionDigits: 0 }).format(Math.abs(acc.balance)) : "—"}
+                                  </div>
                                 </div>
-                                <div className="w-32 text-right text-sm tabular-nums text-foreground/70">
-                                  {acc.daysToPay !== null ? acc.daysToPay : "—"}
-                                </div>
-                                <div className="w-40 text-right text-sm tabular-nums font-medium text-foreground">
-                                  {acc.balance ? new Intl.NumberFormat('en-US', { style: 'currency', currency: 'USD', maximumFractionDigits: 0 }).format(Math.abs(acc.balance)) : "—"}
-                                </div>
-                              </div>
-                            ))
+                              );
+                            })
                           ) : (
-                            <div className="px-6 py-4 pl-10 text-sm text-foreground/40 italic">
+                            <div className="px-6 py-4 text-sm text-foreground/40 italic">
                               No accounts in this category.
                             </div>
                           )}
@@ -306,7 +328,6 @@ export default function ChartOfAccountsPage() {
                   );
                 })}
               </div>
-
             </div>
           ) : (
             <div className="flex-1 flex flex-col items-center justify-center bg-white dark:bg-[#111] border border-[#e5e5e5] dark:border-white/10 rounded-xl p-12 text-center">
