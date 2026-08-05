@@ -113,7 +113,10 @@ export async function GET(req: Request) {
         // Create workspace + make user ADMIN — all within a transaction
         const result = await prisma.$transaction(async (tx) => {
           const ws = await tx.workspace.create({
-            data: { name: orgName },
+            data: { 
+              name: orgName,
+              trialEndsAt: new Date(Date.now() + 14 * 24 * 60 * 60 * 1000),
+            },
           });
           await tx.workspaceMember.create({
             data: {
@@ -171,6 +174,19 @@ export async function GET(req: Request) {
       path: '/',
       maxAge: 30 * 24 * 60 * 60,
     });
+
+    const finalWorkspace = await prisma.workspace.findUnique({
+      where: { id: workspaceId },
+      select: { trialEndsAt: true }
+    });
+
+    if (finalWorkspace?.trialEndsAt) {
+      cookieStore.set("futrix_trial_ends_at", finalWorkspace.trialEndsAt.toISOString(), {
+        httpOnly: false,
+        path: "/",
+        maxAge: 30 * 24 * 60 * 60,
+      });
+    }
 
     // ── 9. Redirect: onboarding → /dashboard, reconnect → /settings ─────────
     const redirectUrl = wasOnboarding

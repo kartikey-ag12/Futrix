@@ -20,29 +20,33 @@ export function TrialBanner({
   const [dismissed, setDismissed] = useState(false);
   const [mounted, setMounted] = useState(false);
 
-  // Avoid hydration mismatch — read localStorage only on client
+  // Avoid hydration mismatch — read sessionStorage only on client
   useEffect(() => {
     setMounted(true);
     try {
-      if (localStorage.getItem(DISMISSED_KEY) === "true") {
+      if (sessionStorage.getItem(DISMISSED_KEY) === "true") {
         setDismissed(true);
       }
     } catch {
-      // localStorage might be blocked
+      // sessionStorage might be blocked
     }
   }, []);
 
   const handleDismiss = () => {
     setDismissed(true);
     try {
-      localStorage.setItem(DISMISSED_KEY, "true");
+      sessionStorage.setItem(DISMISSED_KEY, "true");
     } catch {
       // ignore
     }
   };
 
   // Don't render until mounted to avoid SSR mismatch
-  if (!mounted || dismissed) return null;
+  if (!mounted) return null;
+  
+  // If dismissed and trial still active, don't show.
+  // If trial has expired (daysLeft <= 0), FORCE show it regardless of dismissal.
+  if (dismissed && daysLeft > 0) return null;
 
   const urgency = daysLeft <= 3;
   const warning = daysLeft <= 7 && daysLeft > 3;

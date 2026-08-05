@@ -29,7 +29,11 @@ export async function GET() {
         completedTours: true,
         // Fetch the user's primary workspace (first ADMIN membership)
         workspaces: {
-          select: { workspaceId: true, role: true },
+          select: { 
+            workspaceId: true, 
+            role: true,
+            workspace: { select: { trialEndsAt: true } }
+          },
           orderBy: { role: "asc" }, // ADMIN < MEMBER alphabetically
           take: 1,
         },
@@ -40,7 +44,9 @@ export async function GET() {
       return NextResponse.json({ authenticated: false, user: null }, { status: 401 });
     }
 
-    const primaryWorkspaceId = user.workspaces[0]?.workspaceId ?? null;
+    const primaryWorkspace = user.workspaces[0];
+    const primaryWorkspaceId = primaryWorkspace?.workspaceId ?? null;
+    const trialEndsAt = primaryWorkspace?.workspace?.trialEndsAt ?? null;
 
     return NextResponse.json({
       authenticated: true,
@@ -52,6 +58,7 @@ export async function GET() {
         requiresXeroOnboarding: user.requiresXeroOnboarding,
         completedTours: user.completedTours,
         workspaceId: primaryWorkspaceId,
+        trialEndsAt,
       },
     });
   } catch (error) {

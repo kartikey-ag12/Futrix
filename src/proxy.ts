@@ -85,6 +85,22 @@ export async function proxy(request: NextRequest) {
     return NextResponse.redirect(url);
   }
 
+  // Enforce Trial Expiry for Protected Routes (excluding Admin, Settings, etc.)
+  const isTrialEnforcedRoute = ['/summary', '/performance', '/forecasting', '/reporting', '/chart-of-accounts', '/drivers'].some(route => pathname.startsWith(route));
+  if (isTrialEnforcedRoute && isValidToken) {
+    const trialEndsCookie = request.cookies.get('futrix_trial_ends_at')?.value;
+    if (trialEndsCookie) {
+      const trialEndsAt = new Date(trialEndsCookie);
+      const now = new Date();
+      const daysLeft = Math.ceil((trialEndsAt.getTime() - now.getTime()) / (24 * 60 * 60 * 1000));
+      if (daysLeft <= 0) {
+        const url = request.nextUrl.clone();
+        url.pathname = '/trial-expired';
+        return NextResponse.redirect(url);
+      }
+    }
+  }
+
   // Construct response with modified request headers if we refreshed the token
   let response: NextResponse;
   if (newAccessTokenToSet) {

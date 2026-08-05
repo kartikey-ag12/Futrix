@@ -60,7 +60,10 @@ export async function POST(req: Request) {
       // real Xero org name — no manual company name needed.
       if (isAdminSignup && company) {
         const workspace = await tx.workspace.create({
-          data: { name: company },
+          data: { 
+            name: company,
+            trialEndsAt: new Date(Date.now() + 14 * 24 * 60 * 60 * 1000),
+          },
         });
         await tx.workspaceMember.create({
           data: {
@@ -129,16 +132,23 @@ export async function POST(req: Request) {
       maxAge: 7 * 24 * 60 * 60,
     });
 
-    // Middleware-readable flag: true for new regular users, false for admins.
-    // NOT httpOnly so Edge middleware can check it without a DB round-trip.
-    const requiresXeroOnboarding = !isAdminSignup;
-    cookieStore.set("futrix_requires_xero_onboarding", String(requiresXeroOnboarding), {
+    // Middleware-readable onboarding flag — NOT httpOnly so Edge middleware can check it without a DB round-trip.
+    cookieStore.set("futrix_requires_xero_onboarding", String(user.requiresXeroOnboarding), {
       httpOnly: false,
       secure: isProduction,
-      sameSite: "lax",
       path: "/",
       maxAge: 7 * 24 * 60 * 60,
     });
+
+    if (isAdminSignup) {
+      const trialEndsAt = new Date(Date.now() + 14 * 24 * 60 * 60 * 1000);
+      cookieStore.set("futrix_trial_ends_at", trialEndsAt.toISOString(), {
+        httpOnly: false,
+        secure: isProduction,
+        path: "/",
+        maxAge: 7 * 24 * 60 * 60,
+      });
+    }
 
     return NextResponse.json({
       status: "success",
@@ -148,7 +158,7 @@ export async function POST(req: Request) {
         name: user.name,
         email: user.email,
         role: user.role,
-        requiresXeroOnboarding,
+        requiresXeroOnboarding: user.requiresXeroOnboarding,
         // Tell the client where to redirect after signup
         redirectTo: isAdminSignup ? "/admin" : "/connect-xero",
       },

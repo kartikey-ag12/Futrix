@@ -9,6 +9,7 @@ export interface BuilderTemplate {
   orientation: TemplateOrientation;
   pages: number;
   componentType?: string;
+  elements?: any[];
 }
 
 const SEED_TEMPLATES: BuilderTemplate[] = [

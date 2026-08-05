@@ -41,6 +41,7 @@ model Workspace {
   id            String            @id @default(cuid())
   name          String
   createdAt     DateTime          @default(now())
+  trialEndsAt   DateTime?
   country       String?
   description   String?
   email         String?

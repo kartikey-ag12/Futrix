@@ -26,6 +26,11 @@ export async function POST(req: Request) {
         role: true,
         passwordHash: true,
         requiresXeroOnboarding: true,
+        workspaces: {
+          select: { workspace: { select: { trialEndsAt: true } } },
+          orderBy: { role: 'asc' },
+          take: 1,
+        },
       },
     });
     if (!user || !user.passwordHash) {
@@ -102,6 +107,16 @@ export async function POST(req: Request) {
       path: "/",
       maxAge,
     });
+
+    const trialEndsAt = user.workspaces?.[0]?.workspace?.trialEndsAt;
+    if (trialEndsAt) {
+      cookieStore.set("futrix_trial_ends_at", trialEndsAt.toISOString(), {
+        httpOnly: false, // Edge middleware needs to read it
+        secure: isProduction,
+        path: "/",
+        maxAge,
+      });
+    }
 
     return NextResponse.json({
       status: "success",
