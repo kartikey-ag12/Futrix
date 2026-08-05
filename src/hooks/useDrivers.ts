@@ -37,7 +37,14 @@ export function useDrivers() {
   };
 
   useEffect(() => {
-    fetchDrivers();
+    fetch("/api/drivers")
+      .then(res => res.ok ? res.json() : Promise.reject(res))
+      .then(data => {
+        setDrivers(data.drivers || []);
+        setGroups(data.groups || []);
+      })
+      .catch(console.error)
+      .finally(() => setIsLoading(false));
   }, []);
 
   const createDriver = async (payload: Partial<Driver>) => {

@@ -81,8 +81,11 @@ export function FinancialProvider({ children }: { children: React.ReactNode }) {
   }, []);
 
   useEffect(() => {
-    // Attempt auto-sync once on mount
-    handleXeroSync();
+    // Attempt auto-sync once on mount asynchronously to avoid cascading renders
+    const timer = setTimeout(() => {
+      handleXeroSync();
+    }, 0);
+    return () => clearTimeout(timer);
   }, [handleXeroSync]);
 
 

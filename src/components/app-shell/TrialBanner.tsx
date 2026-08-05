@@ -22,7 +22,7 @@ export function TrialBanner({
 
   // Avoid hydration mismatch — read sessionStorage only on client
   useEffect(() => {
-    setMounted(true);
+    const t = setTimeout(() => setMounted(true), 0);
     try {
       if (sessionStorage.getItem(DISMISSED_KEY) === "true") {
         setDismissed(true);

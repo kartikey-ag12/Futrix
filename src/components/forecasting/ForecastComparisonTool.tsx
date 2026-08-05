@@ -56,7 +56,7 @@ export function ForecastComparisonTool() {
   // Set default selection if not set
   useEffect(() => {
     if (hasForecasts && !selectedDataset) {
-      setSelectedDataset(forecasts[0].id);
+      setTimeout(() => setSelectedDataset(forecasts[0].id), 0);
     }
   }, [hasForecasts, selectedDataset, forecasts]);
 

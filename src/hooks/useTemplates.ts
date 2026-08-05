@@ -2,6 +2,14 @@ import { useState } from "react";
 
 export type TemplateOrientation = "portrait" | "landscape";
 
+export interface WidgetConfig {
+  chartType: string;
+  dataset: string;
+  dateRange: string;
+  title?: string;
+  subtitle?: string;
+}
+
 export interface BuilderTemplate {
   id: string;
   name: string;
@@ -10,6 +18,7 @@ export interface BuilderTemplate {
   pages: number;
   componentType?: string;
   elements?: any[];
+  widgetConfig?: WidgetConfig;
 }
 
 const SEED_TEMPLATES: BuilderTemplate[] = [

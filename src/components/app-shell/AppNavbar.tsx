@@ -143,10 +143,15 @@ function UserDropdown({ user }: { user: UserProfile | null }) {
               <p className="text-xs text-white/40 mt-0.5 truncate">{user.email}</p>
             )}
           </div>
-          <DropdownItem href="/settings" icon={Settings} onClick={close}>
-            Account Settings
+          <DropdownItem 
+            onClick={() => {
+              close();
+              router.push("/profile");
+            }} 
+            icon={User}
+          >
+            My Profile
           </DropdownItem>
-          <DropdownDivider />
           <DropdownItem onClick={handleSignOut} icon={LogOut} danger>
             Sign Out
           </DropdownItem>
@@ -185,11 +190,11 @@ function CompanyDropdown({ orgName }: { orgName: string | null }) {
               Workspace
             </p>
           </div>
-          <DropdownItem icon={RefreshCw} onClick={close}>
-            Switch Company
+          <DropdownItem href="/organizations" onClick={close}>
+            Manage Organisations
           </DropdownItem>
-          <DropdownItem href="/settings" icon={Settings} onClick={close}>
-            Manage Organisation
+          <DropdownItem href="/organizations?tab=users" onClick={close}>
+            Manage Users
           </DropdownItem>
         </DropdownPanel>
       )}

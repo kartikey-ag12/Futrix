@@ -29,7 +29,13 @@ export function useReports() {
   };
 
   useEffect(() => {
-    fetchReports();
+    fetch("/api/reports")
+      .then(res => res.ok ? res.json() : Promise.reject(res))
+      .then(data => {
+        setReports(data.reports || []);
+      })
+      .catch(console.error)
+      .finally(() => setIsLoading(false));
   }, []);
 
   const createReport = async (payload: Partial<ReportItem>) => {

@@ -96,11 +96,6 @@ export default function SettingsPage() {
   const [inviteName, setInviteName] = useState("");
   const [inviteLoading, setInviteLoading] = useState(false);
 
-  useEffect(() => {
-    if (activeTab === "organization") fetchOrg();
-    if (activeTab === "team") fetchTeam();
-  }, [activeTab]);
-
   const fetchOrg = async () => {
     setOrgLoading(true);
     try {
@@ -122,6 +117,24 @@ export default function SettingsPage() {
     }
   };
 
+  const fetchTeam = async () => {
+    setTeamLoading(true);
+    try {
+      const res = await fetch("/api/settings/team");
+      const data = await res.json();
+      if (data.team) setTeam(data.team);
+    } catch (err) {
+      console.error(err);
+    } finally {
+      setTeamLoading(false);
+    }
+  };
+
+  useEffect(() => {
+    if (activeTab === "organization") fetchOrg();
+    if (activeTab === "team") fetchTeam();
+  }, [activeTab]);
+
   const saveOrg = async () => {
     setOrgSaving(true);
     try {
@@ -136,19 +149,6 @@ export default function SettingsPage() {
       alert("Failed to save organization.");
     } finally {
       setOrgSaving(false);
-    }
-  };
-
-  const fetchTeam = async () => {
-    setTeamLoading(true);
-    try {
-      const res = await fetch("/api/settings/team");
-      const data = await res.json();
-      if (data.team) setTeam(data.team);
-    } catch (err) {
-      console.error(err);
-    } finally {
-      setTeamLoading(false);
     }
   };
 

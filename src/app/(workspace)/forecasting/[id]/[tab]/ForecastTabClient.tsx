@@ -15,22 +15,21 @@ export function ForecastTabClient({ forecastId, tabId, title }: ForecastTabClien
   const [data, setData] = useState<any>(null);
   const [isLoading, setIsLoading] = useState(true);
 
-  const loadData = async () => {
-    setIsLoading(true);
-    try {
-      const res = await fetch(`/api/forecasts/${forecastId}/data`);
-      if (res.ok) {
-        const json = await res.json();
-        setData(json);
-      }
-    } catch (e) {
-      console.error(e);
-    } finally {
-      setIsLoading(false);
-    }
-  };
-
   useEffect(() => {
+    const loadData = async () => {
+      setIsLoading(true);
+      try {
+        const res = await fetch(`/api/forecasts/${forecastId}/data`);
+        if (res.ok) {
+          const json = await res.json();
+          setData(json);
+        }
+      } catch (e) {
+        console.error(e);
+      } finally {
+        setIsLoading(false);
+      }
+    };
     loadData();
   }, [forecastId, tabId]);
 

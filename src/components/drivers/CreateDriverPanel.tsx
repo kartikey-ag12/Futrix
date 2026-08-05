@@ -107,7 +107,7 @@ export function CreateDriverPanel({ isOpen, onClose, onSave, groups = [] }: Crea
         
         Object.keys(newMonths).forEach(monthKey => {
           if (newMonths[monthKey].selected) {
-            let currentVal = parseFloat(newMonths[monthKey].value) || 0;
+            const currentVal = parseFloat(newMonths[monthKey].value) || 0;
             let newVal = currentVal;
             
             switch (quickAction) {

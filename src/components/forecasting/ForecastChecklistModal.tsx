@@ -34,12 +34,13 @@ export function ForecastChecklistModal({
   const [mounted, setMounted] = useState(false);
 
   useEffect(() => {
-    setMounted(true);
+    const t = setTimeout(() => setMounted(true), 0);
+    return () => clearTimeout(t);
   }, []);
 
   useEffect(() => {
     if (open) {
-      setLocalOverrides(manualOverrides || {});
+      setTimeout(() => setLocalOverrides(manualOverrides || {}), 0);
     }
   }, [open, manualOverrides]);
 

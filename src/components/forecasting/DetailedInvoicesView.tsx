@@ -13,6 +13,7 @@ import {
   ChevronDown, Filter, ArrowUpDown, Calendar, AlertTriangle
 } from "lucide-react";
 import clsx from "clsx";
+import { EditPaymentDatesPanel } from "./EditPaymentDatesPanel";
 
 export interface DueInvoice {
   id: string;
@@ -46,6 +47,9 @@ export function DetailedInvoicesView() {
   const [excludedIds, setExcludedIds] = useState<Set<string>>(new Set());
   const [sorting, setSorting] = useState<SortingState>([]);
   const [activeTab, setActiveTab] = useState("invoices");
+
+  const [selectedInvoice, setSelectedInvoice] = useState<DueInvoice | null>(null);
+  const [isPanelOpen, setIsPanelOpen] = useState(false);
 
   useEffect(() => {
     const fetchDueInvoices = async () => {
@@ -126,6 +130,7 @@ export function DetailedInvoicesView() {
         
         return (
           <div className="flex items-center justify-between w-full min-w-[280px]">
+            {/* The Date Badge */}
             <div className={clsx(
               "flex items-center gap-2 px-3 py-1 rounded-md text-xs font-medium transition-colors",
               isExcluded 
@@ -134,20 +139,29 @@ export function DetailedInvoicesView() {
                   ? "bg-emerald-500/10 text-emerald-700 dark:text-emerald-400" 
                   : "bg-rose-500/10 text-rose-700 dark:text-rose-400"
             )}>
-              <Calendar className="w-3.5 h-3.5" />
               {getRelativeDateLabel(row.daysDiff, row.isOverdue, row.dueDate)}
             </div>
             
-            <button 
-              onClick={() => toggleExclude(row.id)}
-              className={clsx(
-                "flex items-center gap-1.5 px-2.5 py-1 text-xs font-medium rounded transition-colors ml-2",
-                isExcluded ? "bg-foreground/10 text-foreground hover:bg-foreground/20" : "bg-white dark:bg-[#222] border border-[#e5e5e5] dark:border-white/10 shadow-sm hover:bg-foreground/5"
-              )}
-            >
-              {row.isOverdue && !isExcluded && <AlertTriangle className="w-3.5 h-3.5 text-rose-500" />}
-              {isExcluded ? "Include" : "Exclude"}
-            </button>
+            {/* The Action Buttons Container */}
+            <div className="flex items-center gap-2 ml-3">
+              <button 
+                onClick={() => { setSelectedInvoice(row); setIsPanelOpen(true); }}
+                className="p-1.5 bg-white dark:bg-[#222] border border-[#e5e5e5] dark:border-white/10 rounded-md flex items-center justify-center hover:bg-foreground/5 transition-colors shrink-0 shadow-sm"
+              >
+                <Calendar className="w-3.5 h-3.5 text-foreground/70" />
+              </button>
+              
+              <button 
+                onClick={() => toggleExclude(row.id)}
+                className={clsx(
+                  "flex items-center gap-1.5 px-2.5 py-1.5 text-xs font-medium rounded-md transition-colors shrink-0",
+                  isExcluded ? "bg-foreground/10 text-foreground hover:bg-foreground/20" : "bg-white dark:bg-[#222] border border-[#e5e5e5] dark:border-white/10 shadow-sm hover:bg-foreground/5"
+                )}
+              >
+                {row.isOverdue && !isExcluded && <AlertTriangle className="w-3.5 h-3.5 text-rose-500" />}
+                {isExcluded ? "Include" : "Exclude"}
+              </button>
+            </div>
           </div>
         );
       },
@@ -294,6 +308,12 @@ export function DetailedInvoicesView() {
           </table>
         </div>
       </div>
+      
+      <EditPaymentDatesPanel 
+        invoice={selectedInvoice}
+        isOpen={isPanelOpen}
+        onClose={() => setIsPanelOpen(false)}
+      />
     </div>
   );
 }

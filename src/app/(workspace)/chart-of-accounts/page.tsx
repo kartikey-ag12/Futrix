@@ -73,7 +73,18 @@ export default function ChartOfAccountsPage() {
   };
 
   useEffect(() => {
-    fetchAccounts();
+    fetch("/api/xero/chart-of-accounts")
+      .then(res => res.ok ? res.json() : Promise.reject(res))
+      .then(data => {
+        setAccounts(data.accounts || []);
+        setAccountGroups(data.accountGroups || []);
+        if (data.lastSync) setLastSync(data.lastSync);
+      })
+      .catch(console.error)
+      .finally(() => {
+        setIsLoading(false);
+        setIsSyncing(false);
+      });
   }, []);
 
   const handleCreateGroup = async () => {

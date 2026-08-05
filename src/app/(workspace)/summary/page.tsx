@@ -3,6 +3,8 @@ import { HeroBanner } from "@/components/summary/HeroBanner";
 import { HelpSection } from "@/components/summary/HelpSection";
 import { SummaryDashboardContent } from "@/components/summary/SummaryDashboardContent";
 
+export const dynamic = "force-dynamic";
+
 export const metadata = {
   title: "Summary — Futrix",
   description: "Your business summary: performance chart, insights, quick links and alerts.",

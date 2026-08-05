@@ -29,7 +29,13 @@ export function useForecasts() {
   };
 
   useEffect(() => {
-    fetchForecasts();
+    fetch("/api/forecasts")
+      .then(res => res.ok ? res.json() : Promise.reject(res))
+      .then(data => {
+        setForecasts(data.forecasts || []);
+      })
+      .catch(console.error)
+      .finally(() => setIsLoading(false));
   }, []);
 
   const getForecastsByType = (type: string) => {

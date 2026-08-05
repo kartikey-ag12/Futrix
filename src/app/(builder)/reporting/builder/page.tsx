@@ -4,7 +4,7 @@ import { useState, Suspense } from "react";
 import Link from "next/link";
 import { useSearchParams } from "next/navigation";
 import { BuilderTemplatesPanel } from "@/components/reporting/BuilderTemplatesPanel";
-import { useTemplates, BuilderTemplate } from "@/hooks/useTemplates";
+import { useTemplates, BuilderTemplate, WidgetConfig } from "@/hooks/useTemplates";
 import { useGuidedTour, TourStep } from "@/hooks/useGuidedTour";
 import { GuidedTourOverlay } from "@/components/shared/GuidedTourOverlay";
 import { LayoutTemplate, PieChart } from "lucide-react";
@@ -12,6 +12,8 @@ import clsx from "clsx";
 import { ProfitLossDashboard } from "@/components/performance/ProfitLossDashboard";
 import { BalanceSheetDashboard } from "@/components/performance/BalanceSheetDashboard";
 import { CashFlowDashboard } from "@/components/performance/CashFlowDashboard";
+import { WidgetConfigPanel } from "@/components/reporting/WidgetConfigPanel";
+import { DynamicWidget } from "@/components/reporting/DynamicWidget";
 
 const TOUR_STEPS: TourStep[] = [
   {
@@ -46,6 +48,36 @@ function BuilderCanvasContent() {
     return [];
   });
   const [isDragOver, setIsDragOver] = useState(false);
+  const [selectedWidgetId, setSelectedWidgetId] = useState<string | null>(null);
+
+  // Helper to find and update a widget across top-level and nested elements
+  const updateWidgetConfig = (widgetId: string, newConfig: WidgetConfig) => {
+    setDroppedTemplates(prev => {
+      return prev.map(template => {
+        if (template.id === widgetId) {
+          return { ...template, widgetConfig: newConfig };
+        }
+        if (template.elements) {
+          return {
+            ...template,
+            elements: template.elements.map(el => el.id === widgetId ? { ...el, widgetConfig: newConfig } : el)
+          };
+        }
+        return template;
+      });
+    });
+  };
+
+  const getSelectedWidgetConfig = (): WidgetConfig | null => {
+    for (const t of droppedTemplates) {
+      if (t.id === selectedWidgetId) return t.widgetConfig || { chartType: "bar-vertical", dataset: "cash-out", dateRange: "this-month" };
+      if (t.elements) {
+        const el = t.elements.find(e => e.id === selectedWidgetId);
+        if (el) return el.widgetConfig || { chartType: "bar-vertical", dataset: "cash-out", dateRange: "this-month" };
+      }
+    }
+    return null;
+  };
 
   // DnD Handlers
   const handleDragStart = (e: React.DragEvent, templateId: string) => {
@@ -73,7 +105,7 @@ function BuilderCanvasContent() {
       if (templateId.startsWith("widget:")) {
         const widgetName = templateId.replace("widget:", "");
         setDroppedTemplates(prev => [...prev, {
-          id: `widget-${Date.now()}`,
+          id: `widget-${crypto.randomUUID().substring(0, 8)}`,
           name: widgetName,
           category: "Widget",
           orientation: "landscape",
@@ -82,7 +114,7 @@ function BuilderCanvasContent() {
         }]);
       } else if (templateId === "text-block") {
         setDroppedTemplates(prev => [...prev, {
-          id: `text-${Date.now()}`,
+          id: `text-${crypto.randomUUID().substring(0, 8)}`,
           name: "Text Block",
           category: "Text",
           orientation: "landscape",
@@ -91,7 +123,7 @@ function BuilderCanvasContent() {
         }]);
       } else if (templateId.startsWith("builder-block-")) {
         setDroppedTemplates(prev => [...prev, {
-          id: `builder-${Date.now()}`,
+          id: `builder-${crypto.randomUUID().substring(0, 8)}`,
           name: "Chart/Table Block",
           category: "Builder",
           orientation: "landscape",
@@ -100,7 +132,7 @@ function BuilderCanvasContent() {
         }]);
       } else if (templateId === "dynamic-placeholder") {
         setDroppedTemplates(prev => [...prev, {
-          id: `placeholder-${Date.now()}`,
+          id: `placeholder-${crypto.randomUUID().substring(0, 8)}`,
           name: "Report Date",
           category: "Text",
           orientation: "landscape",
@@ -110,7 +142,7 @@ function BuilderCanvasContent() {
       } else if (templateId.startsWith("page-number-")) {
         const format = templateId.replace("page-number-", "");
         setDroppedTemplates(prev => [...prev, {
-          id: `pagenum-${Date.now()}`,
+          id: `pagenum-${crypto.randomUUID().substring(0, 8)}`,
           name: `Page Number: ${format}`,
           category: "Text",
           orientation: "landscape",
@@ -120,7 +152,7 @@ function BuilderCanvasContent() {
       } else if (templateId.startsWith("image-block-sample-")) {
         const num = templateId.replace("image-block-sample-", "");
         setDroppedTemplates(prev => [...prev, {
-          id: `img-${Date.now()}`,
+          id: `img-${crypto.randomUUID().substring(0, 8)}`,
           name: `Image ${num}`,
           category: "Image",
           orientation: "landscape",
@@ -146,17 +178,17 @@ function BuilderCanvasContent() {
     let newElement: any = null;
 
     if (templateId.startsWith("widget:")) {
-      newElement = { id: `widget-${Date.now()}`, name: templateId.replace("widget:", ""), componentType: "Widget" };
+      newElement = { id: `widget-${crypto.randomUUID().substring(0, 8)}`, name: templateId.replace("widget:", ""), componentType: "Widget" };
     } else if (templateId === "text-block") {
-      newElement = { id: `text-${Date.now()}`, name: "Text Block", componentType: "Text" };
+      newElement = { id: `text-${crypto.randomUUID().substring(0, 8)}`, name: "Text Block", componentType: "Text" };
     } else if (templateId.startsWith("builder-block-")) {
-      newElement = { id: `builder-${Date.now()}`, name: "Chart/Table Block", componentType: "BuilderBlock" };
+      newElement = { id: `builder-${crypto.randomUUID().substring(0, 8)}`, name: "Chart/Table Block", componentType: "BuilderBlock" };
     } else if (templateId === "dynamic-placeholder") {
-      newElement = { id: `placeholder-${Date.now()}`, name: "Report Date", componentType: "DynamicPlaceholder" };
+      newElement = { id: `placeholder-${crypto.randomUUID().substring(0, 8)}`, name: "Report Date", componentType: "DynamicPlaceholder" };
     } else if (templateId.startsWith("page-number-")) {
-      newElement = { id: `pagenum-${Date.now()}`, name: `Page Number: ${templateId.replace("page-number-", "")}`, componentType: "PageNumber" };
+      newElement = { id: `pagenum-${crypto.randomUUID().substring(0, 8)}`, name: `Page Number: ${templateId.replace("page-number-", "")}`, componentType: "PageNumber" };
     } else if (templateId.startsWith("image-block-sample-")) {
-      newElement = { id: `img-${Date.now()}`, name: `Image ${templateId.replace("image-block-sample-", "")}`, componentType: "ImageBlock" };
+      newElement = { id: `img-${crypto.randomUUID().substring(0, 8)}`, name: `Image ${templateId.replace("image-block-sample-", "")}`, componentType: "ImageBlock" };
     }
 
     if (newElement) {
@@ -177,21 +209,41 @@ function BuilderCanvasContent() {
   };
 
   const renderBuilderElement = (template: any, idx: number) => {
-    if (template.componentType === "Widget") {
+    if (template.componentType === "Widget" || template.componentType === "BuilderBlock") {
+       const isConfigured = !!template.widgetConfig;
+       
        return (
-          <div key={`${template.id}-${idx}`} className="bg-white dark:bg-[#1a1a1a] border border-[#e5e5e5] dark:border-white/10 shadow-sm rounded-lg p-6 min-w-[300px] max-w-sm flex flex-col items-center justify-center h-48 animate-in fade-in zoom-in-95 duration-200 self-start">
-             <PieChart className="w-8 h-8 text-emerald-500 mb-3" />
-             <h3 className="font-medium text-foreground">{template.name}</h3>
-             <p className="text-xs text-foreground/50 mt-1">Live Widget Preview</p>
-          </div>
-       );
-    }
-    if (template.componentType === "BuilderBlock") {
-       return (
-          <div key={`${template.id}-${idx}`} className="bg-white dark:bg-[#1a1a1a] border border-[#e5e5e5] dark:border-white/10 shadow-sm rounded-lg p-6 min-w-[400px] max-w-lg flex flex-col items-center justify-center h-64 animate-in fade-in zoom-in-95 duration-200 self-start">
-             <div className="w-16 h-16 bg-foreground/5 rounded mb-4"></div>
-             <h3 className="font-medium text-foreground">Chart / Table</h3>
-             <p className="text-xs text-foreground/50 mt-1">Configure your chart metrics</p>
+          <div 
+            key={`${template.id}-${idx}`} 
+            onClick={(e) => { e.stopPropagation(); setSelectedWidgetId(template.id); }}
+            className={clsx(
+              "bg-white dark:bg-[#1a1a1a] shadow-sm rounded-lg p-6 min-w-[300px] flex flex-col items-center justify-center animate-in fade-in zoom-in-95 duration-200 self-start cursor-pointer transition-all",
+              selectedWidgetId === template.id ? "border-2 border-emerald-500" : "border border-[#e5e5e5] dark:border-white/10 hover:border-emerald-500/50",
+              template.componentType === "BuilderBlock" ? "max-w-lg h-64" : "max-w-sm h-48",
+              isConfigured ? "w-full min-h-[300px]" : ""
+            )}
+          >
+             {isConfigured ? (
+               <>
+                 <div className="w-full mb-4 text-left">
+                   <h3 className="font-semibold text-foreground text-lg">{template.widgetConfig?.title}</h3>
+                   {template.widgetConfig?.subtitle && (
+                     <p className="text-sm text-foreground/50">{template.widgetConfig?.subtitle}</p>
+                   )}
+                 </div>
+                 <div className="flex-1 w-full relative">
+                   <DynamicWidget config={template.widgetConfig!} />
+                 </div>
+               </>
+             ) : (
+               <>
+                 <div className="w-16 h-16 bg-foreground/5 rounded mb-4 flex items-center justify-center">
+                   <PieChart className="w-8 h-8 text-emerald-500/50" />
+                 </div>
+                 <h3 className="font-medium text-foreground">{template.name || "Chart / Table"}</h3>
+                 <p className="text-xs text-foreground/50 mt-1">Configure your chart metrics</p>
+               </>
+             )}
           </div>
        );
     }
@@ -423,6 +475,15 @@ function BuilderCanvasContent() {
       <div id="templates-panel" className="h-full relative">
         <BuilderTemplatesPanel onDragStart={handleDragStart} />
       </div>
+
+      {/* Widget Configuration Panel Overlay */}
+      {selectedWidgetId && getSelectedWidgetConfig() && (
+        <WidgetConfigPanel
+          config={getSelectedWidgetConfig()!}
+          onChange={(newConfig) => updateWidgetConfig(selectedWidgetId, newConfig)}
+          onClose={() => setSelectedWidgetId(null)}
+        />
+      )}
 
       {/* Guided Tour Overlay */}
       {tour.isActive && tour.currentStep && (

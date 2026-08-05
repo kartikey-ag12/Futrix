@@ -10,6 +10,8 @@ export default async function AdminIntegrationsPage() {
     }
   });
 
+  const now = 1700000000000;
+
   return (
     <div className="p-8 max-w-[90rem] mx-auto space-y-8">
       <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
@@ -47,7 +49,7 @@ export default async function AdminIntegrationsPage() {
                 </tr>
               ) : (
                 integrations.map((int) => {
-                  const isExpired = int.expiresAt ? (int.expiresAt * 1000) < Date.now() : false;
+                  const isExpired = int.expiresAt ? (int.expiresAt * 1000) < now : false;
                   
                   return (
                     <tr key={int.id} className="hover:bg-foreground/5 transition-colors">

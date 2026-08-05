@@ -38,12 +38,17 @@ export function SummaryDashboardContent({ companyName, teamMembers }: { companyN
     // Generate some chart data based on transactions
     chartData = Array.from({ length: 12 }).map((_, i) => {
       const monthStr = new Date(0, i).toLocaleString('default', { month: 'short' });
+      const pseudoRandomBank = ((i + 1) * 12345) % 40000 + 10000;
+      const pseudoRandomSales = ((i + 1) * 54321) % 20000;
+      const pseudoRandomCost = ((i + 1) * 33333) % 8000;
+      const pseudoRandomExpenses = ((i + 1) * 77777) % 5000;
+      
       return {
         month: monthStr,
-        bank: Math.floor(Math.random() * 50000) + 10000,
-        sales: i === new Date().getMonth() ? metrics.totalRevenue : Math.floor(Math.random() * 20000),
-        costOfSales: i === new Date().getMonth() ? (metrics.totalExpenses * 0.4) : Math.floor(Math.random() * 8000),
-        expenses: i === new Date().getMonth() ? (metrics.totalExpenses * 0.6) : Math.floor(Math.random() * 5000),
+        bank: pseudoRandomBank,
+        sales: i === new Date().getMonth() ? metrics.totalRevenue : pseudoRandomSales,
+        costOfSales: i === new Date().getMonth() ? (metrics.totalExpenses * 0.4) : pseudoRandomCost,
+        expenses: i === new Date().getMonth() ? (metrics.totalExpenses * 0.6) : pseudoRandomExpenses,
       };
     });
     

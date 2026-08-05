@@ -52,7 +52,8 @@ export function GuidedTourOverlay({ step, isActionCompleted, onNext, onCancel }:
   const [targetRect, setTargetRect] = useState<DOMRect | null>(null);
 
   useEffect(() => {
-    setMounted(true);
+    const t = setTimeout(() => setMounted(true), 0);
+    return () => clearTimeout(t);
   }, []);
 
   useEffect(() => {
