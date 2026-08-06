@@ -19,7 +19,6 @@ export interface FinancialMetrics {
   healthScore: number;
   incomeItems: Array<{ code: string; label: string; amount: number; pct: string; category: string }>;
   expenseCategories: Array<{ id: string; label: string; amount: number; pct: number; dept: string; chartLabel: string; color: string; desc: string }>;
-  historicalPnL?: Array<{ month: string; revenue: number; expenses: number; netProfit: number }>;
 }
 
 interface FinancialContextType {

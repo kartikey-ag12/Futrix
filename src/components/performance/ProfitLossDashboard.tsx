@@ -43,33 +43,27 @@ export function ProfitLossDashboard({ isBuilderMode }: { isBuilderMode?: boolean
     fill: "#f43f5e"
   }));
 
-  // Group transactions by month for the last 12 months
+  // Group transactions by month for the last 12 months (mocking missing months for display)
   const monthlyDataMap: Record<string, { income: number; expenses: number }> = {};
   
-  if (data?.metrics?.historicalPnL && data.metrics.historicalPnL.length > 0) {
-    data.metrics.historicalPnL.forEach((m: any) => {
-      monthlyDataMap[m.month] = { income: m.revenue, expenses: m.expenses };
-    });
-  } else {
-    // Fallback: Initialize last 12 months
-    const now = new Date();
-    for (let i = 11; i >= 0; i--) {
-      const d = new Date(now.getFullYear(), now.getMonth() - i, 1);
-      const label = d.toLocaleDateString('en-US', { month: 'short', year: '2-digit' });
-      monthlyDataMap[label] = { income: 0, expenses: 0 };
-    }
+  // Initialize last 12 months
+  const now = new Date();
+  for (let i = 11; i >= 0; i--) {
+    const d = new Date(now.getFullYear(), now.getMonth() - i, 1);
+    const label = d.toLocaleDateString('en-US', { month: 'short', year: '2-digit' });
+    monthlyDataMap[label] = { income: 0, expenses: 0 };
+  }
 
-    // Aggregate transactions
-    if (data?.transactions) {
-      data.transactions.forEach((tx: any) => {
-        const d = new Date(tx.date);
-        const label = d.toLocaleDateString('en-US', { month: 'short', year: '2-digit' });
-        if (monthlyDataMap[label]) {
-          if (tx.type === "revenue") monthlyDataMap[label].income += Math.abs(tx.amount);
-          else monthlyDataMap[label].expenses += Math.abs(tx.amount);
-        }
-      });
-    }
+  // Aggregate transactions
+  if (data?.transactions) {
+    data.transactions.forEach((tx: any) => {
+      const d = new Date(tx.date);
+      const label = d.toLocaleDateString('en-US', { month: 'short', year: '2-digit' });
+      if (monthlyDataMap[label]) {
+        if (tx.type === "revenue") monthlyDataMap[label].income += Math.abs(tx.amount);
+        else monthlyDataMap[label].expenses += Math.abs(tx.amount);
+      }
+    });
   }
 
   let ytdIncome = 0;

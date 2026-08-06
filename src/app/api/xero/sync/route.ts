@@ -95,13 +95,7 @@ export async function POST(req: Request) {
     const [orgResponse, invoicesResponse, pnlResponse] = await Promise.all([
       xero.accountingApi.getOrganisations(tenantId),
       xero.accountingApi.getInvoices(tenantId),
-      xero.accountingApi.getReportProfitAndLoss(
-        tenantId,
-        undefined, // fromDate
-        undefined, // toDate
-        11,        // periods
-        "MONTH"    // timeframe
-      ).catch(err => {
+      xero.accountingApi.getReportProfitAndLoss(tenantId).catch(err => {
         console.warn("Could not fetch P&L report, falling back to invoice calculation", err.message);
         return null;
       })
@@ -190,59 +184,21 @@ function buildSyncResponse(invoices: any[], orgName: string | undefined, pnlRepo
 
   // Extract from P&L report if available, else use invoice fallback
   let netProfit = totalRevenue - totalExpenses;
-  let historicalPnL: any[] = [];
-  
   if (pnlReport && pnlReport.rows) {
     let pnlRevenue = 0;
     let pnlExpenses = 0;
     let pnlNetProfit = 0;
 
-    // The header row contains the date periods
-    const headerRow = pnlReport.rows.find((r: any) => r.rowType === 'Header');
-    const periods = headerRow ? headerRow.cells?.map((c: any) => c.value).filter((v: string) => v) : [];
-    
-    // Initialize historical data structure based on the periods returned (usually newest first, we'll keep as is for now)
-    // We expect up to 12 periods (current + 11 historical)
-    periods.forEach((period: string) => {
-      historicalPnL.push({
-        month: period, // e.g. "Aug 26"
-        revenue: 0,
-        expenses: 0,
-        netProfit: 0
-      });
-    });
-
     pnlReport.rows.forEach((row: any) => {
       if (row.rowType === 'Section') {
         if (row.title === 'Operating Income' || row.title === 'Trading Income' || row.title === 'Revenue') {
-          const summaryRow = row.rows?.find((r: any) => r.rowType === 'SummaryRow');
-          if (summaryRow && summaryRow.cells) {
-            pnlRevenue = summaryRow.cells[0]?.value || pnlRevenue;
-            // Map historical values (skip index 0 if it's the title cell)
-            for (let i = 1; i < summaryRow.cells.length; i++) {
-              if (historicalPnL[i - 1]) historicalPnL[i - 1].revenue += (summaryRow.cells[i]?.value || 0);
-            }
-          }
+          pnlRevenue = row.rows?.find((r: any) => r.rowType === 'SummaryRow')?.cells?.[0]?.value || pnlRevenue;
         }
         if (row.title === 'Operating Expenses' || row.title === 'Expenses') {
-          const summaryRow = row.rows?.find((r: any) => r.rowType === 'SummaryRow');
-          if (summaryRow && summaryRow.cells) {
-            pnlExpenses = summaryRow.cells[0]?.value || pnlExpenses;
-            // Map historical values
-            for (let i = 1; i < summaryRow.cells.length; i++) {
-              if (historicalPnL[i - 1]) historicalPnL[i - 1].expenses += (summaryRow.cells[i]?.value || 0);
-            }
-          }
+          pnlExpenses = row.rows?.find((r: any) => r.rowType === 'SummaryRow')?.cells?.[0]?.value || pnlExpenses;
         }
         if (row.title === 'Net Profit' || row.title === 'Net Income') {
-          const summaryRow = row.rows?.find((r: any) => r.rowType === 'SummaryRow');
-          if (summaryRow && summaryRow.cells) {
-            pnlNetProfit = summaryRow.cells[0]?.value || pnlNetProfit;
-            // Map historical values
-            for (let i = 1; i < summaryRow.cells.length; i++) {
-              if (historicalPnL[i - 1]) historicalPnL[i - 1].netProfit += (summaryRow.cells[i]?.value || 0);
-            }
-          }
+          pnlNetProfit = row.rows?.find((r: any) => r.rowType === 'SummaryRow')?.cells?.[0]?.value || pnlNetProfit;
         }
       }
     });
@@ -252,10 +208,6 @@ function buildSyncResponse(invoices: any[], orgName: string | undefined, pnlRepo
       totalExpenses = pnlExpenses;
       netProfit = pnlNetProfit !== 0 ? pnlNetProfit : (totalRevenue - totalExpenses);
     }
-    
-    // Reverse historicalPnL so it is in chronological order (oldest to newest)
-    // Xero returns newest month first in the columns (e.g. Aug, Jul, Jun)
-    historicalPnL.reverse();
   }
 
   const incomeItems = Object.entries(incomeItemsMap).map(([label, amount], i) => ({
@@ -296,7 +248,7 @@ function buildSyncResponse(invoices: any[], orgName: string | undefined, pnlRepo
     status: "success",
     message: `Successfully synced with Xero org: ${orgName || 'Unknown'}`,
     records_synced: invoices.length,
-    metrics: { totalRevenue, totalExpenses, netProfit, healthScore: 92, incomeItems, expenseCategories, historicalPnL },
+    metrics: { totalRevenue, totalExpenses, netProfit, healthScore: 92, incomeItems, expenseCategories },
     transactions,
     contacts,
   });
