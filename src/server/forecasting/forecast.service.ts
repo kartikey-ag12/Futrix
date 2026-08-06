@@ -143,18 +143,6 @@ export class ForecastService {
         }
       }
       
-      // Fallback 2: Generate realistic dummy data if still 0 so the demo looks populated
-      if (val === 0) {
-        const acc = accounts.find(a => a.code === code);
-        if (acc) {
-          if (acc._class === 'REVENUE') val = Math.floor(Math.random() * 5000) + 1500;
-          else if (acc.type === 'DIRECTCOSTS') val = Math.floor(Math.random() * 2000) + 500;
-          else if (acc._class === 'EXPENSE') val = Math.floor(Math.random() * 1500) + 200;
-          else if (acc._class === 'ASSET') val = Math.floor(Math.random() * 8000) + 2000;
-          else if (acc._class === 'LIABILITY') val = Math.floor(Math.random() * 4000) + 1000;
-        }
-      }
-      
       return val;
     };
 

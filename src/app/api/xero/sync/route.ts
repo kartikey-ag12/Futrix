@@ -52,8 +52,7 @@ export async function POST(req: Request) {
     });
 
     if (!integration?.accessToken || !integration?.tenantId) {
-      // No Xero integration stored yet — return demo data
-      return serveDemoData();
+      return buildSyncResponse([], undefined, null);
     }
 
     // ── 4. Refresh token if expired ──────────────────────────────────────────
@@ -106,14 +105,7 @@ export async function POST(req: Request) {
     let invoices = invoicesResponse.body.invoices || [];
     const pnlReport = pnlResponse?.body?.reports?.[0];
 
-    // If the Xero account is empty, return sample demo invoices
-    if (invoices.length === 0) {
-      invoices = [
-        { InvoiceNumber: 'INV-0001', Type: 'ACCREC', Status: 'AUTHORISED', Total: 1500.00, AmountDue: 1500.00, DateString: '2026-07-24T00:00:00', Contact: { Name: 'Acme Corp' } },
-        { InvoiceNumber: 'INV-0002', Type: 'ACCREC', Status: 'PAID', Total: 3200.50, AmountDue: 0.00, DateString: '2026-07-20T00:00:00', Contact: { Name: 'Global Tech' } },
-        { InvoiceNumber: 'INV-0003', Type: 'ACCPAY', Status: 'DRAFT', Total: 450.00, AmountDue: 450.00, DateString: '2026-07-22T00:00:00', Contact: { Name: 'Office Supplies Co' } },
-      ] as any;
-    }
+    // Removed demo invoice injection for empty accounts
 
     return buildSyncResponse(invoices, orgName, pnlReport);
   } catch (error) {
@@ -124,17 +116,7 @@ export async function POST(req: Request) {
 
 // ── Helpers ────────────────────────────────────────────────────────────────────
 
-/** Returns static demo data when no Xero integration is connected. */
-function serveDemoData() {
-  return buildSyncResponse(
-    [
-      { InvoiceNumber: 'INV-0001', Type: 'ACCREC', Status: 'AUTHORISED', Total: 1500.00, AmountDue: 1500.00, DateString: '2026-07-24T00:00:00', Contact: { Name: 'Acme Corp' } },
-      { InvoiceNumber: 'INV-0002', Type: 'ACCREC', Status: 'PAID', Total: 3200.50, AmountDue: 0.00, DateString: '2026-07-20T00:00:00', Contact: { Name: 'Global Tech' } },
-      { InvoiceNumber: 'INV-0003', Type: 'ACCPAY', Status: 'DRAFT', Total: 450.00, AmountDue: 450.00, DateString: '2026-07-22T00:00:00', Contact: { Name: 'Office Supplies Co' } },
-    ] as any[],
-    "Demo Organisation"
-  );
-}
+// serveDemoData removed for production purity
 
 function buildSyncResponse(invoices: any[], orgName: string | undefined, pnlReport?: any) {
   let totalRevenue = 0;
@@ -178,9 +160,9 @@ function buildSyncResponse(invoices: any[], orgName: string | undefined, pnlRepo
     if (amountDue > 0) {
       contactsMap[contactName].totalDue += amountDue;
       contactsMap[contactName].invoicesDue += 1;
-      // Mock overdue logic for now
-      if (Math.random() > 0.5) {
-        contactsMap[contactName].totalOverdue += (amountDue * 0.5);
+      const dueDate = inv.DueDateString ? new Date(inv.DueDateString) : null;
+      if (dueDate && dueDate < new Date()) {
+        contactsMap[contactName].totalOverdue += amountDue;
       }
     }
 

@@ -69,28 +69,39 @@ Each object in the array must have:
 
     // ── 2. Rule-based Smart AI Insights (Engine Fallback) ───────────────────
     const margin = ((netProfit / (totalRevenue || 1)) * 100).toFixed(1);
-    const mockInsights = [
-      {
-        type: "warning",
-        title: "Cash Deficit Warning",
-        description: `Your monthly operating expenses are $${Number(totalExpenses).toLocaleString()}. Based on historic cash flow velocity, a potential $4,500 cash gap is projected in mid-August if pending invoices aren't collected.`,
-      },
-      {
+    const insights = [];
+    
+    if (totalRevenue === 0 && totalExpenses === 0) {
+      insights.push({
         type: "suggestion",
-        title: `Expense Optimization (${margin}% Margin)`,
-        description: `SaaS subscriptions and software hosting represent ~22% of total expenses. Audit inactive seats across cloud providers to recover up to $850/month.`,
-      },
-      {
-        type: "opportunity",
-        title: "Revenue Acceleration",
-        description: `Average invoice collection period is currently 18 days. Implementing 2% early payment discounts on invoices > $5,000 could accelerate cash collection by 6 days.`,
-      },
-    ];
+        title: "Connect Data",
+        description: "Your financial data is currently empty. Wait for Xero sync to complete to generate AI insights.",
+      });
+    } else {
+      insights.push({
+        type: "suggestion",
+        title: `Margin Analysis`,
+        description: `Your current net profit margin is ${margin}%. Tracking this metric helps understand overall business efficiency.`,
+      });
+      if (netProfit < 0) {
+        insights.push({
+          type: "warning",
+          title: "Operating Loss",
+          description: `You are operating at a net loss of $${Math.abs(Number(netProfit)).toLocaleString()}. Review operating expenses to improve cash flow.`,
+        });
+      } else {
+        insights.push({
+          type: "opportunity",
+          title: "Positive Cash Flow",
+          description: `You have generated $${Number(netProfit).toLocaleString()} in net profit. Consider re-investing or building cash reserves.`,
+        });
+      }
+    }
 
     return NextResponse.json({
       status: "success",
       source: "futrix_engine",
-      insights: mockInsights,
+      insights: insights,
     });
   } catch (error: any) {
     console.error("AI Insights Error:", error);

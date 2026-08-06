@@ -1,8 +1,8 @@
 "use client";
 
 import { useFinancial } from "@/context/FinancialContext";
-import { PerformanceChartCard, MOCK_PERFORMANCE_DATA } from "@/components/summary/PerformanceChartCard";
-import { BusinessInsightsCard, MOCK_INSIGHTS } from "@/components/summary/BusinessInsightsCard";
+import { PerformanceChartCard } from "@/components/summary/PerformanceChartCard";
+import { BusinessInsightsCard } from "@/components/summary/BusinessInsightsCard";
 import { QuickLinksCard } from "@/components/summary/QuickLinksCard";
 import { AlertsCard } from "@/components/summary/AlertsCard";
 import { RefreshCcw, Plus } from "lucide-react";
@@ -38,36 +38,31 @@ export function SummaryDashboardContent({ companyName, teamMembers }: { companyN
     // Generate some chart data based on transactions
     chartData = Array.from({ length: 12 }).map((_, i) => {
       const monthStr = new Date(0, i).toLocaleString('default', { month: 'short' });
-      const pseudoRandomBank = ((i + 1) * 12345) % 40000 + 10000;
-      const pseudoRandomSales = ((i + 1) * 54321) % 20000;
-      const pseudoRandomCost = ((i + 1) * 33333) % 8000;
-      const pseudoRandomExpenses = ((i + 1) * 77777) % 5000;
-      
       return {
         month: monthStr,
-        bank: pseudoRandomBank,
-        sales: i === new Date().getMonth() ? metrics.totalRevenue : pseudoRandomSales,
-        costOfSales: i === new Date().getMonth() ? (metrics.totalExpenses * 0.4) : pseudoRandomCost,
-        expenses: i === new Date().getMonth() ? (metrics.totalExpenses * 0.6) : pseudoRandomExpenses,
+        bank: 0,
+        sales: i === new Date().getMonth() ? metrics.totalRevenue : 0,
+        costOfSales: i === new Date().getMonth() ? metrics.totalExpenses : 0,
+        expenses: 0,
       };
     });
     
     insightsData = {
       sales: metrics.totalRevenue,
-      salesDelta: 8.4, // placeholder
-      costs: metrics.totalExpenses * 0.4,
-      costsDelta: -3.2, // placeholder
-      expenses: metrics.totalExpenses * 0.6,
-      expensesDelta: 2.1, // placeholder
+      salesDelta: 0,
+      costs: metrics.totalExpenses,
+      costsDelta: 0,
+      expenses: 0,
+      expensesDelta: 0,
       netProfit: metrics.netProfit,
-      netProfitDelta: 12.6, // placeholder
-      availableCash: metrics.netProfit + 25000,
-      healthScore: metrics.healthScore,
-      cashImpact: 18200, // placeholder
-      avgDaysCustomerPay: 32,
-      avgDaysSupplierPay: 14,
-      dueInvoices: 9400, // placeholder
-      dueBills: 5200, // placeholder
+      netProfitDelta: 0,
+      availableCash: metrics.netProfit,
+      healthScore: metrics.healthScore || 0,
+      cashImpact: 0,
+      avgDaysCustomerPay: 0,
+      avgDaysSupplierPay: 0,
+      dueInvoices: 0,
+      dueBills: 0,
     };
   } else {
     // Zeroed out for new users without data
