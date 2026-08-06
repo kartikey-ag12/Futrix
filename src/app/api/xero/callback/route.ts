@@ -9,7 +9,7 @@ const scopes = 'openid profile email accounting.invoices accounting.settings.rea
 const xero = new XeroClient({
   clientId: process.env.XERO_CLIENT_ID || '',
   clientSecret: process.env.XERO_CLIENT_SECRET || '',
-  redirectUris: [process.env.XERO_REDIRECT_URI || 'http://localhost:3000/api/xero/callback'],
+  redirectUris: [process.env.XERO_REDIRECT_URI || 'https://futrix-lake.vercel.app/api/xero/callback'],
   scopes,
 });
 
@@ -191,7 +191,7 @@ export async function GET(req: Request) {
     // ── 9. Redirect: onboarding → /dashboard, reconnect → /settings ─────────
     const redirectUrl = wasOnboarding
       ? new URL('/summary', req.url)
-      : new URL('/settings?integration=xero_success', req.url);
+      : new URL('/organizations?integration=xero_success', req.url);
 
     return NextResponse.redirect(redirectUrl);
   } catch (error: any) {
@@ -200,7 +200,7 @@ export async function GET(req: Request) {
     // Redirect onboarding users back to the connect page, existing users to settings
     const errorUrl = wasOnboarding 
       ? new URL(`/connect-xero?error=${encodeURIComponent(error.message || 'Unknown')}`, req.url)
-      : new URL(`/settings?integration=xero_error&message=${encodeURIComponent(error.message || 'Unknown')}`, req.url);
+      : new URL(`/organizations?integration=xero_error&message=${encodeURIComponent(error.message || 'Unknown')}`, req.url);
       
     return NextResponse.redirect(errorUrl);
   }

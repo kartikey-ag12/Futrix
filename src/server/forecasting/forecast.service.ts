@@ -385,7 +385,7 @@ export class ForecastService {
 
     const dataObj = forecast.data as any;
     let months = dataObj?.months;
-    if (!months) {
+    if (!months || months.length === 0) {
       months = [
         "AUG 26", "SEP 26", "OCT 26", "NOV 26", "DEC 26", 
         "FY 2026", "JAN 27", "FEB 27", "MAR 27", "APR 27", "MAY 27", "JUN 27", "JUL 27"

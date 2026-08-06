@@ -9,7 +9,7 @@ const scopes = 'openid profile email accounting.invoices accounting.settings.rea
 const xero = new XeroClient({
   clientId: process.env.XERO_CLIENT_ID || '',
   clientSecret: process.env.XERO_CLIENT_SECRET || '',
-  redirectUris: [process.env.XERO_REDIRECT_URI || 'http://localhost:3000/api/xero/callback'],
+  redirectUris: [process.env.XERO_REDIRECT_URI || 'https://futrix-lake.vercel.app/api/xero/callback'],
   scopes,
 });
 

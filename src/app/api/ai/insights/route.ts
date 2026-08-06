@@ -102,5 +102,5 @@ Each object in the array must have:
 }
 
 export async function GET() {
-  return POST(new Request("http://localhost/api/ai/insights", { method: "POST" }));
+  return POST(new Request("https://futrix-lake.vercel.app/api/ai/insights", { method: "POST" }));
 }
