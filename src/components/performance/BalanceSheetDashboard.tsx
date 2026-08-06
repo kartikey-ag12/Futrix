@@ -17,6 +17,9 @@ import {
   Cell,
 } from "recharts";
 import clsx from "clsx";
+import useSWR from 'swr';
+
+const fetcher = (url: string) => fetch(url).then((res) => res.json());
 
 // ── Mock Data ─────────────────────────────────────────────────────────────────
 
@@ -70,6 +73,21 @@ const LIQUIDITY_DATA = [
 // ── Components ────────────────────────────────────────────────────────────────
 
 export function BalanceSheetDashboard({ isBuilderMode }: { isBuilderMode?: boolean }) {
+  const { data, error, isLoading } = useSWR('/api/xero/reports/balance-sheet', fetcher);
+
+  const assets = data?.assets || [];
+  const liabilities = data?.liabilities || [];
+  
+  const totalAssets = assets.reduce((sum: number, item: any) => sum + item.value, 0);
+  const totalLiabilities = liabilities.reduce((sum: number, item: any) => sum + item.value, 0);
+  const equity = totalAssets - totalLiabilities;
+  
+  const PROPORTION_DATA_DYNAMIC = [
+    { name: "Assets", value: totalAssets || 400, color: "#10b981" },
+    { name: "Liabilities", value: totalLiabilities || 200, color: "#f43f5e" },
+    { name: "Equity", value: equity > 0 ? equity : 250, color: "#3b82f6" },
+  ];
+
   return (
     <div className="w-full flex flex-col gap-5">
       {/* Header section */}
@@ -143,10 +161,15 @@ export function BalanceSheetDashboard({ isBuilderMode }: { isBuilderMode?: boole
           <p className="text-xs text-foreground/50 mb-6">Last month</p>
           
           <div className="flex-1 min-h-[250px] w-full flex items-center justify-center relative">
+            {isLoading ? (
+              <div className="text-foreground/50 text-sm">Loading proportions...</div>
+            ) : error ? (
+              <div className="text-rose-500 text-sm">Error loading data</div>
+            ) : (
             <ResponsiveContainer width="100%" height="100%">
               <PieChart>
                 <Pie
-                  data={PROPORTION_DATA}
+                  data={PROPORTION_DATA_DYNAMIC}
                   cx="50%"
                   cy="50%"
                   innerRadius={70}
@@ -155,17 +178,18 @@ export function BalanceSheetDashboard({ isBuilderMode }: { isBuilderMode?: boole
                   dataKey="value"
                   stroke="none"
                 >
-                  {PROPORTION_DATA.map((entry, index) => (
+                  {PROPORTION_DATA_DYNAMIC.map((entry, index) => (
                     <Cell key={`cell-${index}`} fill={entry.color} />
                   ))}
                 </Pie>
                 <Tooltip contentStyle={{ borderRadius: "8px", border: "none", boxShadow: "0 4px 6px -1px rgb(0 0 0 / 0.1)", fontSize: "12px" }} />
               </PieChart>
             </ResponsiveContainer>
+            )}
             
             {/* Custom Legend */}
             <div className="absolute left-0 bottom-0 top-0 flex flex-col justify-center gap-3">
-              {PROPORTION_DATA.map((entry) => (
+              {PROPORTION_DATA_DYNAMIC.map((entry) => (
                 <div key={entry.name} className="flex items-center gap-2">
                   <div className="w-3 h-3 rounded-sm" style={{ backgroundColor: entry.color }} />
                   <span className="text-xs text-foreground/70">{entry.name}</span>

@@ -93,13 +93,18 @@ export async function POST(req: Request) {
     const tenantId = integration.tenantId!;
 
     // Fetch org details AND invoices in parallel
-    const [orgResponse, invoicesResponse] = await Promise.all([
+    const [orgResponse, invoicesResponse, pnlResponse] = await Promise.all([
       xero.accountingApi.getOrganisations(tenantId),
       xero.accountingApi.getInvoices(tenantId),
+      xero.accountingApi.getReportProfitAndLoss(tenantId).catch(err => {
+        console.warn("Could not fetch P&L report, falling back to invoice calculation", err.message);
+        return null;
+      })
     ]);
 
     const orgName = orgResponse.body.organisations?.[0]?.name;
     let invoices = invoicesResponse.body.invoices || [];
+    const pnlReport = pnlResponse?.body?.reports?.[0];
 
     // If the Xero account is empty, return sample demo invoices
     if (invoices.length === 0) {
@@ -110,7 +115,7 @@ export async function POST(req: Request) {
       ] as any;
     }
 
-    return buildSyncResponse(invoices, orgName);
+    return buildSyncResponse(invoices, orgName, pnlReport);
   } catch (error) {
     console.error("Xero sync error:", error);
     return NextResponse.json({ error: "Failed to sync with Xero" }, { status: 500 });
@@ -131,7 +136,7 @@ function serveDemoData() {
   );
 }
 
-function buildSyncResponse(invoices: any[], orgName: string | undefined) {
+function buildSyncResponse(invoices: any[], orgName: string | undefined, pnlReport?: any) {
   let totalRevenue = 0;
   let totalExpenses = 0;
   const incomeItemsMap: Record<string, number> = {};
@@ -139,6 +144,11 @@ function buildSyncResponse(invoices: any[], orgName: string | undefined) {
   const contactsMap: Record<string, any> = {};
 
   invoices.forEach((inv: any) => {
+    const status = inv.status || inv.Status;
+    if (['DRAFT', 'DELETED', 'VOIDED'].includes(status?.toUpperCase())) {
+      return; // Skip invalid invoices for calculations
+    }
+
     const type = inv.type || inv.Type;
     const total = inv.total || inv.Total || 0;
     const amountDue = inv.amountDue || inv.AmountDue || 0;
@@ -190,7 +200,33 @@ function buildSyncResponse(invoices: any[], orgName: string | undefined) {
     return c;
   });
 
-  const netProfit = totalRevenue - totalExpenses;
+  // Extract from P&L report if available, else use invoice fallback
+  let netProfit = totalRevenue - totalExpenses;
+  if (pnlReport && pnlReport.rows) {
+    let pnlRevenue = 0;
+    let pnlExpenses = 0;
+    let pnlNetProfit = 0;
+
+    pnlReport.rows.forEach((row: any) => {
+      if (row.rowType === 'Section') {
+        if (row.title === 'Operating Income' || row.title === 'Trading Income' || row.title === 'Revenue') {
+          pnlRevenue = row.rows?.find((r: any) => r.rowType === 'SummaryRow')?.cells?.[0]?.value || pnlRevenue;
+        }
+        if (row.title === 'Operating Expenses' || row.title === 'Expenses') {
+          pnlExpenses = row.rows?.find((r: any) => r.rowType === 'SummaryRow')?.cells?.[0]?.value || pnlExpenses;
+        }
+        if (row.title === 'Net Profit' || row.title === 'Net Income') {
+          pnlNetProfit = row.rows?.find((r: any) => r.rowType === 'SummaryRow')?.cells?.[0]?.value || pnlNetProfit;
+        }
+      }
+    });
+
+    if (pnlRevenue > 0 || pnlExpenses > 0) {
+      totalRevenue = pnlRevenue;
+      totalExpenses = pnlExpenses;
+      netProfit = pnlNetProfit !== 0 ? pnlNetProfit : (totalRevenue - totalExpenses);
+    }
+  }
 
   const incomeItems = Object.entries(incomeItemsMap).map(([label, amount], i) => ({
     code: `REV-${i + 1}`,

@@ -14,34 +14,10 @@ import {
   Bar,
 } from "recharts";
 import { useFinancial } from "@/context/FinancialContext";
+import useSWR from 'swr';
 import { CashFlowChart } from "./CashFlowChart";
 
-// ── Mock Data ─────────────────────────────────────────────────────────────────
-
-const BANK_DATA = [
-  { month: "Jan", actual: 120000, prior: 95000 },
-  { month: "Feb", actual: 125000, prior: 98000 },
-  { month: "Mar", actual: 110000, prior: 102000 },
-  { month: "Apr", actual: 140000, prior: 110000 },
-  { month: "May", actual: 145000, prior: 108000 },
-  { month: "Jun", actual: 130000, prior: 115000 },
-  { month: "Jul", actual: 155000, prior: 125000 },
-  { month: "Aug", actual: 160000, prior: 130000 },
-  { month: "Sep", actual: 175000, prior: 135000 },
-  { month: "Oct", actual: 180000, prior: 140000 },
-  { month: "Nov", actual: 190000, prior: 145000 },
-  { month: "Dec", actual: 210500, prior: 150000 },
-];
-
-const INVOICE_CHART_DATA = [
-  { name: "Unpaid", value: 45000, fill: "#10b981" },
-  { name: "Avg Rev", value: 38000, fill: "#9ca3af" },
-];
-
-const BILLS_CHART_DATA = [
-  { name: "Unpaid", value: 12500, fill: "#f43f5e" },
-  { name: "Avg Cost", value: 15000, fill: "#9ca3af" },
-];
+const fetcher = (url: string) => fetch(url).then((res) => res.json());
 
 function formatCurrency(val: number) {
   return new Intl.NumberFormat("en-US", { style: "currency", currency: "USD", maximumFractionDigits: 0 }).format(val);
@@ -75,6 +51,21 @@ function CustomTooltip({ active, payload, label }: TooltipInternalProps) {
 
 export function CashFlowDashboard({ isBuilderMode }: { isBuilderMode?: boolean }) {
   const { metrics } = useFinancial();
+  const { data, error, isLoading } = useSWR('/api/xero/reports/cash-flow', fetcher);
+
+  // Use fetched data or fallback empty states
+  const bankData = data?.cashFlow || [];
+  const currentCash = bankData.length > 0 ? bankData[bankData.length - 1].actual : 0;
+  
+  // Invoice & Bills would ideally come from the API as well
+  const INVOICE_CHART_DATA = [
+    { name: "Unpaid", value: 45000, fill: "#10b981" },
+    { name: "Avg Rev", value: 38000, fill: "#9ca3af" },
+  ];
+  const BILLS_CHART_DATA = [
+    { name: "Unpaid", value: 12500, fill: "#f43f5e" },
+    { name: "Avg Cost", value: 15000, fill: "#9ca3af" },
+  ];
 
   return (
     <div className="w-full flex flex-col gap-5">
@@ -97,8 +88,13 @@ export function CashFlowDashboard({ isBuilderMode }: { isBuilderMode?: boolean }
           <p className="text-xs text-foreground/50 mb-6">Last 12 months vs prior 12 months</p>
           
           <div className="h-[250px] w-full">
+            {isLoading ? (
+              <div className="w-full h-full flex items-center justify-center text-foreground/50 text-sm">Loading cash flow data...</div>
+            ) : error ? (
+              <div className="w-full h-full flex items-center justify-center text-rose-500 text-sm">Error loading data</div>
+            ) : (
             <ResponsiveContainer width="100%" height="100%">
-              <AreaChart data={BANK_DATA} margin={{ top: 10, right: 0, left: -20, bottom: 0 }}>
+              <AreaChart data={bankData} margin={{ top: 10, right: 0, left: -20, bottom: 0 }}>
                 <defs>
                   <linearGradient id="colorActual" x1="0" y1="0" x2="0" y2="1">
                     <stop offset="5%" stopColor="#10b981" stopOpacity={0.2}/>
@@ -131,6 +127,7 @@ export function CashFlowDashboard({ isBuilderMode }: { isBuilderMode?: boolean }
                 <Area type="monotone" name="Actual data" dataKey="actual" stroke="#10b981" strokeWidth={2} fillOpacity={1} fill="url(#colorActual)" />
               </AreaChart>
             </ResponsiveContainer>
+            )}
           </div>
           
           {/* Legend */}
@@ -150,7 +147,7 @@ export function CashFlowDashboard({ isBuilderMode }: { isBuilderMode?: boolean }
         <div className="lg:w-[300px] flex-shrink-0 flex flex-col justify-center border-t lg:border-t-0 lg:border-l border-[#e5e5e5] dark:border-white/8 pt-6 lg:pt-0 lg:pl-8">
           <h3 className="text-sm font-medium text-foreground/60 mb-2">Current cash in bank</h3>
           <div className="text-4xl font-bold text-foreground mb-1 tabular-nums">
-            {formatCurrency(BANK_DATA[BANK_DATA.length - 1].actual)}
+            {isLoading ? "..." : formatCurrency(currentCash)}
           </div>
           <p className="text-xs text-emerald-600 font-medium">+15.4% vs prior month</p>
         </div>
