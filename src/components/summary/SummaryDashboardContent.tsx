@@ -35,17 +35,28 @@ export function SummaryDashboardContent({ companyName, teamMembers }: { companyN
   let insightsData;
   
   if (hasData) {
-    // Generate some chart data based on transactions
-    chartData = Array.from({ length: 12 }).map((_, i) => {
-      const monthStr = new Date(0, i).toLocaleString('default', { month: 'short' });
-      return {
-        month: monthStr,
+    // Use true historical P&L from Xero if available
+    if (metrics.historicalPnL && metrics.historicalPnL.length > 0) {
+      chartData = metrics.historicalPnL.map(m => ({
+        month: m.month,
         bank: 0,
-        sales: i === new Date().getMonth() ? metrics.totalRevenue : 0,
-        costOfSales: i === new Date().getMonth() ? metrics.totalExpenses : 0,
-        expenses: 0,
-      };
-    });
+        sales: m.revenue,
+        costOfSales: m.expenses,
+        expenses: 0
+      }));
+    } else {
+      // Fallback to YTD
+      chartData = Array.from({ length: 12 }).map((_, i) => {
+        const monthStr = new Date(0, i).toLocaleString('default', { month: 'short' });
+        return {
+          month: monthStr,
+          bank: 0,
+          sales: i === new Date().getMonth() ? metrics.totalRevenue : 0,
+          costOfSales: i === new Date().getMonth() ? metrics.totalExpenses : 0,
+          expenses: 0,
+        };
+      });
+    }
     
     insightsData = {
       sales: metrics.totalRevenue,
